@@ -1,0 +1,11 @@
+{% extends '../layout.html' %}
+
+{% block title %}付款{% end %}
+
+{% block content %}
+<form action="{{ reverse_url('pay') }}" method="post">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="wx_id" value="oC5qMt6cEc7HdogAhjhldT7GdXHk">
+    <button type="submit">去付款</button>
+</form>
+{% end %}

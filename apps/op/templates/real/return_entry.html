@@ -1,0 +1,119 @@
+{% extends "../layout.html" %}
+{% block title %}退货单{% end %}
+{% block menu %}
+{% module menu('real.return_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">退货单</h2>
+</div>
+
+<form class="ui-form record-search-form" name="" method="get" action="" id="">
+    <span>订单号</span>
+    <input id="order_no" name="order_no" type="text" value="{{ form.order_no.value }}"/>
+
+    <span>商品名称</span>
+    <input id="goods_name" name="goods_name" type="text" value="{{ form.goods_name.value }}"/>
+
+    <span>退货状态</span>
+    <select id="return_status" name="return_status">
+        <option value="" {% if form.return_status.value == '' %} selected="selected" {% end %}>不限</option>
+        <option value="7" {% if form.return_status.value == '7' %} selected="selected" {% end %}>退货中</option>
+        <option value="3" {% if form.return_status.value == '3' %} selected="selected" {% end %}>已退货</option>
+    </select>
+
+    {#
+    <div style="margin-top: 5px">
+        <span>申请时间</span>
+        <input id="apply_start_cal" type="text" name="apply_time_start" value="{{ form.apply_time_start.value }}"/> -
+        <input id="apply_end_cal" type="text" name="apply_time_end" value="{{ form.apply_time_end.value }}"/>
+        <span>退货时间</span>
+        <input id="return_start_cal" type="text" name="return_time_start" value="{{ form.return_time_start.value }}"/> -
+        <input id="return_end_cal" type="text" name="return_time_end" value="{{ form.return_time_end.value }}"/>
+    </div>
+    #}
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>订单号</th>
+            <th>商品名称</th>
+            <th>退货金额</th>
+            <th>退货状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page.rows %}
+        <tr>
+            <td>{{ item.order_no }}</td>
+            <td>{{ item.goods_name }}</td>
+            <td>{{ item.refund_value }}</td>
+            <td>{{ '退货中' if item.status == 7 else '已退货' }}</td>
+            <td>
+                {% if item.status != 3 %}
+                    {% if item.sp_id == 5 %}
+                    <a href="javascript:" received-id="{{ item.id }}" return-amount="{{ item.refund_value }}" goods-name="{{ item.goods_name }}">已收到货</a> /
+                    {% end %}
+                    <a href="javascript:" date-id="{{ item.id }}" return-amount="{{ item.refund_value }}" goods-name="{{ item.goods_name }}" >未收到货</a>
+                {% end %}
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'moment', 'confirmbox', 'autumn'],
+                function ($, Calendar, moment, ConfirmBox, autumn) {
+
+        $("a[received-id]").click(function(){
+            var id = $(this).attr('received-id');
+            var name = $(this).attr('goods-name');
+            var amount = $(this).attr('return-amount');
+            var frame = '<label>您确认已收到【' + name +'】的退货吗？</label><br><br>'+
+                        '<br><label>退货原因：</label>' +
+                        '<input id="reason" type="text">';
+            ConfirmBox.confirm(frame, '已收到货确认', function(){
+                var action = "{{ reverse_url('real.return_confirm') }}";
+                var reason = $('#reason').val();
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', id))
+                        .append($("<input type='hidden' name='reason'/>").attr('value', reason))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+        $("a[date-id]").click(function(){
+            var id = $(this).attr('date-id');
+            var amount = $(this).attr('return-amount');
+            var goods_name = $(this).attr('goods-name');
+            var frame = '<label>商品：' + goods_name + '</label><br><br>' +
+                        '<label>按数量退货金额：' + amount + '</label><br><br>' +
+                        '<label><span class="ui-form-required">*</span>未收到原因：</label>' +
+                        '<input id="reason" type="text">';
+            ConfirmBox.confirm(frame, '未收到货确认', function(){
+                var action = "{{ reverse_url('real.un_return') }}";
+                var reason = $('#reason').val();
+                $("<form></form>").attr('action', action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', id))
+                        .append($("<input type='hidden' name='reason' />").attr('value', reason))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+
+    });
+</script>
+{% end %}

@@ -1,0 +1,109 @@
+{% extends '../../layout.html' %}
+{% block title %}规则添加{% end %}
+{% block menu %}
+{% module menu('weixin.keyword') %}
+{% end%}
+
+{% block styles %}
+<style>
+</style>
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">规则添加</h2>
+</div>
+
+<form action="{{ reverse_url('weixin.keyword.add') if action == 'add' else url_concat(reverse_url('weixin.keyword.edit'), {'key_id': key_map.id}) }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label class="ui-label">关键字:</label>
+        <input type="text" name="key" id="key" class="ui-input" data-max-length="60" style="float: left" {% if action == 'edit' %}value="{{ key_map.keyword }}"{% end %}>
+        <div class="fn-clear"></div>
+        <div>
+            <span id="key-wordcount"></span>
+            <span class="ui-form-explain">最多可输入60字</span>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">匹配方式</label>
+        <input type="radio" name="key_type" id="exact"{% if action == 'edit' and key_map.key_type == 2 %} checked="checked" {% end %} value="2"><label for="exact">部分匹配</label>
+        <input type="radio" name="key_type" id="fuzzy"{% if action == 'edit' and key_map.key_type == 1 %} checked="checked" {% end %} value="1"><label for="fuzzy">完全匹配</label>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">回复内容:</label>
+        <select name="option">
+            <option value="1" {% if action == 'edit' and key_map.response_type == 1 %} selected{% end %}>文字信息</option>
+            <option value="2" {% if action == 'edit' and key_map.response_type == 2 %} selected{% end %}>图文信息</option>
+            <option value="3" {% if action == 'edit' and key_map.response_type == 3 %} selected{% end %}>图文组消息</option>
+        </select>
+        <div id="contain" style="margin-top: 10px">
+            {% if action == 'add' %}
+            <textarea class="ui-textarea" name="response" cols="50" rows="5"></textarea>
+            {% else %}
+                {% if key_map.response_type == 1 %}
+                <textarea class="ui-textarea" name="response" cols="50" rows="5">{{ key_map.response }}</textarea>
+                {% elif key_map.response_type == 2 %}
+                <select name='response'>
+                    {% for item in pictures %}
+                    <option value="{{ item.id }}" {% if item.id == int(key_map.response) %} selected {% end %}>{{ item.title }}</option>
+                    {% end %}
+                </select>
+                {% elif key_map.response_type == 3 %}
+                <select name='response'>
+                    {% for item in groups %}
+                    <option value="{{ item.id }}" {% if item.id == int(key_map.response) %} selected {% end %}>{{ item.name }}</option>
+                    {% end %}
+                </select>
+                {% end %}
+            {% end %}
+        </div>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <button class="ui-button ui-button-morange">保存</button>
+    </div>
+</form>
+<input type="hidden" name="select" value="<select name='response'>{% for item in pictures %}<option value='{{ item.id }}'>{{ item.title }}</option>{% end %}</select>">
+<input type="hidden" name="group_select" value="<select name='response'>{% for item in groups %}<option value='{{ item.id }}'>{{ item.name }}</option>{% end %}</select>">
+<div style="display: none">
+    <input type="file" id="click">
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'validator'], function($, autumn, Validator){
+        autumn.word_count_monitor('[data-max-length]');
+
+        $('select[name="option"]').change(function(){
+            var contain = $('#contain');
+            console.log($(this).val());
+            contain.empty();
+            if ($(this).val() == '1') {
+                contain.append('<textarea class="ui-textarea" name="response"></textarea>');
+            } else if ($(this).val() == '2') {
+                contain.append($('input[name="select"]').val());
+            } else {
+                contain.append($('input[name="group_select"]').val());
+            }
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+
+        validator.addItem({
+            element: '[name="key_type"]',
+            required: true,
+            errormessage: '请选择匹配类型'
+        });
+
+        validator.addItem({
+            element: '#key',
+            required: true,
+            rule: 'maxlength{max: 60}',
+            errormessage: '关键词不能为空或超过六十个字'
+        });
+    });
+</script>
+{% end %}

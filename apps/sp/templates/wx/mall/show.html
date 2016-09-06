@@ -1,0 +1,163 @@
+{% extends '../../layout.html' %}
+{% block title %}微信商城封面{% end %}
+{% block menu %}
+    {% module menu('wx.mall.cover') %}
+{% end %}
+
+{% block styles %}
+<style>
+
+    .msg-list li {
+        float: left;
+        margin: 0 15px;
+    }
+    .appmsg_col {
+        display: inline-block;
+        vertical-align: top;
+        width: 33%;
+        font-size: 14px;
+        text-align: left;
+        font-size: 14px;
+        letter-spacing: normal;
+    }
+    .appmsg {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid #d3d3d3;
+        background-color: #fff;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        border-radius: 5px;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+    }
+    .appmsg_content {
+        padding: 0 14px;
+        border-bottom: 1px solid #d3d3d3;
+        position: relative;
+    }
+    .appmsg_title {
+        font-weight: 400;
+        font-style: normal;
+        font-size: 16px;
+        padding-top: 6px;
+        line-height: 28px;
+        max-height: 56px;
+        overflow: hidden;
+        word-wrap: break-word;
+        word-break: break-all;
+    }
+    .appmsg_info {
+        font-size: 13px;
+        line-height: 20px;
+        padding-bottom: 6px;
+    }
+    .appmsg_thumb_wrp {
+        height: 200px;
+        overflow: hidden;
+    }
+    .appmsg_thumb {
+        max-width: 100%;
+        max-height: 100%;
+
+    }
+    .appmsg_desc {
+        padding: 5px 0 10px;
+    }
+    .appmsg_opr {
+        background-color: #f4f4f4;
+    }
+    .appmsg_opr_item {
+        float: left;
+        line-height: 44px;
+        height: 44px;
+        text-align: center;
+        cursor: pointer
+    }
+    .with2 {
+        width: 50%;
+    }
+    .no_extra {
+        float: none;
+        width: auto;
+    }
+    .appmsg_date {
+        font-weight: 400;
+        font-style: normal;
+    }
+    .appmsg_thumb {
+        width: 100%;
+    }
+    .panel {
+        display: none;
+    }
+    .icon18_common {
+        width: 18px;
+        height: 18px;
+        vertical-align: middle;
+        line-height: 18px;
+        overflow: hidden;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div>
+    {% if cover %}
+    <div class="ui-tab">
+        <ul class="ui-tab-items">
+            <li class="ui-tab-item ui-tab-item-current">
+                <a href="javascript:;">商城封面</a>
+            </li>
+            <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.goods.list') }}">微信商品列表</a>
+            </li>
+        </ul>
+    </div>
+
+    <ul class="panels">
+        <li class="panel">
+            <div style="width: 360px; margin: 20px auto;">
+                <div class="appmsg">
+                    <div class="appmsg_content">
+                        <h4 class="appmsg_title"><a href="#">{{ cover.title }}</a></h4>
+                        <div class="appmsg_thumb_wrp">
+                            <img src="{{ img_url(cover.pic) }}" alt class="appmsg_thumb">
+                        </div>
+                        <p class="appmsg_desc">{{ cover.desc }}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <a class="ui-button ui-button-morange" href="{{ reverse_url('wx.mall.cover.edit') }}">修改</a>
+                </div>
+            </div>
+        </li>
+    </ul>
+    {% else %}
+    <div class="ui-tipbox ui-tipbox-message">
+        <div class="ui-tipbox-icon">
+            <i class="iconfont" title="提示">&#xF0142;</i>
+        </div>
+        <div class="ui-tipbox-content">
+            <h3 class="ui-tipbox-title">暂时还未设置商城封面</h3>
+            <p class="ui-tipbox-explain"><a href="{{ reverse_url('wx.mall.cover.edit') }}">去设置商城封面</a></p>
+        </div>
+    </div>
+    {% end %}
+</div>
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'tabs'], function ($, autumn, Tabs) {
+        new Tabs({
+            element: '.ui-tab',
+            triggers: '.ui-tab-item',
+            panels: '.panel',
+            triggerType: 'click',
+            activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+    });
+</script>
+{% end %}

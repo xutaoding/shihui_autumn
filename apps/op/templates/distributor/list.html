@@ -1,0 +1,68 @@
+{% extends "../layout.html" %}
+{% block title %}分销商列表{% end %}
+{% block menu %}
+{% module menu('distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">分销商列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('distributor.add') }}">添加分销商</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('distributor.show_list') }}">
+    <span>分销商名称</span>
+    <input type="text" name="name" value="{{ form.name.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th width="20%">分销商名称</th>
+            <th width="20%">店铺数量</th>
+            <th width="40%">备注</th>
+            <th width="20%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for distributor in page.rows %}
+        <tr>
+            <td>{{ distributor.name }}</td>
+            <td>
+                <a href=" {{url_concat('/distributor/shop',{'distributor-id':distributor.id})}} ">
+                    {{ distributor.shop_count }}
+                </a>
+            </td>
+            <td>{{ distributor.remark }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('distributor.edit'), {'id': distributor.id})}}">修改</a>
+                /
+                <a href="{{ url_concat(reverse_url('distributor.shop_add'), {'distributor-id': distributor.id})}}">新增分销店铺</a>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'autumn'], function($, AutoComplete, autumn){
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_suppliers) {
+                new AutoComplete({
+                    trigger: '[name=name]',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: true,
+                    dataSource: common_suppliers
+                }).on('itemSelected', function(data, item){
+                }).render()
+            });
+    })
+</script>
+{% end %}

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block title %}玛雅预约{% endblock %}
+{% set menu_key = 'order.hlg_entrance' %}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">玛雅预约</h2>
+    </div>
+    <div class="ui-grid-row">
+        <div class="ui-grid-10">
+            <h2>预约入口</h2>
+            <ul class="ui-list  ui-list-gray">
+                {% for partner in partners %}
+                    <li class="ui-list-item"><a href="{{ url_for('order.hlg_without_our_order', resaler_id=partner.id) }}">{{ partner.resaler_name }}</a></li>
+                {% endfor %}
+                <li class="ui-list-item"><a href="{{ url_for('order.hlg_with_our_order_query') }}">淘宝 | 京东 | 58 | 一号店 | 一百券</a></li>
+            </ul>
+        </div>
+        <div class="ui-grid-13">
+            <h2>查询/重发/退款</h2>
+            <form class="ui-form" method="post" action="{{ url_for('order.hlg_search') }}">
+                <div class="ui-form-item">
+                    <label for="mobile" class="ui-label"> 手机号 </label>
+                    <input class="ui-input" type="text" name="mobile" id="mobile">
+                </div>
+                <div class="ui-form-item">
+                    <label for="ybq_coupon" class="ui-label"> 一百券券号 </label>
+                    <input class="ui-input" type="text" name="ybq_coupon" id="ybq_coupon">
+                </div>
+                <div class="ui-form-item">
+                    <label for="partner_coupon" class="ui-label"> 分销商券号 </label>
+                    <input class="ui-input" type="text" name="partner_coupon" id="partner_coupon">
+                </div>
+                <div class="ui-form-item">
+                    <input type="submit" class="ui-button ui-button-morange" value="查询">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+

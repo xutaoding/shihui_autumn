@@ -1,0 +1,76 @@
+{% extends '../../layout.html' %}
+
+{% block title %}微信会员等级{% end %}
+{% block menu %}
+    {% module menu('wx.member.level') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微信会员等级</h2>
+    <a href="{{ reverse_url('wx.member.level.setting') }}" class="ui-button ui-button-sblue fn-right">设置等级</a>
+</div>
+
+<div>
+    {% if level_dict %}
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>姓名</th>
+            <th>联系方式</th>
+            <th>等级</th>
+            <th>更改等级</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for member in members %}
+        <tr>
+            <th>{{ member.name }}</th>
+            <th>{{ member.mobile }}</th>
+            <th mem-id="{{ member.id }}">{{ level_dict[str(member.level)] }}</th>
+            <th><span date-id="{{ member.id }}" style="cursor: pointer">更改</span><span id="error" style="color: red"></span></th>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="ui-tipbox ui-tipbox-message">
+        <div class="ui-tipbox-icon">
+            <i class="iconfont" title="提示">&#xF0142;</i>
+        </div>
+        <div class="ui-tipbox-content">
+            <h3 class="ui-tipbox-title">没有设置会员等级</h3>
+            <p class="ui-tipbox-explain"><a href="{{ reverse_url('wx.member.level.setting') }}">设置会员等级</a></p>
+        </div>
+    </div>
+    {% end %}
+</div>
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox'], function($, ConfirmBox){
+        $('span[date-id]').on('click', function(){
+            var mem_id = $(this).attr('date-id');
+            var level = 1;
+            var html = '<label>会员等级</label><select name="level">{% for key, val in level_dict.iteritems() %}<option value="{{ key }}">{{ val }}</option>{% end %}</select>'
+            ConfirmBox.confirm(html, '修改会员等级', function(){
+                var level = $('select[name="level"]').val();
+                $.post(
+                    "{{ reverse_url('wx.member.level') }}",
+                    {'level': level, 'mem_id': mem_id, '_xsrf': $('input[name="_xsrf"]').val()},
+                    function(data){
+                        if (data.ok){
+                            $('th[mem-id=' + mem_id + ']').text(data.name);
+                        } else {
+                            $('#error').show();
+                            $('#error').text('更新失败').css('').delay(3000).hide(0);
+                        }
+                    }
+                )
+            });
+        });
+    });
+</script>
+{% end %}

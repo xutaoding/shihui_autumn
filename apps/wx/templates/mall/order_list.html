@@ -1,0 +1,66 @@
+{% extends '../layout.html' %}
+
+{% block title %}我的订单{% end %}
+
+{% block style %}
+<style>
+    .order-list {
+        margin: 5px 0;
+        min-width: 200px;
+        background: #eee;
+        height: 60px;
+        -webkit-border-radius: 5px;
+    }
+    .order-item-right, .order-item-left {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        height: 60px;
+    }
+    .order-item-left {
+        padding-left: 10px;
+        float: left
+    }
+    .order-item-right {
+        padding-right: 10px;
+        float: right
+    }
+    .status {
+        font-size: 12px;
+        color: #c1c1c1
+    }
+</style>
+{% end %}
+
+{% block content %}
+    {% for item in page.rows %}
+    <div class="order-list" data-id="{{ item.id }}">
+        <div class="order-item-left">
+            <span style="font-size: 15px">{{ item.short_name }}</span><br>
+            <span class="status">{{ item.created_at.date() }}</span>
+        </div>
+        <div class="order-item-right">
+            <div style="float: right">
+                <span style="font: bold; font-size: 15px">{{ item.payment }}</span><br>
+                <span class="status" {% if item.status == 0 %} style="color: orange" {% end %}>
+                    {{ {0: '未付款', 1: '已付款', 2: '已消费', 3: '退款', 4: '待发货', 5: '已上传', 6: '冻结', 7: '退货中', 8: '已关闭'}.get(item.status) }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% end %}
+{% raw page.gen_html('wx') %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('.order-list').on('click', function(){
+            var action = "{{ reverse_url('order.detail') }}";
+            var order_id = $(this).attr('data-id');
+            $('<form></form>').attr('method', 'get').attr('action', action)
+                    .append($('<input type="hidden" name="wx_id" />').attr('value', "{{ current_user.wx_id }}"))
+                    .append($('<input type="hidden" name="order_id" />').attr('value', order_id)).submit();
+        });
+    });
+</script>
+{% end %}

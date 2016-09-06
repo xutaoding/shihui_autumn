@@ -1,0 +1,224 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布淘宝商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发布淘宝商品</h2>
+</div>
+
+<form action="{{ reverse_url('goods.taobao.push') }}" method="post" class="ui-form" id="">
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>标题名称</label>
+    <input class="ui-input" style="width: 400px;" type="text" name="title" id="name" data-max-length="30" value="{{ goods.name }}">
+    <input name="cid" type="hidden" value="{{ cid }}">
+    <div>
+        <span id="name-wordcount"></span>
+        <span class="ui-form-explain">不要超过30字</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label">店铺类目</label>
+    {% for item_cat in item_cats %}
+        {% if item_cat.parent_cid == 0 %}
+            {% if any([i.parent_cid==item_cat.cid for i in item_cats])%}
+                <label>{{item_cat.name}}</label>
+            {% else %}
+                <div><input type="checkbox" name="seller_cids" value="{{item_cat.cid}}">{{item_cat.name}}</div>
+            {% end %}
+        {% else %}
+            <div style="margin-left: 20px;">
+                <input type="checkbox" name="seller_cids" value="{{item_cat.cid}}">{{item_cat.name}}
+            </div>
+        {% end %}
+    {% end %}
+    {% if not item_cats %}
+        <label>无</label>
+    {% end %}
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>销售价</label>
+    <input class="ui-input" type="text" name="price" value="{{ goods.sales_price }}">
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>省份</label>
+    <input class="ui-input" type="text" name="location__state" value="上海">
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>城市</label>
+    <input class="ui-input" type="text" name="location__city" value="上海">
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>商品总库存</label>
+    <input class="ui-input" type="text" name="num" value="{{ goods.stock }}">
+</div>
+{% if goods.type == 'E'%}
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>有效期至</label>
+        <input class="ui-input" type="text" id="cal" name="locality_life__expirydate" value="{{ goods.expire_at.strftime('%Y-%m-%d') }}">
+    </div>
+{% end %}
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>立即上架</label>
+    <input type="radio" name="approve_status" value="onsale"> 是
+    <input type="radio" name="approve_status" checked value="instock"> 否
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>发码方</label>
+    <input type="radio" name="locality_life__merchant" checked value="828005208:券生活8"> 我们发码
+    <input type="radio" name="locality_life__merchant" value=""> 淘宝发码
+</div>
+<div class="ui-form-item">
+    <label class="ui-label">电子券售中自动退款比例</label>
+    <input type="text" name="locality_life__onsale_auto_refund_ratio" value="100">
+</div>
+<div class="ui-form-item">
+    <label class="ui-label">退款比例</label>
+    <input type="text" name="locality_life__refund_ratio" value="100">
+</div>
+{% for attr_info in attributes %}
+    <div class="ui-form-item">
+        <input name="attr-name" type="hidden" value="{{ attr_info.pid }}">
+        <label for="" class="ui-label">
+            {% if attr_info.must%}  <span class="ui-form-required">*</span> {% end %}
+            {{ attr_info.name }}
+        </label>
+
+        {% if attr_info.has_key('prop_values') %}
+            {% if attr_info.multi %}
+                {% if attr_info.must%} <p class="ui-form-text">必须选择至少一条</p><br> {% end %}
+                {% for item in attr_info.prop_values.prop_value %}
+                <input type="checkbox" value="{{ item.vid }}" name="{{ attr_info.pid }}">{{ item.name }}
+                {% end %}
+            {% else %}
+                <select name="{{ attr_info.pid }}">
+                    {% if attr_info.is_input_prop %}
+                        <option value="_custom_">自定义</option>
+                    {% end %}
+                    {% for item in attr_info.prop_values.prop_value %}
+                    <option value="{{ item.vid }}">{{ item.name }}</option>
+                    {% end %}
+                </select>
+                {% if attr_info.is_input_prop %}
+                    自定义： <input class="ui-input" type="text" name="{{ attr_info.pid }}_custom">
+                    <p class="ui-form-explain">请先看看是否可以指定品牌，如果下拉菜单里没有合适的选项，请先选择【自定义】，然后再填写自定义值</p>
+                {% end %}
+            {% end %}
+        {% elif attr_info.is_input_prop or attr_info.must %}
+            <input type="hidden" name="{{ attr_info.pid }}" value="_custom_">
+            <input class="ui-input" type="text" name="{{ attr_info.pid }}_custom">
+        {% end %}
+    </div>
+{% end %}
+
+<div class="ui-form-item" id="content" style="display: none">
+    <label for="desc" class="ui-label"> <span class="ui-form-required">*</span>商品详情</label>
+    <textarea id="desc" name="desc" style="width: 750px" rows="50">
+        <p><span style="font-size: 14.0px; line-height:1.4;"><strong>【商品详情】&nbsp;</strong></span></p>
+        <p><span style="font-size: 14.0px;"><strong> {{goods.name}}&nbsp;</strong></span></p>
+        <p><span style="font-size: 14.0px; line-height:1.4;"><strong>【温馨提示】&nbsp;</strong></span></p>
+        <p><span style="font-size: 14.0px;">{{goods.tips}}&nbsp;</span></p>
+        <p><span style="font-size: 14.0px; line-height:1.4;"><strong>【适用门店】&nbsp;</strong></span></p>
+        <table border="1" cellpadding="4" cellspacing="0">
+            <tbody>
+            {% for shop in shops %}
+            <tr>
+                <td width="150px"> <span style="font-size: 14px;">{{ shop.name }}</span><br> </td>
+                <td width="380px"> <span style="font-size: 14px;">地址：{{ default(shop.address) }} <br> 电话：{{ default(shop.phone) }}</span></td>
+            </tr>
+            {% end %}
+        </table>
+        {% if goods.type == 'E' %}
+        <p><span style="font-size: 14.0px; line-height:1.4;"><strong>【小贴士】&nbsp;</strong></span></p>
+        <p> <span style="font-size: 14.0px;">·本商品为电子券，购买后会以短信形式发送一串数字到您的手机</span> </p>
+        <p> <span style="font-size: 14.0px;">·如果您不小心遗失了您的电子券，请拨打一百券客服热线</span> </p>
+        <p> <span style="font-size: 14.0px;">·本产品由【一百券】提供，客服热线：400-686-5151</span> </p>
+        {% end %}
+    </textarea>
+</div>
+<div class="ui-form-item">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="goods_id" value="{{ goods.id }}">
+    <input type="hidden" name="shop_id" value="{{ shop_id }}">
+
+    <input type="hidden" name="type" value="fixed">
+    <input type="hidden" name="sub_stock" value="1">
+    <input type="hidden" name="stuff_status" value="new">
+    <input type="hidden" name="locality_life__choose_logis" value="{{['E', 'R'].index(goods.type)}}">
+    <input type="hidden" name="locality_life__refundmafee" value="s">
+    <input type="submit" class="ui-button ui-button-morange" value="发布" style="display: none">
+</div>
+</form>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'confirmbox', 'kindeditor', 'widget', 'templatable', 'ztree', 'autumn', 'moment'],
+    function ($, Calendar, ConfirmBox, KindEditor, Widget, Templatable, zTree, autumn, Moment) {
+
+        {% if goods.type == 'E'%}
+            var today = Moment().format('YYYY-MM-DD');
+            var c1 = new Calendar({trigger: '#cal', range: [today, null]});
+        {% end %}
+
+        $.get(
+            "{{ reverse_url('goods.taobao.picture.replace') }}",
+            {'goods_id': "{{ goods.id }}", 'shop': 'tb'},
+            function(result) {
+                var html = '<p><span style="font-size: 14.0px; line-height:1.4;"><strong>【商品介绍】&nbsp;</strong></span></p>' +
+                           '<p><span style="font-size: 14.0px;" id="goods_detail">' + result.detail + '</span></p>' +
+                           '<p><span style="font-size: 14.0px; line-height:1.4;"><strong>【商户介绍】&nbsp;</strong></span></p>' +
+                           '<p><span style="font-size: 14.0px;" id="supplier_intro">' + result.supplier_intro + '</span></p>';
+                var desc = $('#desc');
+                desc.html(desc.html() + html);
+                KindEditor.ready(function(K){
+                    K.create('#desc',{
+                        height: '700px',
+                        uploadJson: '{{ reverse_url("goods.taobao.upload_detail_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf')
+                        }
+                    });
+                });
+                $('#content').show();
+                $('input[type="submit"]').show();
+            }
+        );
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("goods.taobao.upload_detail_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('#upload-img').click(function() {
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        imageUrl : K('#img-path').val(),
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-url').val(url);
+                            K('#img-path').val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+
+        autumn.word_count_monitor('[data-max-length]');
+    });
+</script>
+{% end %}
+

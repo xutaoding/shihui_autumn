@@ -1,0 +1,29 @@
+{
+  "family": "alinw",
+  "name": "highcharts",
+  "version": "3.0.8",
+  "description": "Highcharts",
+  "homepage": "",
+  "author": "Torstein Honsi",
+  "maintainers": [
+    "Torstein Honsi"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://gitlab.alibaba-inc.com/alinw/highcharts.git"
+  },
+  "bugs": {
+    "url": ""
+  },
+  "keywords": [],
+  "licenses": "MIT",
+  "spm": {
+    "output": [
+      "highcharts.js",
+      "highcharts.css"
+    ],
+    "alias": {},
+    "devAlias": {},
+    "engines": {}
+  }
+}

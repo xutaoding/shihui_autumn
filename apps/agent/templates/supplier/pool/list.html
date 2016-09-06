@@ -1,0 +1,180 @@
+{% extends '../../layout.html' %}
+
+{% block title %}所有商户{% end %}
+{% block menu %}
+    {% module menu('supplier.marked.list') %}
+{% end %}
+
+{% block styles %}
+<style type="text/css">
+    .iconpitch{
+        font-size: 20px;
+        color: #FFD912
+    }
+    .empty{
+        color: grey
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="col-md-12">
+    <h2 class="page-title">商户池子</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{reverse_url('supplier.pool.list')}}">
+    <span>品牌</span>
+    <input id="brand_input" type="text" autocomplete="off" name="brand" value="{{form.brand.value}}">
+    <span>城市</span>
+    <input id="city_input" type="text" autocomplete="off" name="city" value="{{form.city.value}}">
+    <span>区域</span>
+    <input id="district_input" type="text" autocomplete="off" name="district" value="{{form.district.value}}">
+    <input id="supplier_id" name="supplier" type="hidden">
+    <span>分类</span>
+    <select name="status">
+        <<option value="">--全部--</option>
+        {% for v, name in {1:'美食', 2:'休闲娱乐', 3:'购物', 4:'丽人', 5:'结婚', 6:'亲子', 7:'运动健身', 8:'酒店', 9:'家装',
+        10:'爱车', 11:'生活服务'}.items() %}
+        <option value="{{v}}"{% if form.status.value == str(v) %} selected {% end %} >{{name}}</option>
+        {% end %}
+    </select>
+    <button class="btn btn-success btn-mg" type="submit">查询</button>
+</form>
+<!--<button type="button" id="add" class="ui-button ui-button-mdisable" disabled="disabled">申请保护</button>-->
+<button type="button" id="add" class="btn btn-primary" disabled="disabled">申请保护</button>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="widget">
+            <div class="widget-content">
+                <div class="body">
+                    <table class="table table-striped table-images">
+                    <thead>
+                        <tr>
+                            <th><input id="check" type="checkbox">全选</th>
+                            <th>品牌名</th>
+                            <th>商铺</th>
+                            <th>地址</th>
+                            <th>分类</th>
+                            <th>星级</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% set brand_category = {1:'美食',2:'休闲娱乐',3:'购物',4:'丽人',5:'结婚',6:'亲子',7:'运动健身',8:'酒店',9:'家装',10:'爱车',11:'生活服务'} %}
+                        {% for shop in page.rows %}
+                        <tr>
+                            <td><input type="checkbox" value={{shop.id}} name="check"></td>
+                            <td>{{shop.brand_name}}</td>
+                            <td>{{shop.shop_name}}</td>
+                            <td>{{shop.city}} {{shop.district}} {{shop.shop_address}}</td>
+                            <td>{{brand_category[shop.category]}}</td>
+                            <td>
+                            {% for i in range(5)%}
+                                {% if i >= shop.star %}
+                                    <span class="icon-star-empty iconpitch empty"></span>
+                                {% else %}
+                                    <span class="icon-star iconpitch"></span>
+                                {% end %}
+                            {% end %}
+                            </td>
+                        </tr>
+                    {% end %}
+                    </tbody>
+                    </table>
+
+                <p></p>
+                </div>
+            </div>
+        </div>
+        {% raw page.agent_links() %}
+    </div>
+</div>
+{% module xsrf_form_html() %}
+{% end %}
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+                function disable(){
+                    var obj = $('#add');
+                    obj.prop('disabled', true);
+                    obj.removeClass('ui-button-morange').addClass('ui-button-mdisable');
+                }
+                function enable(){
+                    var obj = $('#add');
+                    obj.prop('disabled',false);
+                    obj.removeClass('ui-button-mdisable').addClass('ui-button-morange');
+                }
+
+                function all_check(){
+                    var obj = $('input[name=check]');
+                    var all = true;
+                    obj.each(function(){
+                        if (!$(this).attr('checked')) {
+                            all = false;
+                            return false;
+                        }
+                    });
+                    if (!all) {
+                        $('#check').attr('checked', false);
+                    } else {
+                        $('#check').attr('checked', true);
+                    }
+                }
+                var check = $('#check');
+                check.on('click', function(){
+                    var checked = check.is(":checked");
+                    if (checked){
+                        enable();
+                        $('input[name=check]').each(function(){
+                            $(this).prop("checked", checked);
+                        });
+                    }
+                    else {
+                        disable();
+                        $('input[name=check]').each(function(){
+                            $(this).prop("checked", false);
+                        });
+                    }
+                });
+
+                $('input[name=check]').on('click', function(){
+                    if ($(':input[name=check]:checked').length){
+                        all_check();
+                        enable();
+                    }
+                    else {
+                        $('#check').attr('checked', false);
+                        disable();
+                    }
+                });
+
+                $('#add').on('click', function(){
+                    var rows = $(':input[name=check]:checked');
+                    var brand_list = [];
+                    rows.each(function(index){
+                        brand_list.push($(this).val());
+                    });
+
+                    var action = "{{ reverse_url('supplier.pool.list') }}";
+                    if ({{max}} == 0){
+                        alert('您的商户池子满了,可以先放弃一些商户');
+                    }
+                    else if ( brand_list.length > {{max}}){
+                        alert('抱歉, 似乎你选的商户有点多, 你还可以选择 {{ max }} 个商家, 可以尝试删掉一些商家');
+                    }
+                    else{
+                        $("<form></form>").attr('action', action).attr('method', 'post')
+                                .append($("<input type='hidden' name='_xsrf' />").attr('value', $('input[name=_xsrf]').val()))
+                                .append($("<input type='hidden' name='status' />").attr('value', $('select[name=status]').val()))
+                                .append($("<input type='hidden' name='brand' />").attr('value',  $('input[name=brand]').val()))
+                                .append($("<input type='hidden' name='city' />").attr('value',   $('input[name=city]').val()))
+                                .append($("<input type='hidden' name='district' />").attr('value', $('input[name=district]').val()))
+                                .append($("<input type='hidden' name='brand_list' />").attr('value', brand_list))
+                                .append($("<input type='hidden' name='action' />").attr('value', action))
+                                .submit();
+
+                    }
+                });
+
+    });
+
+</script>
+{% end %}

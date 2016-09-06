@@ -1,0 +1,128 @@
+{% extends "../../layout.html" %}
+{% block title %}分销商品列表{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">分销商品列表</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('goods.distributor.show_list') }}" >
+    <label for="supplier_input">商户名</label>
+    <input id="supplier_input" type="text"/>
+    <input id="supplier_id" name="supplier" type="hidden">
+
+    <label for="goods">商品名</label>
+    <input id="goods" type="text" name="goods" value="{{ form.goods.value }}"/>
+
+    <input name="shop" type="hidden" value="{{ shop_abbr }}">
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+
+    <a href="{{ reverse_url('goods.distributor.relation') }}" class="ui-button ui-button-sblue fn-right">关联商品</a>
+</form>
+
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        {% for abbr, name in [('tm', '视惠生活服务'), ('tb', '券生活8'), ('jd', '京东'), ('jdb', '京东1个点'), ('yhd', '一号店'), ('wb', '58同城')] %}
+        <li class="ui-tab-item {% if abbr == shop_abbr %} ui-tab-item-current {% end %}">
+            <a href="{{ url_concat(reverse_url('goods.distributor.show_list'), {'shop':abbr}) }}">{{name}}</a>
+        </li>
+        {% end %}
+    </ul>
+</div>
+<div class="content" style="border-bottom: 1px solid #e5e5e5; border-left: 1px solid #e5e5e5; border-right: 1px solid #e5e5e5">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th style="min-width: 200px">名称</th>
+            <th>一百券售价</th>
+            <th>采购价</th>
+            <th>状态</th>
+            <th>推送日期</th>
+            <th>详细信息</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for dgoods in page.rows %}
+        <tr>
+            <td><a href="{{ reverse_url('goods.show_detail', dgoods.gid) }}">{{ dgoods.short_name }}</a></td>
+            <td>{{ dgoods.sales_price }}</td>
+            <td>{{ dgoods.purchase_price }}</td>
+            <td>{{ {'PREPARE': '准备中', 'PENDING': '已推送', 'ON_SALE': '上架中', 'OFF_SALE': '已下架', None: '待推送'}.get(dgoods.status, '未知') }}</td>
+            <td>{{ dgoods.created_at.strftime('%Y-%m-%d') if dgoods.created_at else '' }}</td>
+            <td>
+                {% if dgoods.distributor_goods_id %}
+                    {% if shop_abbr in ('tm', 'tb') %}
+                        <a href="http://item.taobao.com/item.htm?id={{ dgoods.distributor_goods_id }}" target="_blank">购买页面</a>
+                    {% elif shop_abbr == 'wb' %}
+                        <a href="http://t.58.com/sh/{{ dgoods.distributor_goods_id}}" target="_blank">购买页面</a>
+                    {% elif shop_abbr == 'yhd' and dgoods.extra %}
+                        <a href="{{ dgoods.extra }}" class="url" target="_blank">购买页面</a>
+                    {% elif shop_abbr in ('jd', 'jdb') %}
+                        <a href="http://tuan.jd.com/team-{{ dgoods.distributor_goods_id }}.html" target="_blank">购买页面</a>
+                    {% end %}
+                {% end %}
+            </td>
+            <td>
+                {% if dgoods.id %}
+                    {% if shop_abbr not in ('tm', 'tb')%}
+                    <a href="/goods/push/{{shop_abbr}}/edit?gds_id={{ dgoods.id }}&shop_id={{shop_id}}">编辑</a> /
+                    {% end %}
+                    <a href="/goods/push/{{shop_abbr}}/{{ dgoods.gid }}?shop_id={{shop_id}}">推送</a> /
+                    <span style="cursor:pointer" data-id="{{ dgoods.id }}">隐藏</span>
+                {% else %}
+                    <a href="/goods/push/{{shop_abbr}}/{{ dgoods.gid }}?shop_id={{shop_id}}">推送</a>
+                {% end %}
+
+            </td>
+
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+{% block styles %}
+    <style type="text/css">
+        .ui-tab-item-current a, .ui-tab-item-current a:hover{
+            background: #F6F6F6;
+        }
+    </style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'autumn', 'confirmbox'], function ($, AutoComplete, autumn, ConfirmBox) {
+
+        $.post(
+                '{{ reverse_url("common.autocomplete.supplier") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf')},
+                function(common_suppliers) {
+                    new AutoComplete({
+                        trigger: '#supplier_input',
+                        filter: 'stringMatch',
+                        selectFirst: true,
+                        dataSource: common_suppliers
+                    }).on('itemSelected', function(data, item){
+                                $('#supplier_id').val(data.id);
+                            }).render()
+                }
+        )
+
+        $("span[data-id]").click(function(){
+            var id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否隐藏此条目', '确认隐藏', function(){
+                var action = "{{ reverse_url('goods.distributor.hide') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', id))
+                        .append($("<input type='hidden' name='shop_id' />").attr('value', "{{shop_id}}"))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <form method="post" action="{{ reverse_url('mall.pay') }}" id="pay" name="pay">
+        <input type="hidden" name="order_id" value="{{ order_id }}">
+        <input type="hidden" name="goods_id" value="{{ goods_id }}">
+        <input type="hidden" name="wx_id" value="{{ current_user.wx_id }}">
+        {% module xsrf_form_html() %}
+    </form>
+    <script>
+        document.forms["pay"].submit();
+    </script>
+</body>
+</html>

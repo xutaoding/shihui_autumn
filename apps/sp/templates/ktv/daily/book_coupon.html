@@ -1,0 +1,46 @@
+{% extends '../../layout.html' %}
+{% block title %}已预订券号{% end %}
+{% block menu %}
+    {% module menu('ktv.book_coupon.show') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">已预订券号</h2>
+</div>
+<form action="{{ reverse_url('ktv.book_coupon.show') }}" method="get" id="form">
+    <label for="number">手机号: </label>
+    <input id="number" class="ui-form-text" type="text" name="number" value="" style="width:20%">
+
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>手机号</th>
+            <th>券号</th>
+            <th>预订包厢信息</th>
+            <th>交易状态</th>
+            <th>创建时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in coupon_list %}
+        <tr>
+            <td>{{ phone }}</td>
+            <td>{{ item.sn }}</td>
+            <td>{{ item.scheduled_day }} {{ item.shop_name}}【{{ {'MINI':'迷你包', 'SMALL':'小包', 'MIDDLE':'中包', 'LARGE':'大包', 'DELUXE':'豪华包' }.get(item.room_type)}}{{item.name}} {{item.scheduled_time}}点开始】</td>
+            <td>{{ {'1':'未消费', '2':'已消费', '3':'已退款', '6':'冻结'}.get(str(item.status), '未知') }}
+             {% if  item.status == 1 and item.expire_at < now %}
+                | <span style="color: #FF5243">已过期 </span>
+             {% end %}
+            </td>
+            <td>{{ item.created_at }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}

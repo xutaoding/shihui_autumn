@@ -1,0 +1,255 @@
+{% extends '../../layout.html' %}
+{% block title%} 我的商户 {% end %}
+{% block menu %}
+    {% module menu('supplier.marked.list') %}
+{% end %}
+{% block styles %}
+<style type="text/css">
+.iconpitch{
+    font-size: 20px;
+    color: #FFD912
+    }
+.empty{
+    color: grey
+}
+.my-error-class {
+    color:#FF0000;  /* red */
+}
+.my-valid-class {
+    color:#00CC00; /* green */
+}
+.form-ncontrol {
+    width: 100%;
+    height: 34px;
+    padding: 6px 0px;
+    font-size: 14px;
+    line-height: 1.428571429;
+    color: #eee;
+    vertical-align: middle;
+}
+</style>
+{% end %}
+{% block content %}
+<div class="col-md-12">
+    <h2 class="page-title">我的商户池子</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{reverse_url('supplier.marked.list')}}">
+    <span>商铺名</span>
+    <input id="s_name_input" type="text" autocomplete="off" name="s_name" value="{{form.s_name.value}}">
+    <span>城市</span>
+    <input id="city_input" type="text" autocomplete="off" name="city" value="{{form.city.value}}">
+    <span>区域</span>
+    <input id="district_input" type="text" autocomplete="off" name="district" value="{{form.district.value}}">
+    <input id="supplier_id" name="supplier" type="hidden">
+    <span>分类</span>
+    <select name="status">
+        <option value="">--全部--</option>
+        {% for v, name in {1:'美食', 2:'休闲娱乐', 3:'购物', 4:'丽人', 5:'结婚', 6:'亲子', 7:'运动健身', 8:'酒店', 9:'家装',
+        10:'爱车', 11:'生活服务'}.items() %}
+        <option value="{{v}}"{% if form.status.value == str(v) %} selected {% end %} >{{name}}</option>
+        {% end %}
+    </select>
+    <button class="btn btn-success btn-mg" type="submit">查询</button>
+</form>
+<div class="row">
+    <!--储备商户-->
+    <div>
+        <div class="widget">
+            <div class="widget-content">
+                <div class="panel-group" id="accordion2">
+                    {% for index, supplier in enumerate(page.rows) %}
+                    <div class="panel">
+                        <div class="row">
+                            <div class="col-lg-1">{{index+1}}</div>
+                            <div class="col-lg-2">{{supplier.pre_distribute_datetime}}</div>
+                            <div class="col-lg-2">
+                                {{supplier.shop_name}}
+                            </div>
+                            <div class="col-lg-2">
+                                {% for i in range(5)%}
+                                    {% if i >= supplier.star %}
+                                        <i class="icon-star-empty iconpitch empty"></i>
+                                    {% else %}
+                                        <i class="icon-star iconpitch"></i>
+                                    {% end %}
+                                {% end %}
+                            </div>
+                            <span data-toggle="collapse" data-target="#collapse{{index}}" class="find-detail" style="cursor: pointer">查看详情</span>
+                        </div>
+                        <div id="collapse{{index}}"  class="collapse {{'in' if str(supplier.id) == form.pre_id.value else ''}}">
+                            <div class="panel-body">
+                                <form method="post" class="form-horizontal" action="{{ reverse_url('supplier.marked.edit') }}">
+                                    {% module xsrf_form_html() %}
+                                    <input type="hidden" name="id" value="{{supplier.id}}">
+                                    <fieldset>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label class="control-label">申请保护的时间:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-ncontrol">{{supplier.pre_distribute_datetime}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label class="control-label">品牌名:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-ncontrol">{{supplier.brand_name}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label  class="control-label">商铺名:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-nconrol" name="supplier_name">{{supplier.shop_name}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label  class="control-label">电话:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-nconrol">{{supplier.shop_phone_num}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label  class="control-label">地址:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-nconrol">{{supplier.city}} {{supplier.district}} {{supplier.shop_address}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% set dict_category = {1:'美食', 2:'休闲娱乐', 3:'购物', 4:'丽人', 5:'结婚', 6:'亲子', 7:'运动健身', 8:'酒店', 9:'家装', 10:'爱车', 11:'生活服务'} %}
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label  class="control-label ">分类:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                    <label class="form-nconrol">{{dict_category[supplier.category]}}</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="control-group">
+                                            <div class="col-md-3">
+                                                <label  class="control-label ">星级:</label>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="form-group">
+                                                     {% for i in range(5)%}
+                                                         {% if i >= supplier.star %}
+                                                             <i class="icon-star-empty iconpitch empty"></i>
+                                                         {% else %}
+                                                             <i class="icon-star iconpitch"></i>
+                                                         {% end %}
+                                                    {% end %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                                <label  class="control-label ">日志记录:</label>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="form-group">
+                                            {% if supplier.remark %}
+                                                {% set logs = supplier.remark.split(',')%}
+                                                {% for log in logs%}
+                                                <p>{{log}} </p>
+                                                {% end %}
+                                            {% end %}
+                                                <textarea class="form-control" name="remark"></textarea>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                    <div class="form-actions">
+                                        <div>
+                                            <a class="btn btn-primary" href="{{ url_concat(reverse_url('supplier.marked.add'), {'id': supplier.id}) }}">申请签约</a>
+                                            <button class="btn btn-primary" name='btn_delete'  type="button" onclick="edit(this)">放弃该商户</button>
+                                            <button class="btn btn-primary" name='btn_edit'  type="button" onclick="edit(this)">保存日志信息</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                     </div>
+                    {% end %}
+                </div>
+                {% raw page.agent_links() %}
+                <p></p>
+                <a class="btn btn-success btn-lg btn-block" href="{{ reverse_url('supplier.pool.list') }}">点击查看更多商户</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% end %}
+{% block scripts %}
+<script type="text/javascript">
+function edit(button)
+{
+    //button = $(button);
+    var name = button.getAttribute("name");
+    if (name == 'btn_delete')
+    {
+        var shop_name = $(button).closest('form').find("label[name='supplier_name']").text();
+        var tip = '您确定放弃商户"'+shop_name+'"吗？';
+        var r = confirm(tip);
+        if (r == true)
+        {
+            button.form.action="{{ reverse_url('supplier.marked.delete') }}";
+            button.form.submit();
+        }
+
+    }
+    else if (name == 'btn_edit')
+    {
+        $(button).closest('form').validate({
+            errorClass:"my-error-class",
+            validClass:"my-valid-class",
+            rules: {
+                remark: {
+                    required: true,
+                    minlength: 5,
+                    maxlength:100
+                }
+            },
+            messages: {
+               remark: {
+                   required: "请输入日志信息",
+                   minlength: "日志信息至少5个字符",
+                   maxlength:"您输入的日志信息超出了100个字符"
+               }
+
+            }
+        });
+        var a = $(button).closest('form');
+        if (a.valid())
+        {
+            button.form.action="{{ reverse_url('supplier.marked.edit') }}";
+            button.form.submit();
+        }
+
+    }
+    else
+    {
+        button.form.method="get";
+        console.log(button.form.method);
+        button.form.action="{{ reverse_url('supplier.marked.add') }}";
+        button.form.submit();
+    }
+};
+</script>
+{% end %}

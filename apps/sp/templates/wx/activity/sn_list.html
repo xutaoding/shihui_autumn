@@ -1,0 +1,100 @@
+{% extends "../../layout.html" %}
+{% block title %}微活动兑换码管理{% end %}
+{% block menu %}
+{% module menu('wx.activity.cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微活动兑换码管理</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('wx.activity.sn') }}" >
+    <div>
+        <span>兑换码SN</span>
+        <input type="text" name="sn" value="{{ form.sn.value }}"/>
+        <span style="margin-left:20px">中奖者手机号</span>
+        <input type="text" name="mobile" value="{{ form.mobile.value }}"/>
+        <span style="margin-left:20px">状态</span>
+        <select name="status">
+            <option value="" selected>全部</option>
+            <option value="1" {%if form.status.value=='1'%}selected{%end%}>未发放</option>
+            <option value="2" {%if form.status.value=='2'%}selected{%end%}>已发放</option>
+            <option value="3" {%if form.status.value=='3'%}selected{%end%}>已使用</option>
+            <option value="4" {%if form.status.value=='4'%}selected{%end%}>冻结</option>
+        </select>
+    </div>
+    <div style="margin-top:10px">
+        <span>奖品类别</span>
+        <input type="text" name="type" value="{{ form.type.value }}"/>
+        <span style="margin-left:20px">奖品名称</span>
+        <input type="text" name="name" value="{{ form.name.value }}"/>
+        <input type="hidden" name="act_id" value="{{act_id}}">
+        <input type="submit" class="ui-button ui-button-sorange fn-right" value="筛选" >
+    </div>
+</form>
+<div>
+    <table class="ui-table">
+        <thead>
+            <tr>
+                <th style="width:100px">SN</th>
+                <th>奖品类别</th>
+                <th>奖品名称</th>
+                <th style="width:60px">状态</th>
+                <th style="width:100px">中奖者手机号</th>
+                <th style="width:70px">中奖时间</th>
+                <th style="width:70px">使用时间</th>
+                <th style="width:40px">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in page.rows %}
+            <tr>
+                <td>{{s.sn}}</td>
+                <td>{{s.type}}</td>
+                <td>{{s.name}}</td>
+                <td>{{ {1:'未发放', 2:'已发放', 3:'已使用', 4:'冻结'}.get(s.status)}}</td>
+                <td>{{default(s.mobile, '')}}</td>
+                <td>{{default(s.win_at, '')}}</td>
+                <td>{{default(s.used_at, '')}}</td>
+                {% if s.used_at %}
+                <td><span>已使用</span></td>
+                {% else %}
+                <td><span style="color: #08c; cursor: pointer;" name="use" sid="{{s.sid}}">使用</span></td>
+                {% end %}
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
+    {% module xsrf_form_html() %}
+{% raw page.links()%}
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'tabs'],
+    function ($, autumn, ConfirmBox, Tabs) {
+        $('span[name=use]').click(function(){
+            var sid = $(this).attr('sid');
+            var t = $(this);
+            ConfirmBox.confirm('是否确认使用', '使用兑换码', function(){
+                var action = "{{ reverse_url('wx.activity.sn_use') }}";
+                $.post(
+                    action,
+                    {'sid':sid, '_xsrf':autumn.get_cookie('_xsrf') },
+                    function(data){
+                        if (data.ok){
+                            window.location.reload();
+                        }
+                        else{
+                            alert(data.msg);
+                        }
+                    }
+                )
+
+
+            });
+        });
+    });
+</script>
+{% end %}

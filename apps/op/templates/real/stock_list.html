@@ -1,0 +1,67 @@
+{% extends "../layout.html" %}
+{% block title %}库存列表{% end %}
+{% block menu %}
+{% module menu('real.stock_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">库存列表</h2>
+    <a class="ui-button ui-button-sblue" style="margin-left: 760px;" href="{{ reverse_url('real.stock_in') }}">入库</a>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('real.stock_out') }}">出库</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('real.stock_list') }}">
+    <label for="sku">货品</label>
+    <input id="sku" name="sku" type="text" value="{{ form.sku.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>货品名称</th>
+            <th>进价/售价</th>
+            <th>数量</th>
+            <th>备注</th>
+            <th>创建时间</th>
+            <th>操作类别</th>
+        </tr>
+        </tr>
+        </tr>
+        </thead>
+        <tbody>
+        {% for stock in page.rows %}
+        <tr>
+            <td>{{stock.sku_name}}</td>
+            <td>{{stock.price}}</td>
+            <td>{{stock.num}}</td>
+            <td>{{default(stock.remark)}}</td>
+            <td>{{stock.created_at}}</td>
+            <td> {{ {'IN':'入库', 'OUT':'出库'}.get(stock.type, '未知') }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+{% block scripts %}
+<script>
+    //初始化商户选择的自动补全
+    seajs.use(['$', 'autocomplete','autumn'],
+            function ($, AutoComplete,autumn) {
+                $.post(
+                        '{{ reverse_url("common.autocomplete.sku") }}',
+                        {'_xsrf': autumn.get_cookie('_xsrf')},
+                        function (common_skus) {
+                            new AutoComplete({
+                                trigger: '#sku',
+                                filter: 'stringMatch',
+                                selectFirst: true,
+                                submitOnEnter: false,
+                                dataSource: common_skus
+                            }).render()
+                        })
+            });
+
+</script>
+{% end %}

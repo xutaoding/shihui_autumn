@@ -1,0 +1,97 @@
+{% extends "../layout.html" %}
+{% block title %}微信商品详情{% end %}
+
+{% block style %}
+<style>
+    body{
+        background: none;
+    }
+    .goods-img-div {
+        position: relative;
+        height: 200px;
+        margin: 0 -5% 0 -5%;
+        text-align: center;
+        padding: 10px 0;
+        border: 2px solid #;
+        background: #E9E9E9;
+        -webkit-box-shadow: 0 1px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 1px 10px rgba(0,0,0,0.3);
+    }
+    .goods-img {
+        display: block;
+        position: absolute;
+        margin: auto;
+        padding: 10px 0;
+        max-height: 100%;
+        width: auto;
+        top:0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    .goods-detail{
+        margin-bottom: 60px;
+    }
+    .goods-title {
+        font-size: 18px;
+        padding: 10px 0;
+    }
+    .goods-price-now {
+        color: red;
+        font-size: 16px;
+    }
+    .goods-price-deleted {
+        margin-left: 20px;
+    }
+    .goods-desc img {
+        max-width: 100%
+    }
+    .goods-tips img {
+        max-width: 100%
+    }
+</style>
+{% end %}
+
+{% block content %}
+    <div class="fix-btn">
+        <form action="{{ reverse_url('mall.order_info') }}" method="get">
+            <input type="submit" class="btn btn-success" value="立即购买">
+            <input type="hidden" name="goods_id" value="{{goods.id}}">
+            <input type="hidden" name="wx_id" value="{{current_user.wx_id}}">
+        </form>
+    </div>
+    <div class="goods-img-div">
+        <img src="{{img_url(img)}}" class="goods-img" >
+    </div>
+    <div class="goods-detail">
+        <div class="goods-title">
+            {{goods.short_name}}
+        </div>
+        <div class="goods-price">
+            售价：
+            <span class="goods-price-now">
+                ￥{{goods.sales_price}}
+            </span>
+            <span class="goods-price-deleted">
+                <del> 原价：￥{{goods.face_value}}</del>
+            </span>
+        </div>
+        <p class="separate-line"></p>
+        <div class="row">
+            <div class="col-xs-8 col-xs-push-4">{{ {'E': '电子券', 'R': '实物'}.get(goods.type, 'E')}}</div>
+            <div class="col-xs-4 col-xs-pull-8">商品类型：</div>
+            <div class="col-xs-8 col-xs-push-4">{{ default(goods.postage, '0.00') }}元</div>
+            <div class="col-xs-4 col-xs-pull-8">运费：</div>
+            <div class="col-xs-8 col-xs-push-4">{{default(goods.stock, '0')}}件</div>
+            <div class="col-xs-4 col-xs-pull-8">库存：</div>
+            <div class="col-xs-8 col-xs-push-4">{%if goods.max_buy == 0 %}不限{%else%}{{goods.max_buy}}件{%end%}</div>
+            <div class="col-xs-4 col-xs-pull-8">限购：</div>
+        </div>
+        <p class="separate-line"></p>
+        <div class="goods-desc">
+            {% raw default(goods.detail, '') %}
+        </div>
+    </div>
+
+
+{% end %}

@@ -1,0 +1,73 @@
+{% extends "../../layout.html" %}
+{% block title %}操作员{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('user', supplier.id) %}
+<a class="ui-button ui-button-sblue fn-right fn-clear" style="margin-top: -50px;"
+   href="{{ url_concat(reverse_url('supplier.user.add'), {'supplier_id': supplier.id}) }}" >添加店员帐号</a>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>用户名</th>
+            <th>姓名</th>
+            <th>角色</th>
+            <th>管辖门店</th>
+            <th>操 作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in page.rows %}
+        <tr>
+            <td>{{ user.login_name }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ {'clerk,finance,manager':'管理员','finance':'财务','clerk':'收款店员'}.get(user.roles,'')}}</td>
+            <td>{{ user.shop_name if user.shop_name else '全部门店' }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('supplier.user.edit'), {'id': user.id}) }}">修改</a> /
+                <span style="cursor:pointer" pwd-id="{{ user.id }}">重置密码</span>/
+                <span style="cursor:pointer" del-id="{{ user.id }}">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$','confirmbox','autumn'],
+               function ($, ConfirmBox, autumn) {
+        $("span[del-id]").click(function(){
+            var user_id = $(this).attr('del-id');
+            ConfirmBox.confirm('是否删除该操作员', '删除店员帐号', function(){
+                var action = "{{ reverse_url('supplier.user.delete') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', user_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+        $("span[pwd-id]").click(function(){
+            var user_id = $(this).attr('pwd-id');
+            ConfirmBox.confirm('确认重置该店员帐号的密码为 123456 ？', '重置密码', function(){
+                var action = "{{ reverse_url('supplier.user.reset_pwd') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', user_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

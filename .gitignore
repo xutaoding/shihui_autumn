@@ -1,0 +1,9 @@
+.idea
+*.ipr
+*.imr
+*.iws
+*.iml
+
+.DS_Store
+*.swp
+*.pyc

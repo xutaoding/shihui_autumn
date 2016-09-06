@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}玛雅预约{% endblock %}
+{% set menu_key = 'order.hlg_entrance' %}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">玛雅预约</h2>
+    </div>
+    <div class="ui-grid-row">
+        <div class="ui-grid-5">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>券号</th>
+                    <th>状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for coupon in coupon_list %}
+                    <tr>
+                        <td>{{ coupon.e_coupon_sn }}</td>
+                        <td>{{ {'UNCONSUMED':'未消费', 'CONSUMED':'已消费', 'REFUND':'已退款'}.get(coupon.status,'') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="ui-grid-20">
+            <form class="ui-form" method="post" action="{{ url_for('order.hlg_with_our_order') }}">
+                <div class="ui-form-item {% if errors and errors.appoint_date %} ui-form-item-error {% endif %}">
+                    <label for="" class="ui-label">
+                        <span class="ui-form-required">*</span>预约日期
+                    </label>
+                    <input class="ui-input" type="text" name="appoint_date" id="appoint_date">
+                    <p class="ui-form-explain">只能选择从明天开始，最近30天的日期</p>
+                </div>
+                <div class="ui-form-item {% if errors and errors.appoint_count %} ui-form-item-error {% endif %}">
+                    <label for="" class="ui-label">
+                        <span class="ui-form-required">*</span>预约数量
+                    </label>
+                    <input class="ui-input" type="text" name="appoint_count">
+
+                    <p class="ui-form-explain">同一手机号在同一天内不能预约超过5张券</p>
+                </div>
+                <div class="ui-form-item">
+                    <input type="hidden" name="coupon" value="{{ c }}">
+                    <input type="hidden" name="action" value="appoint">
+                    <input type="submit" class="ui-button ui-button-morange" value="预约">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://aralejs.org/calendar/src/calendar.css"/>
+{% endblock %}
+
+{% block scripts %}
+    <script charset="utf-8" src="{{ url_for('static', filename='js/xdate.js') }}"></script>
+    <script>
+        seajs.config({
+            alias: {
+                '$': 'gallery/jquery/1.7.2/jquery'
+            }
+        });
+        seajs.use('arale/calendar/0.9.0/calendar', function (Calendar) {
+            var today = new XDate();
+            var cal = new Calendar({
+                trigger: '#appoint_date',
+                range: [today.addDays(1).toString('yyyy-MM-dd'), today.addDays(30).toString('yyyy-MM-dd')]
+            });
+        });
+    </script>
+{% endblock %}

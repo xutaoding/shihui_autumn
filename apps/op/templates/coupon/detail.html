@@ -1,0 +1,138 @@
+{% extends "../layout.html" %}
+{% block title %}券详情{% end %}
+{% block menu %}
+{% module menu('coupon.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">券基本详情</h2>
+</div>
+
+<div class="content">
+    <div class="ui-grid-row">
+        <div class="ui-grid-10">
+            <dl class="ui-dlist">
+                <dt class="ui-dlist-tit">订单号：</dt>
+                <dd class="ui-dlist-det">
+                    <a href=" {{ reverse_url('order.show_detail',coupon.order_id) }} "> {{ coupon.order_no }} </a>
+                </dd>
+                <dt class="ui-dlist-tit">分销商：</dt>
+                <dd class="ui-dlist-det">{{ default(coupon.distributor_name)}}</dd>
+                <dt class="ui-dlist-tit">分销店铺：</dt>
+                <dd class="ui-dlist-det">{{ default(coupon.distributor_shop_name)}}</dd>
+                <dt class="ui-dlist-tit">商品名：</dt>
+                <dd class="ui-dlist-det">
+                    <a href="{{ reverse_url('goods.show_detail',coupon.goods_id)}} ">
+                        {{ coupon.goods_name }}
+                    </a>
+                </dd>
+                <dt class="ui-dlist-tit">有效期：</dt>
+                <dd class="ui-dlist-det">{{ coupon.expire_at }}</dd>
+                <dt class="ui-dlist-tit">手机号：</dt>
+                <dd class="ui-dlist-det">{{ coupon.mobile }}
+                    {% if resend %}
+                    <a href="javascript:" id="resend">(重发短信)</a>
+                    {% end %}
+                </dd>
+            </dl>
+        </div>
+        <div class="ui-grid-13">
+            <dl class="ui-dlist">
+                <dt class="ui-dlist-tit">券号：</dt>
+                <dd class="ui-dlist-det">
+                    <span id="coupon_no">
+                        {% if coupon.status == 1 %}
+                            {{ coupon.sn[:4] + '*'*(len(coupon.sn)-7) + coupon.sn[-3:] }}
+                            <a href="javascript:" id="coupon_a">显示完整券号</a>
+                        {% else %}
+                            {{ coupon.sn }}
+                        {% end %}
+                    </span>
+                </dd>
+                <dt class="ui-dlist-tit">密码：</dt>
+                <dd class="ui-dlist-det"> {{ default(coupon.pwd) }} &nbsp;</dd>
+                <dt class="ui-dlist-tit">商户券号：</dt>
+                <dd class="ui-dlist-det"> {{ default(coupon.sp_sn) }} &nbsp;</dd>
+                <dt class="ui-dlist-tit">分销商券号：</dt>
+                <dd class="ui-dlist-det"> {{ default(coupon.distr_sn) }} &nbsp; </dd>
+                <dt class="ui-dlist-tit">采购价：</dt>
+                <dd class="ui-dlist-det">{{ coupon.purchase_price }}</dd>
+                <dt class="ui-dlist-tit">单价：</dt>
+                <dd class="ui-dlist-det">{{ coupon.sales_price }}</dd>
+                <dt class="ui-dlist-tit">状态：</dt>
+                <dd class="ui-dlist-det">
+                    {{ {'1':'未消费', '2':'已消费','3':'已退款', '6':'已冻结'}.get(str(coupon.status), '') }}
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">券操作详情</h2>
+    </div>
+
+    <div class="content">
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>操作时间</th>
+                <th style="width: 70px;">操作者</th>
+                <th>信息</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for history in verify_coupon %}
+            <tr>
+                <td>
+                    {{ history.created_at }}
+                </td>
+                <td>{{ history.created_by }}</td>
+                <td>
+                    {{ history.message}}
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox'], function($, autumn, ConfirmBox){
+        var coupon_no = "{{ coupon.sn }}";
+        var coupon_id = "{{coupon.id}}"
+        $("#coupon_a").click(function(){
+            $("#coupon_no").text(coupon_no);
+            $.ajax({
+                url: '{{ reverse_url("coupon.journal") }}',
+                type: 'POST',
+                data: {'coupon_id': coupon_id, '_xsrf': autumn.get_cookie('_xsrf')}
+            })
+        });
+
+        $("#resend").click(function(){
+            ConfirmBox.confirm('是否重发短信?', '确认', function(){
+                $.ajax({
+                    url: '{{ reverse_url("coupon.resend") }}',
+                    type: 'POST',
+                    data: {'coupon_sn': coupon_no, '_xsrf': autumn.get_cookie('_xsrf')},
+                    success: function(data){
+                        if (data.error){
+                            alert(data.error);
+                        }
+                        else{
+                            location.reload();
+                        }
+                    }
+                });
+                return false;
+            });
+        })
+
+    })
+</script>
+{% end %}
+
+

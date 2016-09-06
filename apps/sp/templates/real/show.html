@@ -1,0 +1,49 @@
+{% extends '../layout.html' %}
+{% block title %}下载发货单{% end %}
+{% block menu %}
+    {% module menu('real.show_shipping') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">发货单列表</h2>
+</div>
+
+<div style="margin: 10px 0">
+    <form action="{{ reverse_url('real.create_shipping') }}" method="post">
+        <label>待发货订单数</label> {{ unload_number }}
+        {% module xsrf_form_html() %}
+        {% if unload_number %}
+        <input type="submit" class="ui-button ui-button-morange" value="准备下载">
+        {% end %}
+    </form>
+</div>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>生成人</th>
+            <th>生成时间</th>
+            <th>下载批次号</th>
+            <th>订单数</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for batch in page.rows %}
+        <tr>
+            <td>{{ batch.created_by }}</td>
+            <td>{{ batch.created_at }}</td>
+            <td>{{ batch.id }}</td>
+            <td>{{ batch.order_count }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('real.download_shipping'), {'batch_id':batch.id}) }}">下载</a>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+ {% raw page.links() %}
+{% end %}

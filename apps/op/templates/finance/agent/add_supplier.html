@@ -1,0 +1,152 @@
+{% extends '../../layout.html' %}
+{% block title %}微信代理商管理{% end %}
+{% block menu %}
+{% module menu('finance.agent_sequence') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" xmlns="http://www.w3.org/1999/html">
+    <h2 class="fn-left">商户微信资金入账</h2>
+</div>
+<div class="ui-tab" style="margin-bottom: 20px; margin-top:20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{reverse_url('finance.agent_sequence')}}">代理商资金</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{reverse_url('finance.agent_pay_list')}}">代理商充值</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="{{reverse_url('finance.agent_add_supplier')}}">商户入账</a>
+        </li>
+    </ul>
+</div>
+<div>
+    <form class="ui-form" id="form" action="{{reverse_url('finance.agent_add_supplier')}}" method="post">
+    {% module xsrf_form_html() %}
+    <div class="ui-form-item">
+        <label for="supplier_id" class="ui-label">
+            <span class="ui-form-required">*</span>商户</label>
+        <input id="supplier_input" type="text" class="ui-input" value="" style="width:160px"/>
+        <input id="supplier_id" name="supplier_id" type="hidden">
+        <input id="agent_id" name="agent_id" type="hidden">
+        <button type="button" id="confirm" class="ui-button ui-button-sorange">确认</button>
+    </div>
+    <div class="" id="more" style="display:none">
+        <dl class="ui-dlist" style="width: 100%;margin-left: 50px;margin-bottom: 20px;">
+            <dt class="ui-dlist-tit">所属代理商：</dt>
+            <dd class="ui-dlist-det" id="agent_name"></dd>
+            <dt class="ui-dlist-tit">合作模式：</dt>
+            <dd class="ui-dlist-det" id="agent_type"></dd>
+            <dt class="ui-dlist-tit">代理商库存：</dt>
+            <dd class="ui-dlist-det" id="agent_stock"></dd>
+        </dl>
+        <div class="ui-form-item">
+            <label class="ui-label"><span class="ui-form-required">*</span>金额：</label>
+            <input id="amount" name="amount" type="text" class="ui-input" value="" />
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">
+                <span class="ui-form-required">*</span>有效期：</label>
+            <input name="expire_at" type="text" class="ui-input" id="expire_at" readonly>
+        </div>
+        <div class="ui-form-item">
+            <label for="remark" class="ui-label">备注：</label>
+            <textarea id="remark" name="remark" rows="5" cols="15" class="ui-input"
+                      style="margin: 0px; width: 388px; height: 110px;">
+            </textarea>
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="submit" value="提交" class="ui-button ui-button-sorange">
+        </div>
+    </div>
+    </form>
+
+</div>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+{% end %}
+
+{% block scripts %}
+<script>
+seajs.use(['$', 'calendar', 'moment', 'autocomplete', 'autumn', 'validator'],
+    function ($, Calendar, moment, AutoComplete, autumn, Validator) {
+        var t1 = '2012-01-01 00:00:00';
+        new Calendar({trigger: '#expire_at', range: [t1, null], format: 'YYYY-MM-DD 23:59:59'})
+        // 防止回车提交
+        $(document).keypress(
+            function(event){
+                if (event.which == '13') {
+                event.preventDefault();
+            }
+        });
+        // 前段校验
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#supplier_input',
+            required: true,
+            errormessage: '商户不能为空，请输入'
+        });
+        validator.addItem({
+            element: '#amount',
+            required: true,
+            errormessage: '金额不能为空，请输入'
+        });
+        validator.addItem({
+            element: '#amount',
+            rule: 'min{min:3888}',
+            errormessage: '单价不得低于3888元每套'
+        });
+        validator.addItem({
+            element: '#expire_at',
+            required: true,
+            errormessage: '有效期不能为空'
+        });
+
+        //初始化商户选择的自动补全
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers
+                }).on('itemSelected',function (data) {
+                    $('#supplier_id').val(data.id);
+                }).render()
+            }
+        )
+
+        // 根据商户去查对应的代理商
+        $('#confirm').click(function(){
+            var sp_id = $('#supplier_id').val();
+            $('#more').css('display', 'none');
+            $.post(
+                '{{ reverse_url("finance.agent_supplier_check") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'sp_id': sp_id},
+                function (data) {
+                    if (data.error){
+                        alert(data.error);
+                    }
+                    else{
+                        $('#agent_name').text(data.short_name);
+                        $('#agent_stock').text(data.stock);
+                        $('#agent_type').text(data.type);
+                        $('#agent_id').val(data.id);
+                        $('#more').css('display', 'block');
+                    }
+                }
+            );
+
+        });
+
+});
+</script>
+{% end %}

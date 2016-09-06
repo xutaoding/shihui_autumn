@@ -1,0 +1,126 @@
+{% extends "../layout.html" %}
+{% block title %}未消费券退款{% end %}
+{% block menu %}
+{% module menu('coupon.verified_refund') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">电子券退款</h2>
+</div>
+
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('coupon.verified_refund') }}">已消费退款</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="{{ reverse_url('coupon.unconsumed_refund') }}">未消费退款</a>
+        </li>
+    </ul>
+</div>
+
+<div class="content" style="border-bottom: 1px solid #e5e5e5; border-left: 1px solid #e5e5e5; border-right: 1px solid #e5e5e5; margin-top:10px">
+    <form class="ui-form  ui-form-large" id="form" method="post" action="{{reverse_url('coupon.verified_refund')}}">
+        <fieldset>
+            <div class="ui-form-item">
+                <label for="coupon" class="ui-label"> 一百券券号 </label>
+                <input id="coupon" class="ui-input" type="text" name="coupon">
+                <button type="button" class="ui-button ui-button-lorange" id="query">查询</button>
+
+                <div class="ui-tiptext-container ui-tiptext-container-error" style="margin-top: 10px;display:none" id="error-box">
+                    <p class="ui-tiptext ui-tiptext-error">
+                        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                        <span id="error-text"> 错误信息 </span>
+                        <a id="error-coupon" href="#" target="_blank" style="display: none">点击查看券详情</a>
+                    </p>
+                </div>
+                <div class="ui-tiptext-container ui-tiptext-container-success" style="margin-top: 10px;display:none" id="success-box">
+                    <p class="ui-tiptext ui-tiptext-success">
+                        <i class="ui-tiptext-icon iconfont" title="成功">&#xF049;</i>
+                        <span id="success-text"> 成功信息 </span>
+                    </p>
+                </div>
+            </div>
+            <div id="verify-info" style="display: none">
+                <div class="ui-form-item">
+                    <label class="ui-label"> 商品： </label>
+                    <p id='goods' class="label-info">商品名称</p>
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label"> 售价： </label>
+                    <p id='price' class="label-info">商品售价</p>
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label"> 券状态： </label>
+                    <p id='status' class="label-info"></p>
+                </div>
+                <div class="ui-form-item">
+                    {% module xsrf_form_html() %}
+                    <a class="ui-button ui-button-lorange" id="submit">确定</a>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+{% end %}
+{% block styles %}
+<style>
+    .label-info {
+    font-size: 14px; height: 18px; padding: 11px 10px;
+    }
+</style>
+{% end %}
+{% block scripts %}
+<script>
+        seajs.use(['$', 'templatable', 'widget', 'confirmbox', 'autumn'], function ($, Templatable, Widget, ConfirmBox, autumn) {
+            var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+            // 查询券号对应消费券信息
+            $('#query').click(function(){
+                $('#goods,#price,#shops,#error-text, #success-text').empty();
+                $('#error-box, #success-box, #error-coupon,#verify-info').hide();
+                $.post(
+                    '/coupon/refund-query',
+                    {'coupon': $('#coupon').val(), '_xsrf':autumn.get_cookie('_xsrf')},
+                    function(data){
+                        if (data.error) {
+                            $('#error-box').show();
+                            $('#error-text').text(data.error);
+                                if(data.coupon){
+                                $('#error-coupon').attr('href', '/coupon/'+data.coupon.id).show();
+                            }
+
+                            return;
+                        }
+                        $('#verify-info').show();
+                        $('#goods').text(data.coupon.goods_name);
+                        $('#price').text(data.coupon.sales_price);
+                        $('#status').text({1: '未消费',2:'已消费',3:'已退款',6:'冻结'}[data.coupon.status])
+                    }
+                ).error(function(){
+
+                });
+            });
+
+            // 发送退款请求并处理返回结果
+            $('#submit').click(function(){
+                ConfirmBox.confirm('是否退款', '确认', function(){
+                       $.post( '/coupon/coupon-refund', $('#form').serialize(), function(data) {
+                            if (data.error) {
+                                $('#error-box').show();
+                                $('#error-text').text(data.error);
+                            }
+                            if (data.info) {
+                                $('#success-box').show();
+                                $('#success-text').text(data.info);
+                            }
+                            $('#verify-info').hide();
+                       }
+                       );
+                });
+            });
+        });
+
+    </script>
+{% end %}

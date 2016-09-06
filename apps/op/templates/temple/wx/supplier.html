@@ -1,0 +1,51 @@
+{% extends "../../layout.html" %}
+{% block title %}商户微信接入{% end %}
+{% block menu %}
+{% module menu('temple.wx.setting') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">选择接入商户</h2>
+</div>
+<div class="ui-form">
+    <form method="post" action="{{reverse_url('temple.wx.setting')}}" >
+        <fieldset>
+            <div class="ui-form-item">
+                <label class="ui-label">选择商户:</label>
+                <input type="text" class="ui-input" id="supplier_input" style="width:300px;">
+                <input id="supplier_id" name="supplier_id" type="hidden">
+            </div>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="submit" class="ui-button ui-button-morange" value="下一步" id="export">
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'autumn'], function ($, AutoComplete, autumn) {
+        // 自动补全
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#supplier_id').val(data.id);
+                }).render();
+
+            }
+        );
+
+    });
+</script>
+{% end %}

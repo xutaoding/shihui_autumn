@@ -1,0 +1,66 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改' }}KTV产品{% end %}
+{% block menu %}
+    {% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('ktv', supplier.id) %}
+<form action="{{ reverse_url('supplier.add_ktv') if form.action.value == 'add' else reverse_url('supplier.edit_ktv', form.id.value) }}" method="post" class="ui-form" id="form">
+
+    <div class="ui-form-item">
+        <label for="name" class="ui-label">
+            <span class="ui-form-required">*</span>产品名称</label>
+        <input id="name" name="name" value="{{form.name.value}}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label">欢唱时长</label>
+        {% for i in range(1, 7) %}
+        <input type="radio" id="duration-{{ i }}" name="duration" value="{{ i}}" {% if form.duration.value == i %} checked {% end %}>
+        <label for="duration-{{ i }}"> {{ i }}小时 </label>
+        {% end %}
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="supplier" value="{{ supplier.id }}">
+        <input type="submit" class="ui-button ui-button-morange" value = "保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'validator'], function ($, Validator) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#supplier',
+            required: true,
+            errormessage: '请输入供应商'
+        });
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '请输入产品名字'
+        });
+
+        validator.addItem({
+            element: '[name=duration]',
+            required: true,
+            errormessage: '请选择欢唱时长'
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        };
+
+    });
+</script>
+{% end %}

@@ -1,0 +1,56 @@
+{% extends "../layout.html" %}
+{% block title %}发货单下载{% end %}
+{% block menu %}
+{% module menu('real.import_partner_order') %}
+{% end %}
+
+{% block content %}
+<div class="ui-tab" style="margin-bottom: 20px; margin-top: 20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.import_partner_order') }}">导入渠道订单</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">下载发货单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.import_order_shipping') }}">导入发货单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.show_track_no') }}">下载渠道运单文件</a>
+        </li>
+    </ul>
+</div>
+<div class="panels">
+    <div class="panel">
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>生成人</th>
+                    <th>生成时间</th>
+                    <th>下载批次号</th>
+                    <th>订单数</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for batch in page.rows %}
+                <tr>
+                    <td>{{ batch.created_by }}</td>
+                    <td>{{ batch.created_at }}</td>
+                    <td>{{ batch.id }}</td>
+                    <td>{{ batch.order_count}}</td>
+                    <td>
+                        <a href="{{ url_concat(reverse_url('real.download_order_shipping'), {'batch_id':batch.id}) }}">下载</a>
+                    </td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw page.links() %}
+    </div>
+</div>
+{% end %}
+

@@ -1,0 +1,87 @@
+{% extends "../layout.html" %}
+{% block title %}广告费{% end %}
+{% block menu %}
+{% module menu('supplier.show_ads_fee') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">广告费</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('supplier.add_ads_fee') }}">添加广告费</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('supplier.show_ads_fee') }}" id="">
+    <label for="supplier">商户名</label>
+    <input id="supplier" name="supplier" type="text" value="{{ form.supplier.value }}"/>
+    <select name="received_type">
+        <option value="">费用类型</option>
+        <option value="ONLINE_FEE" {% if form.received_type.value == 'ONLINE_FEE' %} selected {% end %} >上线费</option>
+        <option value="ADS_FEE" {% if form.received_type.value == 'ADS_FEE' %} selected {% end %} >广告费</option>
+        <option value="OPERATE_FEE" {% if form.received_type.value == 'OPERATE_FEE' %} selected {% end %}  >代运营费</option>
+    </select>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>商户名</th>
+            <th>销售专员</th>
+            <th>广告费</th>
+            <th>收取时间</th>
+            <th>类型</th>
+            <th>创建时间</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for fee_item in page.rows %}
+        <tr>
+            <td>{{ fee_item.short_name }}</td>
+            <td>{{ fee_item.sale_name }}</td>
+            <td>{{ fee_item.fee }}</td>
+            <td>{{ fee_item.received_at }}</td>
+            <td>{{ {'ONLINE_FEE':'上线费', 'ADS_FEE':'广告费', 'OPERATE_FEE':'代运营费'}.get(fee_item.type, '未知') }}</td>
+            <td>{{ fee_item.fee_created_at }}</td>
+            <td>{{ fee_item.remark }}</td>
+            <td><span style="cursor:pointer;" id="{{ fee_item.sid }}" data-id="{{ fee_item.sid }}">删除</span></td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$','confirmbox', 'autumn', 'autocomplete'],
+            function ($, ConfirmBox, autumn, AutoComplete) {
+        $("span[data-id]").click(function(){
+            var fee_id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该笔广告费', '确认删除', function(){
+                var action = "{{ reverse_url('supplier.delete_ads_fee') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', fee_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+
+         $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: false,
+                    dataSource: common_suppliers
+                }).render()
+            }
+        )
+    });
+</script>
+{% end %}

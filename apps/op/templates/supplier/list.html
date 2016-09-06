@@ -1,0 +1,96 @@
+{% extends "../layout.html" %}
+{% block title %}商户列表{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商户列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('supplier.add') }}">添加商户</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('supplier.show_list') }}">
+    <label for="supplier">商户</label>
+    <input id="supplier" type="text"/>
+    <input id="supplier_id" name="id" type="hidden"/>
+    <label for="sales">销售人员</label>
+    <input id="sales" type="text" />
+    <input id="sales_id" type="hidden" name="sales_id">
+    <label for="code">协议编号</label>
+    <input id="code" name="code" type="text" />
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>商户名称</th>
+            <th>商户短名称</th>
+            <th>门店独立结算</th>
+            <th>主页</th>
+            <th>销售人员</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for supplier in page.rows %}
+        <tr>
+            <td>{{ supplier.name }}</td>
+            <td>{{ supplier.short_name }}</td>
+            <td> {{ {'1':'是','0':'否'}.get(supplier.separate_account,'否') }} </td>
+            <td>
+                <a href="http://{{supplier.domain_name}}.{{ options.supplier_domain }}" target="_blank">
+                    {{ supplier.domain_name }}.{{options.supplier_domain}}</a>
+            </td>
+            <td> {{ supplier.sales_name }}({{ '{:0>3d}'.format(supplier.sales_id) }}) </td>
+            <td> {{ supplier.created_at.strftime('%Y-%m-%d %H:%M') }} </td>
+            <td>
+                <a href=" {{ reverse_url('supplier.detail', supplier.id) }} ">控制面板</a>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    //初始化商户选择的自动补全
+    seajs.use(['$', 'autocomplete', 'autumn', 'confirmbox'], function ($, AutoComplete, autumn, ConfirmBox) {
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: true,
+                    dataSource: common_suppliers
+                }).on('itemSelected', function(data, item){
+                    $('#supplier_id').val(data.id);
+                }).render()
+            }
+        );
+        $.post(
+            '{{ reverse_url("common.autocomplete.operator") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_operator) {
+                new AutoComplete({
+                    trigger: '#sales',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: true,
+                    dataSource: common_operator
+                }).on('itemSelected', function(data, item){
+                            $('#sales_id').val(data.id);
+                    }).render()
+                }
+        );
+    });
+
+</script>
+{% end %}

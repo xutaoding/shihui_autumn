@@ -1,0 +1,125 @@
+{% extends "../layout.html" %}
+{% block title %}商户广播{% end %}
+{% block menu %}
+{% module menu('notice.send') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发送商户广播</h2>
+</div>
+
+<form method="post" action="{{ reverse_url('notice.send') }}" id="form">
+    <div class="ui-form-item">
+        <label for="title" class="ui-label">
+            <span class="ui-form-required">*</span>标题</label>
+        <input id="title" type="text" size="40" class="ui-input ui-input-large" value=""
+               name="title">
+    </div>
+    <div class="ui-form-item">
+        <label for="content" class="ui-label">
+            <span class="ui-form-required">*</span>内容</label>
+        <textarea id="content" cols="80" rows="20" name="content"></textarea>
+    </div>
+    <div class="ui-form-item">
+        <label for="not_important" class="ui-label">消息级别</label>
+        <input type="radio" name="type" id="not_important" value="0"><label for="not_important"> 普通消息 </label>
+        <input type="radio" name="type" id="important" value="1"><label for="important"> 重要消息 </label>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">接收信息商户</label>
+        <input type="radio" name="choice" value="0" id="all"><label for="all">&nbsp;全部商户&nbsp;</label>
+        <input type="radio" name="choice" value="1" id="part"><label for="part">&nbsp;部分商户</label>
+    </div>
+    <div class="ui-form-item" id="part_supplier" style="display: none">
+        <label class="ui-label">商户</label>
+        <input id="get_in" class="ui-input ui-input-large">
+        <button type="button" class="ui-button ui-button-morange" id="add" >添加</button>
+        <span class="ui-form-other">点击添加到发送列表</span>
+        <br><br>
+        <textarea cols="80" rows="20" id="print"></textarea>
+    </div>
+    <div class="ui-form-item">
+        <input id="singer_supplier" type="hidden">
+        <input id="supplier" name="supplier" type="hidden">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="发送">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'autumn', 'validator'], function($, AutoComplete, autumn, Validator){
+        var supplier = $('#supplier');
+        var singer = $('#singer_supplier');
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_suppliers) {
+                new AutoComplete({
+                    trigger: '#get_in',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: true,
+                    dataSource: common_suppliers
+                }).on('itemSelected', function(data, item){
+                    singer.val(data.id);
+                }).render()
+            });
+        $('#add').on('click', function(){
+            var obj = $('#get_in');
+            $('#print').append(obj.val() + '\n');
+            obj.val('');
+            if (singer.val() != '') {
+                if (supplier.val() == '') {
+                    supplier.val(singer.val());
+                }
+                else {
+                    supplier.val(supplier.val() + ';' + singer.val());
+                }
+                singer.val('');
+            }
+        });
+        $('#part').on('click', function(){
+            $('#part_supplier').removeAttr('style');
+            validator.addItem({
+                element: '#print',
+                required: true,
+                errormessage: '商户至少需要一个'
+            });
+        });
+        $('#all').on('click', function(){
+            $('#part_supplier').css('display', 'none');
+            validator.removeItem('#print');
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#title',
+            required: true,
+            errormessage: '标题不能为空'
+        });
+        validator.addItem({
+            element: '#content',
+            required: true,
+            errormessage: '内容不能为空'
+        });
+        validator.addItem({
+            element: '[name=type]',
+            required: true,
+            errormessage: '请选择消息级别'
+        });
+        validator.addItem({
+            element: '[name=choice]',
+            required: true,
+            errormessage: '不能为空'
+        });
+        if($('#error').val()) {
+            validator.execute();
+        }
+    })
+</script>
+{% end %}

@@ -1,0 +1,43 @@
+{% extends "../layout.html" %}
+{% block title %}快递公司{% end %}
+{% block menu %}
+{% module menu('express.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">快递公司列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('express.add') }}">添加快递公司</a>
+</div>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th width="20%">编码</th>
+            <th width="20%">名称</th>
+            <th width="40%">渠道对应关系</th>
+            <th width="20%">修改</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in express %}
+        <tr>
+            <td>{{ item.code }}</td>
+            <td>{{ item.name}}</td>
+            <td>
+                {% for i in item.distributor_mapping.split('\n') %}
+                {{ i }}<br>
+                {% end %}
+            </td>
+            <td>
+                <a href="{{ reverse_url('express.edit', item.id) }}">修改</a> /
+                <!--<span style="cursor:pointer" data-id="{{ item.id }}">删除</span> /-->
+                <a href="{{ reverse_url('freight.list', item.id) }}">快递费管理</a>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}

@@ -1,0 +1,200 @@
+{% extends "../layout.html" %}
+{% block title %}商品详情{% end %}
+{% block menu %}
+{% module menu('goods.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商品详情</h2>
+    <a href="{{ reverse_url('goods.history', goods.id) }}" class="ui-button ui-button-sblue fn-right" style="margin-left: 10px">查看历史</a>
+    <input type="button" class="fn-right ui-button ui-button-sblue" id='copy-goods' value="复制商品"/>
+    <input type="hidden" value="{{goods.id}}" id="goods_id">
+</div>
+
+<div class="ui-grid-row">
+    <div class="ui-grid-12">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">商品类型：</dt>
+            <dd class="ui-dlist-det"> {{ {'R':'实物', 'E':'电子券'}.get(goods.type, '') }} </dd>
+            {% if goods.type == 'E' %}
+            <dt class="ui-dlist-tit">券类型：</dt>
+            <dd class="ui-dlist-det">{{ {'GENERATE': '视惠发码','IMPORT': '商家导入'}.get(goods.generate_type)}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">券有效期：</dt>
+            <dd class="ui-dlist-det">{{ goods.expire_at }}&nbsp;</dd>
+            {% end %}
+            <dt class="ui-dlist-tit">上架时间：</dt>
+            <dd class="ui-dlist-det">{{ goods.on_sale_at}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">下架时间：</dt>
+            <dd class="ui-dlist-det">{{ goods.off_sale_at}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">分类：</dt>
+            <dd class="ui-dlist-det">{{ goods.category }} &nbsp;</dd>
+            <dt class="ui-dlist-tit">商品标题：</dt>
+            <dd class="ui-dlist-det">{{ goods.name }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">短名称：</dt>
+            <dd class="ui-dlist-det">{{ goods.short_name }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">短信标题：</dt>
+            <dd class="ui-dlist-det">{{ goods.sms_name }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">商户：</dt>
+            <dd class="ui-dlist-det"><a target="_blank" href="/supplier/{{goods.supplier_id}}">{{ goods.sp_name }}&nbsp;</a></dd>
+            <dt class="ui-dlist-tit">分销情况：</dt>
+            <dt class="ui-dlist-det">
+                {% if distr_info %}
+                    {% set ids = distr_info.split(',') %}
+                    {% for id in ids %}
+                        {% set t = id.split('-') %}
+                        {% if t[0] == '13'%}
+                            <a href="http://item.taobao.com/item.htm?id={{t[1]}}" target="_blank">淘宝</a>,
+                        {% end %}
+                        {% if t[0] == '34' %}
+                            <a href="http://item.taobao.com/item.htm?id={{t[1]}}" target="_blank">天猫</a>,
+                        {% end %}
+                        {% if t[0] == '14' %}
+                            <a href="http://t.58.com/sh/{{t[1]}}" target="_blank">58</a>,
+                        {% end %}
+                            {% if t[0] == '7' %}
+                            <a href="{{ t[1] }}" class="url" target="_blank">一号店</a>,
+                        {% end %}
+                        {% if t[0] == '10' or t[0] == '53' %}
+                        <a href="http://tuan.jd.com/team-{{t[1]}}.html" target="_blank">京东</a>,
+                        {% end %}
+                        {% if t[0] == '44' %}
+                        <a href="http://http://www.meituan.com/deal/{{ t[1] }}.html" target="_blank">美团</a>,
+                        {% end %}
+                        {% if t[0] == '40' %}
+                        <a href="http://t.dianping.com/deal/{{ t[1] }}" target="_blank">点评</a>,
+                        {% end %}
+                        {% if t[0] == '42' %}
+                        <a href="http://sh.nuomi.com/deal/{{ t[1] }}.html" target="_blank">糯米</a>,
+                        {% end %}
+                        {% if t[0] == '45' %}
+                        <a href="http://www.lashou.com/deal/{{ t[1] }}.html" target="_blank">拉手</a>,
+                        {% end %}
+                    {% end %}
+                {% end %}
+                &nbsp;
+            </dt>
+        </dl>
+    </div>
+    <div class="ui-grid-12">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">状态： <dt>
+            <dd class="ui-dlist-det"> {{ {'ON_SALE':'已上架', 'OFF_SALE':'已下架','PENDING':'待审核'}.get(goods.status, '') }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">原价：</dt>
+            <dd class="ui-dlist-det">{{ goods.face_value }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">采购价：</dt>
+            <dd class="ui-dlist-det">{{ goods.purchase_price }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">销售价：</dt>
+            <dd class="ui-dlist-det">{{ goods.sales_price }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">库存：</dt>
+            <dd class="ui-dlist-det">{{ goods.stock}}件</dd>
+            <dt class="ui-dlist-tit">销量：</dt>
+            <dd class="ui-dlist-det">{{ goods.sales_count}}件</dd>
+            <dt class="ui-dlist-tit">虚拟销量：</dt>
+            <dd class="ui-dlist-det">{{ goods.virtual_sales_count}}件</dd>
+            <dt class="ui-dlist-tit">创建时间：</dt>
+            <dd class="ui-dlist-det">{{ goods.created_at }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">创建人：</dt>
+            <dd class="ui-dlist-det">{{ goods.created_by }}&nbsp;</dd>
+        </dl>
+    </div>
+</div>
+
+<dl class="ui-dlist">
+    <dt class="ui-dlist-tit">销售门店：</dt>
+    <dd class="ui-dlist-det">
+        <table class="ui-table">
+            {% for shop in shops %}
+            <tr>
+                <td>{{ shop.supplier_name }} - {{ shop.name }}</td>
+                <td>地址：{{ default(shop.address) }} <br> 电话：{{ default(shop.phone) }}
+                </td>
+                <td>交通：{{ default(shop.traffic_info) }}</td>
+            </tr>
+            {% end %}
+            &nbsp;
+        </table>
+    </dd>
+    <dt class="ui-dlist-tit">图片：</dt>
+    <dd class="ui-dlist-det" style="margin-top: 10px; margin-bottom: 10px;">
+        <img style="width: 340px; height: 240px;" src="{{ img_url(goods.img_path) }}"/>
+    </dd>
+
+    {% for img_size in img_paths %}
+    <dt class="ui-dlist-tit">图片（{{img_size}}）：</dt>
+    <dd class="ui-dlist-det" style="margin-top: 10px; margin-bottom: 10px;">
+        <img style="max-width: 500px;" src="{{ img_url(img_paths[img_size]) }}"/>
+    </dd>
+    {% end %}
+    <dt class="ui-dlist-tit">温馨提示：</dt>
+    <dd class="ui-dlist-det">
+        {% raw goods.tips %}&nbsp;
+    </dd>
+    <dt class="ui-dlist-tit">商户介绍：</dt>
+    <dd class="ui-dlist-det">
+        {% raw goods.supplier_intro %}&nbsp;
+    </dd>
+
+    <dt class="ui-dlist-tit">商品展示：</dt>
+    <dd class="ui-dlist-det">
+        {% raw goods.detail %}&nbsp;
+    </dd>
+
+</dl>
+
+<div>
+    <div class="ui-title ui-left">
+        <h2 class="fn-left">商品操作详情</h2>
+    </div>
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>操作时间</th>
+            <th>操作者</th>
+            <th>信息</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in journal %}
+        <tr>
+            <td>{{ i.created_at }}</td>
+            <td>{{ i.created_by }}</td>
+            <td>{{ i.message }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display:none">
+    {% module supplier_select(action='goods.copy', method='post', goods_id=goods.id) %}
+</div>
+{% end%}
+
+{% block scripts %}
+<script>
+seajs.use(['$', 'autumn', 'confirmbox', 'autocomplete', 'dialog'], function ($,  autumn, ConfirmBox, AutoComplete, Dialog) {
+    new Dialog({
+        trigger: '#copy-goods',
+        content: $('#supplier_select_box'),
+        zIndex: 80
+    }).after('show', function(){
+        $('#supplier_select_name').focus();
+    });
+
+    $.post(
+        '{{ reverse_url("common.autocomplete.supplier") }}',
+        {'_xsrf': autumn.get_cookie('_xsrf')},
+        function(common_suppliers) {
+            new AutoComplete({
+                trigger: '#supplier_select_name',
+                filter: 'stringMatch',
+                selectFirst: true,
+                dataSource: common_suppliers
+            }).on('itemSelected', function(data, item){
+                $('#supplier_select_id').val(data.id);
+            }).render();
+        }
+    )
+});
+</script>
+{% end %}

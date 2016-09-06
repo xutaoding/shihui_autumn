@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>视惠信息 | 视全网 惠营销 整市场 合人气 </title>
+    <link rel="stylesheet" href="http://assets.uhcdn.com/gallery/normalize.css/3.0.1/normalize.css">
+    <link rel="stylesheet" href="{{ static_url('css/style.css') }}">
+    <link rel="shortcut icon" href="http://img0.uhcdn.com/images/seewi/favicon.ico" type="image/x-icon">
+    <meta name="description" content="视惠信息 微信 分销 电子商务">
+    {% block styles %} {% end %}
+</head>
+
+<body>
+<div class="box-container">
+    <table>
+        <tr>
+            <td rowspan="2"> <a href="/"><img src="http://img0.uhcdn.com/o/287/671/794/2014042320575037210.jpg"></a> </td>
+            <td>
+                <div id="tel">
+                    <img src="http://img0.uhcdn.com/o/733/54/792/2014042321042070296.jpg">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {% block menu %}{% end %}
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="tape"></div>
+{% block banner %}{% end %}
+<div class="box-container">
+    <div>
+        {% block content %}{% end %}
+    </div>
+</div>
+<div id="footer">
+    <div class="box-container">
+        <table>
+            <tr>
+                <td>
+                    <div> <img src="http://img0.uhcdn.com/o/378/260/172/2014042415041876140.jpg"> </div>
+                    <p style="margin: 0">如果您有任何疑问或者希望与我们进一步交流，欢迎联系我们。</p>
+                    <div style="font-size: 12px; margin-top: 30px;">
+                        <p>版权所有：上海视惠信息科技有限公司 全国统一热线：400-686-5151 传真：021-54276010</p>
+                        <p>地址:上海市天目中路585号新梅大厦19楼 E-mail:bd@seewi.com.cn 沪ICP备08114451号</p>
+                    </div>
+                </td>
+                <td style="border-left: dotted 1px #aca8a9; border-right: dotted 1px #aca8a9;">
+                    <img src="http://img0.uhcdn.com/o/465/383/670/2014042415133228702.jpg">
+                </td>
+                <td>
+                    <table id="leave_message">
+                        <tr>
+                            <td>您的称呼：</td>
+                            <td><input class="input" type="text" id="msg_name"></td>
+                        </tr>
+                        <tr>
+                            <td>联系方式：</td>
+                            <td><input class="input" type="text" id="msg_contact"></td>
+                        </tr>
+                        <tr>
+                            <td>留言：</td>
+                            <td><textarea class="input" rows="6" id="msg_content"></textarea></td>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>
+                                {% module xsrf_form_html() %}
+                                <input type="button" value="提交" class="submit" id="submit">
+                            </td>
+                        </tr>
+                    </table>
+                    <table id="success_message" style="font-size: 14px; width: auto; display: none">
+                        <tr>
+                            <td>
+                                <img src="http://img0.uhcdn.com/o/455/413/625/2014042509494613617.png">
+                            </td>
+                            <td>
+                                <p> 发送成功，感谢您的来信。</p>
+                                <p> 我们会尽快与您联系。</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div id="qq_msg">
+    <a target="_blank" href="http://wpa.qq.com/msgrd?v=3&uin=2281971081&site=qq&menu=yes">
+        <img src="http://img0.uhcdn.com/o/128/573/593/2014042818481813073.jpg" alt="点击这里给我发消息" >
+    </a>
+    <a href="javascript:;" id="qq_close">X</a>
+</div>
+<script src="http://assets.uhcdn.com/gallery/jquery/1.7.2/jquery-1.7.2.min.js"></script>
+<script>
+    $(function(){
+        $('#submit').click(function(){
+            var name = $('#msg_name').val().trim();
+            var contact = $('#msg_contact').val().trim();
+            var content = $('#msg_content').val().trim();
+            if (! (name && contact && content) ) {
+                alert('麻烦您填写相关信息')
+                return false;
+            }
+            $.post(
+                '/message',
+                {'name': name, 'contact': contact, 'content': content, '_xsrf': $('input[name="_xsrf"]').val()},
+                function(data) {
+                    $('#leave_message').hide();
+                    $('#success_message').show();
+                }
+            );
+        });
+        $('#qq_close').click(function(){$(this).parent().remove();});
+    });
+
+</script>
+</body>
+</html>

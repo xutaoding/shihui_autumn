@@ -1,0 +1,65 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布一号店商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发布一号店商品</h2>
+</div>
+
+<div>
+    <div>正在加载商品分类信息...</div>
+    <div id="category_tree" class="ztree" style="background: white; position:relative; top:-20px"></div>
+</div>
+<form method="get" action="{{ reverse_url('goods.yhd.push') }}" id="form" style="margin-top:20px;">
+    <input type="hidden" id="goods_id" name="goods_id" value="{{ goods_id }}">
+    <input type="hidden" id="category_id" name="category_id">
+    <input type="hidden" id="category_name" name="category_name">
+    <button class="ui-button ui-button-lorange" type="submit">下一步</button>
+</form>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'ztree', 'autumn', 'confirmbox'], function ($, zTree, autumn, ConfirmBox) {
+
+        function onClick(e,treeId, treeNode) {
+            var zTree = $.fn.zTree.getZTreeObj("category_tree");
+            zTree.expandNode(treeNode);
+        }
+
+        var settings = {
+            view: {
+				selectedMulti: false,
+				dblClickExpand: false,
+				showIcon:       false
+			},
+			async: {
+				enable: true,
+				url:"{{ reverse_url('goods.yhd.category.ajax') }}",
+				autoParam:["id"],
+				otherParam:{"_xsrf": autumn.get_cookie('_xsrf')}
+			},
+            callback: {
+				onClick: onClick
+			}
+        };
+        $.fn.zTree.init($("#category_tree"), settings);
+
+        $("form").submit(function(e){
+            var zTree = $.fn.zTree.getZTreeObj("category_tree");
+            var nodes = zTree.getSelectedNodes();
+            if (nodes.length != 1 || nodes[0].isParent) {
+                e.preventDefault();
+                ConfirmBox.alert("请选择一个“没有子分类”的分类");
+            } else {
+                $("#category_id").val(nodes[0].id);
+                $("#category_name").val(nodes[0].name);
+            }
+        });
+    });
+</script>
+{% end %}

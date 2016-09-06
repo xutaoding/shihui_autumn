@@ -1,0 +1,62 @@
+{% extends "../layout.html" %}
+{% block title %}KTV产品{% end %}
+{% block menu %}
+    {% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('ktv', supplier.id) %}
+
+<a class="ui-button ui-button-sblue fn-right fn-clear" style="margin-top: -50px;"
+   href="{{ url_concat(reverse_url('supplier.add_ktv'), {'supplier_id': supplier.id}) }}" >添加KTV产品</a>
+
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th width="35%">商户名称</th>
+            <th width="35%">产品名称</th>
+            <th width="10%">欢唱时长</th>
+            <th width="20%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page.rows %}
+        <tr>
+            <td>{{ item.supplier_name }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.duration }}</td>
+            <td>
+                <a href="{{ reverse_url('supplier.edit_ktv', item.id) }}">修改</a> /
+                <span style="cursor:pointer" data-id="{{ item.id }}">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn'],
+            function ($, ConfirmBox, autumn) {
+        $("span[data-id]").click(function(){
+            var ktv_product_id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该商品', '确认删除', function(){
+                var action = "{{ reverse_url('supplier.delete_ktv') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='ktv_product_id' />").attr('value', ktv_product_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

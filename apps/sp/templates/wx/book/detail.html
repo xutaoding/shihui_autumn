@@ -1,0 +1,43 @@
+{% extends '../../layout.html' %}
+{% block title %}预约详情{% end %}
+{% block menu %}
+{% module menu('wx.book.order') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2>预约详情</h2>
+</div>
+
+    <div class="ui-form-item">
+        <label class="ui-label">图文消息标题: </label>
+        <p class="ui-form-text" style="font-size: 14px">{{ book['title'] }}</p>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">图文封面</label>
+        <div style="margin-top: 10px">
+            <img style="max-width:720px;" src="{{ img_url(book['pic']) }}" id="img-preview">
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">订单说明</label>
+        <textarea class="ui-textarea" name="order_info" cols="70" rows="10" readonly>{{ book['desc'] }}</textarea>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">可预约门店</label>
+        <table class="ui-table" style="width: auto">
+            <thead>
+            <tr>
+                <th>店铺</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for shop in shops %}
+            <tr>
+                <td>{{ shop.name }}</td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+{% end %}

@@ -1,0 +1,20 @@
+<div class="ui-tab" style="margin-bottom: 20px; margin-top: 20px;">
+    <ul class="ui-tab-items">
+        {% for key, text, endpoint in [
+            ('info', '基本信息', 'supplier.detail'),
+            ('shop', '门店', 'supplier.shop'),
+            ('user', '店员帐号', 'supplier.user'),
+            ('contract', '合同', 'supplier.contract'),
+            ('bank', '提现账户', 'supplier.bank'),
+            ('ktv', 'KTV产品', 'supplier.ktv'),
+        ]%}
+            <li class="ui-tab-item {{ 'ui-tab-item-current' if key == menu_key else '' }}">
+                <a href="{{ reverse_url(endpoint, supplier_id) }}">{{ text }}</a>
+            </li>
+        {% end %}
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('goods.show_list')}}?supplier={{ supplier_id }}">商品列表</a>
+        </li>
+    </ul>
+</div>
+

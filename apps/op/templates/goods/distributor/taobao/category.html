@@ -1,0 +1,70 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布淘宝商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发布淘宝商品</h2>
+</div>
+
+<div>
+    <div style="max-height: 500px; overflow-y:auto">
+        <div>正在加载商品分类信息...</div>
+        <div id="category_tree" class="ztree" style="background: white; position:relative; top:-20px"></div>
+    </div>
+</div>
+<form method="get" action="{{  reverse_url('goods.taobao.edit_taobao') if user_type=='C' else reverse_url('goods.taobao.edit_tmall') }}" id="form" style="margin-top:20px;">
+    <input type="hidden" id="category" name="category">
+    <input type="hidden" name="goods_id" value="{{goods_id}}">
+    <input type="hidden" name="shop_id" id="shop_id" value="{{shop_id}}">
+    <button class="ui-button ui-button-lorange" type="submit">下一步</button>
+</form>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'ztree', 'autumn', 'confirmbox'], function ($, zTree, autumn, ConfirmBox) {
+
+        function onClick(e,treeId, treeNode) {
+            var zTree = $.fn.zTree.getZTreeObj("category_tree");
+            zTree.expandNode(treeNode);
+        }
+
+        var settings = {
+            view: {
+				selectedMulti: false,
+				dblClickExpand: false,
+				showIcon:       false
+			},
+			async: {
+				enable: true,
+				url:"{{ reverse_url('goods.taobao.category.ajax') }}",
+				autoParam:["id"],
+				otherParam:{
+				    "_xsrf": autumn.get_cookie('_xsrf'),
+                    "user_type": "{{user_type}}",
+                    "shop_id":$('#shop_id').val()
+                }
+			},
+            callback: {
+				onClick: onClick
+			}
+        };
+        $.fn.zTree.init($("#category_tree"), settings);
+
+        $("form").submit(function(e){
+            var zTree = $.fn.zTree.getZTreeObj("category_tree");
+            var nodes = zTree.getSelectedNodes();
+            if (nodes.length != 1 || nodes[0].isParent) {
+                e.preventDefault();
+                ConfirmBox.alert("请选择一个“没有子分类”的分类");
+            } else {
+                $("#category").val(nodes[0].id);
+            }
+        });
+    });
+</script>
+{% end %}

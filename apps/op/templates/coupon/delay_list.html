@@ -1,0 +1,127 @@
+{% extends "../layout.html" %}
+{% block title %}券列表{% end %}
+{% block menu %}
+{% module menu('coupon.delay') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">券延期列表</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" id="form" action="{{ reverse_url('coupon.delay') }}">
+    <span>商户名</span>
+    <input id="supplier_input" name="supplier_name" type="text" value="{{ form.supplier_name.value }}">
+    <input id="supplier_id" name="supplier" type="hidden">
+    <span>商品名</span>
+    <input type="text" name="short_name" value="{{ form.short_name.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th style="width: 40%">商品信息</th>
+            <th>单价</th>
+            <th>进价</th>
+            <th>有效期</th>
+            <th style="width: 10%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for goods in page.rows%}
+        <tr>
+            <td style="word-wrap: break-word;"><a href="{{ reverse_url('goods.show_detail', goods.id) }}">{{ goods.short_name }}</a></td>
+            <td style="width:50px">{{ goods.sales_price }}</td>
+            <td style="width:100px">{{ goods.purchase_price }}</td>
+            <td style="width:80px">{{ goods.expire_at.strftime('%Y-%m-%d') }}</td>
+            <td style="width:30px"><span style="cursor: pointer" data-id="{{ goods.id }}">延期</span></td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+
+{% raw page.links() %}
+<div style="display:none">
+    {% module coupon_delay(action='coupon.delay') %}
+</div>
+{% end %}
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/dialog/1.2.2/dialog.css">
+<style>
+    .ui-calendar {
+        z-index: 999;
+    }
+</style>
+{%end%}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'dialog', 'autumn', 'calendar', 'confirmbox'],
+            function ($, AutoComplete, Dialog, autumn, Calendar, ConfirmBox) {
+        new Calendar({trigger: '#delay', format: 'YYYY-MM-DD 23:59:59'});
+
+        $("#sure_delay").click(function () {
+            var delay = $("#delay");
+            var sure_delay = $("#sure_delay");
+            if (delay.val() == '') {
+                $("#delay_date_err").text("请输入日期！");
+                return false;
+            }
+            sure_delay.attr('disabled', true);
+            $.ajax({
+                url: '{{ reverse_url("coupon.delay") }}',
+                type: 'POST',
+                data: {'goods_id': $("#goods_id").val(), 'delay': delay.val(), '_xsrf': autumn.get_cookie('_xsrf')},
+                success: function(){
+                    sure_delay.attr('disabled', false);
+                    $("a[data-role=close]").trigger('click');
+                    ConfirmBox.alert('延期成功', function(){
+                        $("a[data-role=close]").trigger('click');
+                    });
+                }
+            });
+
+        });
+
+        $('span[data-id]').on('click', function(){
+            var gid = $(this).attr('data-id');
+            $('#goods_id').val(gid);
+            new Dialog({
+                content: $('#coupon_delay'),
+                hasMask: false,
+                zIndex: 80
+            }).before('show', function(){
+                    $("a[data-role=close]").trigger('click');
+                })
+              .after('show', function(){
+                $("#coupon_delay").focus();
+            }).show();
+        });
+
+        $.post(
+                '{{ reverse_url("common.autocomplete.supplier") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf')},
+                function (common_suppliers) {
+                    new AutoComplete({
+                        trigger: '#supplier_input',
+                        filter: 'stringMatch',
+                        selectFirst: true,
+                        dataSource: common_suppliers
+                    }).on('itemSelected',function (data, item) {
+                                $('#supplier_id').val(data.id);
+                            }).render();
+
+                    new AutoComplete({
+                        trigger: '#supplier_select_name',
+                        filter: 'stringMatch',
+                        selectFirst: true,
+                        dataSource: common_suppliers
+                    }).on('itemSelected',function (data, item) {
+                                $('#supplier_select_id').val(data.id);
+                            }).render();
+                }
+        )
+    });
+</script>
+{% end %}

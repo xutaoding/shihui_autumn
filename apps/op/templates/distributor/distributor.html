@@ -1,0 +1,51 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改'  }}分销商{% end %}
+{% block menu %}
+{% module menu('distributor.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}分销商</h2>
+</div>
+<form action="{{ reverse_url('distributor.' + form.action.value) }}" method="post" class="ui-form" id="form">
+    <div class="ui-form-item">
+        <label for="distributor_name" class="ui-label">
+            <span class="ui-form-required">*</span>分销商名称</label>
+        <input id="distributor_name" type="text" size="20" class="ui-input ui-input-large" value="{{ form.name.value }}"
+               name="name">
+        <div id="distributor_name_error" class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        <label for="distributor_remark" class="ui-label">备注</label>
+        <textarea rows="3" cols="50" id="distributor_remark" class="ui-input ui-input-large" name="remark">
+            {{ form.remark.value }}
+        </textarea>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="{{ '添加' if form.action.value == 'add' else '修改' }}">
+    </div>
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" id="error" value="{{error}}">
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator' , '$'], function (Validator, $) {
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=name]',
+            required: true
+        });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}
+

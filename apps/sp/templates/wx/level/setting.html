@@ -1,0 +1,95 @@
+{% extends '../../layout.html' %}
+
+{% block title %}微信会员等级{% end %}
+{% block menu %}
+{% module menu('wx.member.level') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微信会员等级设置</h2>
+</div>
+
+<form class="ui-form" id="form" action="{{ reverse_url('wx.member.level.setting') }}" method="post">
+    <div>
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>等级</th>
+                <th>称呼</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in range(1, 6) %}
+            <tr name="level">
+                <td name="i">{{ i }}</td>
+                <td><input type="text" name="name" value="{% if str(i) in level_dict.keys() %} {{ level_dict[str(i)] }} {% end %}"></td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <input type="hidden" name="level_len" value="{{ len(level_dict.keys()) }}">
+    </div>
+
+    <div>
+        <input name="dict" type="hidden">
+        <div id="error" style="color: red"></div>
+        {% module xsrf_form_html() %}
+        <input id="offer" type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$'], function($){
+        $('#offer').on('click', function(){
+            var count = 0; // 统计总共设置会员等级的数量
+            var blank = 0; // 用于标记两个等级之间不能留空
+            var flag = true;
+            var dict = '';
+            var error = $('#error');
+            $('tr[name="level"]').each(function(){
+                if (flag) {
+                    var i = $(this).find('[name="i"]').text();
+                    var name = $(this).find('[name="name"]').val();
+                    if (name){
+                        if (blank) {
+                            error.show();
+                            error.text('会员等级设置的时候必须连续，且从等级一开始').delay(3000).hide(0);
+                            flag = false;
+                            return false;
+                        } else {
+                            count++;
+                            var temp = i + '-' + name + ',';
+                            dict += temp;
+                        }
+                    } else {
+                        blank++;
+                    }
+                }
+            });
+            if (!flag) {
+                return false;
+            }
+            if (!count) {
+                error.show();
+                error.text('会员等级设置不能为空').delay(3000).hide(0);
+                flag = false;
+                return false;
+            }
+            if (count < Number($('input[name="level_len"]').val())) {
+                error.show();
+                error.text('原来会员等级有' + $('input[name="level_len"]').val() + '级，现在只有' + count + '级').delay(3000).hide(0);
+                return false;
+            } else {
+                $('input[name="dict"]').val(dict);
+                $('#form').submit();
+            }
+
+        });
+    })
+</script>
+{% end %}

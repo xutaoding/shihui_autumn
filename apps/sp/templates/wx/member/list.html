@@ -1,0 +1,453 @@
+{% extends '../../layout.html' %}
+{% block title %}会员管理{% end %}
+{% block menu %}
+{% module menu('member.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">会员列表</h2>
+    {% if verify %}
+    <input name="update" type="button" class="ui-button ui-button-sblue fn-right" value="导入微信会员">
+    {% end %}
+</div>
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">基本信息筛选</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('member.consume_level_list') }}">消费等级筛选</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('member.consume_action_list') }}">消费行为筛选</a>
+        </li>
+    </ul>
+</div>
+
+<ul class="panels">
+    <li class="panel">
+            <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('member.list') }}" >
+                <span>关键词</span>
+                <input type="text" name="keyword" value="{{ form.keyword.value }}" placeholder="姓名，微信昵称关键词"/>
+                <span>会员卡号</span>
+                <input type="text" name="id" value="{{ form.id.value }}"/>
+                <span>手机号</span>
+                <input type="text" name="mobile" value="{{ form.mobile.value }}"/><br/>
+                <br/>
+                <span style="">性别: </span>
+                <input name="gender" type="radio" id="gender-all" value="" checked><label for="gender-all">不限</label>
+                <input name="gender" type="radio" id="gender-male" value="男" {% if form.gender.value == '男' %}checked{% end %}><label for="gender-male">男</label>
+                <input name="gender" type="radio" id="gender-female" value="女" {% if form.gender.value == '女' %}checked{% end %}><label for="gender-female">女</label>
+                <br/>
+                <br/>
+                <span style="">分组: </span>
+                <select name="cate">
+                    <option value="">不限</option>
+                    {% for cate in cates %}
+                    <option value="{{cate.id}}" {% if form.cate.value == str(cate.id) %} selected {% end %} > {{cate.name}} </option>
+                    {% end %}
+                </select>
+                <span style="margin-left:5px">会员等级</span>
+                <select name="level">
+                    <option value="">不限</option>
+                    {% for item in levels.items()%}
+                    <option value="{{item[0]}}" {% if form.level.value == item[0] %} selected {% end %} > {{item[1]}} </option>
+                    {% end %}
+                </select>
+                <br/>
+                <br/>
+                <span>地区: </span>
+                <input name="all" type="checkbox" id="all" value="" {% if not form.area.value %}checked {%end %}><label for="all">不限</label>
+                <input name="area[]" type="checkbox" id="jzh" value="上海,浙江,江苏" {% if "上海,浙江,江苏" in form.area.value %}checked{%end%}><label for="jzh">江浙沪</label>
+                <input name="area[]" type="checkbox" id="jjj" value="北京,天津,河北" {% if "北京,天津,河北" in form.area.value %}checked{%end%}><label for="jjj">京津冀</label>
+                <input name="area[]" type="checkbox" id="zsj" value="广东" {% if "广东" in form.area.value %}checked{%end%}><label for="zsj">珠三角</label>
+                <input name="area[]" type="checkbox" id="bj" value="北京" {% if "北京" in form.area.value %}checked{%end%}><label for="bj">北京</label>
+                <input name="area[]" type="checkbox" id="sh" value="上海" {% if "上海" in form.area.value %}checked{%end%}><label for="sh">上海</label>
+                <input name="area[]" type="checkbox" id="gd" value="广东" {% if "广东" in form.area.value %}checked{%end%}><label for="gd">广东</label>
+                <input name="area[]" type="checkbox" id="zj" value="浙江" {% if "浙江" in form.area.value %}checked{%end%}><label for="zj">浙江</label>
+                {% if form.area.value %}
+                    <button type="button" style="margin-left: 20px; padding:0px 10px 0px 10px" id="more-button" show="yes">更多<i class="iconfont" title="下三角形" id="icon">&#xF01a6;</i> </button>
+                    <div style="margin-left:37px; display:block" id="more-city">
+                {% else %}
+                    <button type="button" style="margin-left: 20px; padding:0px 10px 0px 10px" id="more-button" show="no">更多<i class="iconfont" title="下三角形" id="icon">&#xF01a6;</i> </button>
+                    <div style="margin-left:37px; display:none" id="more-city">
+                {% end %}
+                    <p>
+                        <input name="area[]" type="checkbox" id="cq" value="重庆" {% if "重庆" in form.area.value %}checked{%end%}><label for="cq">重庆</label>
+                        <input name="area[]" type="checkbox" id="tj" value="天津" {% if "天津" in form.area.value %}checked{%end%}><label for="tj">天津</label>
+                        <input name="area[]" type="checkbox" id="hb" value="河北" {% if "河北" in form.area.value %}checked{%end%}><label for="hb">河北</label>
+                        <input name="area[]" type="checkbox" id="hn" value="河南" {% if "河南" in form.area.value %}checked{%end%}><label for="hn">河南</label>
+                        <input name="area[]" type="checkbox" id="hub" value="湖北" {% if "湖北" in form.area.value %}checked{%end%}><label for="hub">湖北</label>
+                        <input name="area[]" type="checkbox" id="hun" value="湖南" {% if "湖南" in form.area.value %}checked{%end%}><label for="hun">湖南</label>
+                        <input name="area[]" type="checkbox" id="fj" value="福建" {% if "福建" in form.area.value %}checked{%end%}><label for="fj">福建</label>
+                        <input name="area[]" type="checkbox" id="js" value="江苏" {% if "江苏" in form.area.value %}checked{%end%}><label for="js">江苏</label>
+                        <input name="area[]" type="checkbox" id="jx" value="江西" {% if "江西" in form.area.value %}checked{%end%}><label for="jx">江西</label>
+                    </p>
+                    <p>
+                        <input name="area[]" type="checkbox" id="gx" value="广西" {% if "广西" in form.area.value %}checked{%end%}><label for="gx">广西</label>
+                        <input name="area[]" type="checkbox" id="hain" value="海南" {% if "海南" in form.area.value %}checked{%end%}><label for="hain">海南</label>
+                        <input name="area[]" type="checkbox" id="ah" value="安徽" {% if "安徽" in form.area.value %}checked{%end%}><label for="ah">安徽</label>
+                        <input name="area[]" type="checkbox" id="jl" value="吉林" {% if "吉林" in form.area.value %}checked{%end%}><label for="jl">吉林</label>
+                        <input name="area[]" type="checkbox" id="ln" value="辽宁" {% if "辽宁" in form.area.value %}checked{%end%}><label for="ln">辽宁</label>
+                        <input name="area[]" type="checkbox" id="sd" value="山东" {% if "山东" in form.area.value %}checked{%end%}><label for="sd">山东</label>
+                        <input name="area[]" type="checkbox" id="sx" value="山西" {% if "山西" in form.area.value %}checked{%end%}><label for="sx">山西</label>
+                        <input name="area[]" type="checkbox" id="ssx" value="陕西" {% if "陕西" in form.area.value %}checked{%end%}><label for="sx">陕西</label>
+                        <input name="area[]" type="checkbox" id="hlj" value="黑龙江" {% if "黑龙江" in form.area.value %}checked{%end%}><label for="hlj">黑龙江</label>
+                    </p>
+                    <p>
+                        <input name="area[]" type="checkbox" id="xj" value="新疆" {% if "新疆" in form.area.value %}checked{%end%}><label for="xj">新疆</label>
+                        <input name="area[]" type="checkbox" id="yn" value="云南" {% if "云南" in form.area.value %}checked{%end%}><label for="yn">云南</label>
+                        <input name="area[]" type="checkbox" id="gz" value="贵州" {% if "贵州" in form.area.value %}checked{%end%}><label for="gz">贵州</label>
+                        <input name="area[]" type="checkbox" id="sc" value="四川" {% if "四川" in form.area.value %}checked{%end%}><label for="sc">四川</label>
+                        <input name="area[]" type="checkbox" id="gs" value="甘肃" {% if "甘肃" in form.area.value %}checked{%end%}><label for="gs">甘肃</label>
+                        <input name="area[]" type="checkbox" id="nx" value="宁夏" {% if "宁夏" in form.area.value %}checked{%end%}><label for="nx">宁夏</label>
+                        <input name="area[]" type="checkbox" id="qh" value="青海" {% if "青海" in form.area.value %}checked{%end%}><label for="qh">青海</label>
+                        <input name="area[]" type="checkbox" id="xz" value="西藏" {% if "西藏" in form.area.value %}checked{%end%}><label for="xz">西藏</label>
+                        <input name="area[]" type="checkbox" id="nmg" value="内蒙古" {% if "内蒙古" in form.area.value %}checked{%end%}><label for="nmg">内蒙古</label>
+                    </p>
+                </div>
+                <br/>
+                <button type="submit" class="ui-button ui-button-sorange" style="margin-left:30px; margin-top: 10px">筛选</button>
+            </form>
+
+            <div class="fn-clear">
+                <span class="fn-left" style="margin-bottom:5px;margin-right: 30px;">
+                    <select id="select-all-box">
+                        <option value="0">分组添加到</option>
+                        {% for cate in cates %}
+                        <option value="{{cate.id}}" > {{cate.name}} </option>
+                        {% end %}
+                    </select>
+                </span>
+                <span id='prompt' style="background: rgb(18, 182, 18); color:white; width: 80px; font-size:18px; margin-left:150px; padding-left:50px; padding-right:50px; display:none">添加成功</span>
+                <span class="fn-right">
+                    <input type="button" id="cate-manager" class="ui-button ui-button-sblue" value="分组管理">
+                </span>
+            </div>
+
+            <div class="content ui-grid-row">
+                <table class="ui-table ui-table-noborder">
+                    <thead>
+                    <tr>
+                        <th ><input type="checkbox" id="check"><label for="check">全选</label></th>
+                        <th>头像</th>
+                        <th>会员卡号</th>
+                        <th>微信昵称</th>
+                        <th>姓名</th>
+                        <th>手机号</th>
+                        <th>性别</th>
+                        <th>关注时间</th>
+                        <th>最后活跃</th>
+                        <th>剩余积分</th>
+                        <th>会员等级</th>
+                        <th style="20px">分组</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for mem in page.rows %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="check" value="{{ mem.mid }}">
+                        </td>
+                        <td>
+                            <a rel="popover" class="avatar iPopover" target="_blank" href="/member/detail/{{mem.mid}}" data-original-title="">
+                                <img src="{{default(mem.head_img, 'http://img0.uhcdn.com/images/autumn/default.png')}}" width="58" height="58" alt="点击查看用户详细信息">
+                            </a>
+                        </td>
+                        <td>0000{{mem.mid}}</td>
+                        <td>{{ default(mem.wx_name, '') }} </td>
+                        <td>{{ default(mem.name, '') }}</td>
+                        <td>{{ default(mem.mobile, '') }} </td>
+                        <td>{{ {'男': '男','女': '女', 'other': '未知'}.get(default(mem.gender, 'other')) }}</td>
+                        <td style="max-width:70px">{{ default(mem.wx_follow_at, '') }}</td>
+                        <td style="max-width:70px">{{ default(mem.last_active, '') }}</td>
+                        <td>{{ mem.points }}</td>
+                        <td>
+                            {% if levels %}
+                                {% if mem.level == 0 %}
+                                    未注册
+                                {% else %}
+                                    <span date-id="{{ mem.mid }}"><a href="javascript:void(0);" title="修改会员等级">{{ levels[str(mem.level)] }}</a></span><span id="error" style="color: red"></span>
+
+                                {% end %}
+                            {% else %}
+                                未设置等级
+                            {% end %}
+                        </td>
+                        <td>
+                            <select name="select-one-box">
+                                {% for cate in cates %}
+                                <option value="{{cate.id}}" {% if mem.cid == cate.id %} selected {% end %} > {{cate.name}}</option>
+                                {% end %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="ui-dialog-content" data-role="content"
+                 style="display:none;background-color: rgb(255, 255, 255); height: 100%; zoom: 1; background-position: initial initial; background-repeat: initial initial;">
+                <div id="cate-form" >
+                    <div class="ui-dialog-title" data-role="title">会员分组管理</div>
+                    <div class="ui-dialog-container">
+                        <div class="ui-dialog-message" data-role="message">
+                            <div class="ui-dialog-operation fn-right" data-role="foot" style="margin-top:5px; margin-bottom:10px;">
+                                <input type="text" name="new-cate-input" width="40px" >
+                                <button class="ui-button ui-button-sorange" type="button" id="add-cate-button">新增</button>
+                            </div>
+                            <table class="ui-table" id="cate-table">
+                                <thead>
+                                <tr>
+                                    <th>分组名称</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for cate in cates %}
+                                <tr class="ui-table-split">
+                                    <td>{{cate.name}}</td>
+                                    {% if cate.name == '未分组' %}
+                                    <td>默认分组，不能操作</td>
+                                    {%else%}
+                                    <td><a href="javascript:" name="delete"><input type="hidden" name="cate-id" value="{{cate.id}}">删除</a></td>
+                                    {%end%}
+                                </tr>
+                                {% end %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% module xsrf_form_html() %}
+                </div>
+            </div>
+
+            {% module xsrf_form_html() %}
+            {% raw page.links() %}
+    </li>
+</ul>
+{% end %}
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/dialog/1.2.2/dialog.css">
+<style>
+    .avatar {
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      background: #eee;
+    }
+</style>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'dialog', 'autumn', 'confirmbox', 'tabs'],
+    function ($, AutoComplete, Calendar, moment, Dialog, autumn, ConfirmBox, Tabs) {
+        new Tabs({
+            element: '.ui-tab',
+            triggers: '.ui-tab-item',
+            panels: '.panel',
+            triggerType: 'click',
+            activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+
+        $('#all').click(function(){
+            $("input[name^=area]").removeAttr('checked');
+            if ($('#all').attr('checked') != 'checked') {
+                $("#all").attr('checked', 'checked');
+            }
+        });
+        $('input[name^=area]').click(function(){
+            $("#all").removeAttr('checked');
+        });
+
+        // 更多按钮
+        $('#more-button').click(function(){
+        console.log('1');
+            if ($(this).attr('show') == 'no'){
+                // 显示
+                $('#more-city').css('display', 'block');
+                $('#icon').html('&#xF01A3;');
+                $(this).attr('show', 'yes');
+            }
+            else{
+                // 隐藏
+                $('#more-city').css('display', 'none');
+                $('#icon').html('&#xF01A6;');
+                $(this).attr('show', 'no');
+
+            }
+
+
+        });
+        // 修改等级
+        $('span[date-id]').on('click', function(){
+            var mem_id = $(this).attr('date-id');
+            var html = '<label>会员等级</label><select name="select-level">{% for key, val in levels.iteritems() %}<option value="{{ key }}">{{ val }}</option>{% end %}</select>'
+            ConfirmBox.confirm(html, '修改会员等级', function(){
+                var level = $('select[name="select-level"]').val();
+                $.post(
+                    "{{ reverse_url('wx.member.level') }}",
+                    {'level': level, 'mem_id': mem_id, '_xsrf': $('input[name="_xsrf"]').val()},
+                    function(data){
+                        if (data.ok){
+                            console.log(data.name);
+                            $('span[date-id=' + mem_id + ']').html('<a href="javascript:void(0);" title="修改会员等级">' + data.name + '</a>');
+                        } else {
+                            $('#error').show();
+                            $('#error').text('更新失败').css('').delay(3000).hide(0);
+                        }
+                    }
+                )
+            });
+        });
+
+        function all_check(){
+            var obj = $('input[name=check]');
+            var all = true;
+            obj.each(function(){
+                if (!$(this).attr('checked')) {
+                    all = false;
+                    return false;
+                }
+            });
+            if (!all) {
+                $('#check').attr('checked', false);
+            } else {
+                $('#check').attr('checked', true);
+            }
+        }
+        var check = $('#check');
+        check.on('click', function(){
+            if (check.attr('checked')){
+                $('input[name=check]').each(function(){
+                    $(this).attr('checked', true);
+                });
+            }
+            else {
+                $('input[name=check]').each(function(){
+                    $(this).attr('checked', false);
+                });
+            }
+        });
+
+        $('input[name=check]').on('click', function(){
+            if ($(':input[name=check][checked]').length){
+                all_check();
+            }
+            else {
+                $('#check').attr('checked', false);
+            }
+        });
+
+        // 改变全部用户分组选项框事件
+        $("#select-all-box").change(function(){
+            var cate_id = $(this).find(":selected").val();
+            var rows = $(':input[name=check][checked]');
+            var mem_id = [];
+            rows.each(function(index){
+                mem_id.push($(this).val());
+            });
+            if (cate_id != '0'){
+                $.post(
+                '{{reverse_url('member.change_category')}}',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'cate_id': cate_id.toString(), 'mem_id':mem_id.toString()},
+                function(){
+                     location.reload();
+                });
+            }
+        });
+        // 改变单个用户分组选项框事件
+        $("select[name=select-one-box]").change(function(){
+            var cate_id = $(this).find(":selected").val();
+            var mem_id = $(this).closest("tr").find("input[name=check]").val();
+            $.post(
+            '{{reverse_url('member.change_category')}}',
+            {'_xsrf': autumn.get_cookie('_xsrf'), 'cate_id': cate_id, 'mem_id':mem_id},
+            function(){
+                $('#prompt').css('display','inline');
+                $('#prompt').delay(800).fadeOut();
+            }
+            );
+        });
+
+        // 新建分组对话框
+        new Dialog({
+            trigger: '#cate-manager',
+            effect: 'fade',
+            //width: 300,
+            //height: 200,
+            content: $('#cate-form')
+        }).after('hide', function(){
+            location.reload();
+        });
+
+        // 添加分组按钮
+        $('#add-cate-button').click(function(){
+            var name = $('input[name=new-cate-input]').val();
+            if (name != ''){
+                ConfirmBox.confirm('添加分组【'+name+'】', '确认添加？', function(){
+                    $.ajax({
+                        url: '{{ reverse_url("member.add_category") }}',
+                        type: 'POST',
+                        data: {'name': name, '_xsrf': autumn.get_cookie('_xsrf')},
+                        success: function(data){
+                            row = '<tr class="ui-table-split"><td>' + data.cate_name + '</td><td><a href="javascript:" name="delete"><input type="hidden" name="cate-id" value="' + data.cate_id +'">删除</a></td></tr>';
+                            if (data.ok){
+                                $("#cate-table tr:last").after(row);
+                            }
+                            else{
+                                alert(data.error);
+                            }
+                        }
+                    });
+                    return false;
+                });
+            }
+
+        });
+
+        // 删除分组链接
+        $('#cate-table').on('click', 'tr td a[name=delete]', function(){
+            var cate_id = $(this).closest("tr").find("input[name=cate-id]").val();
+            var link=$(this);
+
+            ConfirmBox.confirm('分组删除后，该分组下的会员自动归入【未分组】', '确认删除?', function(){
+                $.ajax({
+                    url: '{{ reverse_url("member.delete_category") }}',
+                    type: 'POST',
+                    data: {'cate_id': cate_id, '_xsrf': autumn.get_cookie('_xsrf')},
+                    success: function(data){
+                        if (data.ok){
+                            link.parent().parent().remove();
+                        }
+                    }
+                });
+                return false;
+            });
+        });
+
+        // 导入微信会员
+        $('input[name="update"]').on('click', function(){
+            var current = $(this);
+            current.unbind('click');
+            current.removeClass('ui-button-sblue').addClass('ui-button-mdisable');
+            $.get(
+                "{{ reverse_url('wx.attention.pull') }}",
+                function(data) {
+                    var info = '';
+                    if (data == 'error') {
+                        info = '今日已更新';
+                    } else {
+                        info = '正进行更新'
+                    }
+                    current.val(info)
+                }
+            )
+        })
+
+    });
+</script>
+{% end %}

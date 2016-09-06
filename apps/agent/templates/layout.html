@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% end %} | 视惠代理商云平台</title>
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="http://assets.uhcdn.com/gallery/thin/css/??bootstrap.css,thin-admin.css,font-awesome-custom.css" rel="stylesheet" media="screen">
+    <link href="http://arale.uhcdn.com/n/gallery/thin/style/style.css" rel="stylesheet" media="screen">
+    <link rel="icon"  type="image/png"  href="http://img0.uhcdn.com/p/949/522/75/912a69bc_2014031811391793227_nw.png">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="http://arale.uhcdn.com/n/gallery/thin/assets/js/??html5shiv.js,respond.min.js"></script>
+    <![endif]-->
+    {% block styles %}{% end %}
+</head>
+<body>
+
+
+<div class="container">
+    <div class="top-navbar header b-b"> <a data-original-title="Toggle navigation" class="toggle-side-nav pull-left" href="#"><i class="icon-reorder"></i> </a>
+        <div class="brand pull-left">
+            <a href="/">
+                <img src="http://img0.uhcdn.com/p/833/1004/796/5d1e7cc9_2014031816513532700_nw.png" width="200" height="33">
+            </a></div>
+        <ul class="nav navbar-nav navbar-right  hidden-xs">
+            <li class="dropdown user  hidden-xs">
+                <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                    <i class="icon-male"></i> <span class="username">{{ current_user.name }}</span> <i class="icon-caret-down small"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="{{ reverse_url('logout') }}"><i class="icon-power-off"></i> 退出</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="wrapper" style="min-height: 600px;">
+    <div class="left-nav">
+        <div id="side-nav">
+            <ul id="nav">
+                {% block menu %}{% end %}
+            </ul>
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="content container">
+            {% block content %} {% end %}
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav footer"> &copy; 2014 上海视惠信息科技有限公司 | 客服电话：400-686-5151</div>
+
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="http://arale.uhcdn.com/n/gallery/thin/js/??jquery.js,bootstrap.min.js,smooth-sliding-menu.js"></script>
+<script src="http://assets.uhcdn.com/gallery/jquery/plugins/validate/1.11.1/jquery.validate.min.js"></script>
+{% block scripts %}{% end %}
+
+
+<!--switcher html start-->
+<div class="demo_changer active" style="right: 0px;">
+    <div class="demo-icon"></div>
+    <div class="form_holder">
+        <div class="predefined_styles">
+            <a class="styleswitch" rel="a" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/a.jpg"></a>
+            <a class="styleswitch" rel="b" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/b.jpg"></a>
+            <a class="styleswitch" rel="c" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/c.jpg"></a>
+            <a class="styleswitch" rel="d" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/d.jpg"></a>
+            <a class="styleswitch" rel="e" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/e.jpg"></a>
+            <a class="styleswitch" rel="f" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/f.jpg"></a>
+            <a class="styleswitch" rel="g" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/g.jpg"></a>
+            <a class="styleswitch" rel="h" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/h.jpg"></a>
+            <a class="styleswitch" rel="i" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/i.jpg"></a>
+            <a class="styleswitch" rel="j" href=""><img alt="" src="http://arale.uhcdn.com/n/gallery/thin/images/j.jpg"></a>
+        </div>
+
+    </div>
+</div>
+<!--switcher html end-->
+<script src="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/??switcher.js,moderziner.custom.js"></script>
+<link href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/switcher.css" rel="stylesheet">
+<link href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/switcher-defult.css" rel="stylesheet">
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/a.css" title="a" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/b.css" title="b" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/c.css" title="c" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/d.css" title="d" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/e.css" title="e" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/f.css" title="f" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/g.css" title="g" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/h.css" title="h" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/i.css" title="i" media="all" />
+<link rel="alternate stylesheet" type="text/css" href="http://arale.uhcdn.com/n/gallery/thin/assets/switcher/j.css" title="j" media="all" />
+</body>
+</html>

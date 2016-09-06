@@ -1,0 +1,47 @@
+{% extends '../layout.html' %}
+{% block title %}商户详情{% end %}
+{% block menu %}
+    {% module menu('supplier.list') %}
+{% end%}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <h2 class="page-title">{{ supplier.name }}({{supplier.short_name }})详情</h2>
+    </div>
+    <div>
+        <a href="{{ url_concat(reverse_url('supplier.sequence'), {'supplier_name': supplier.short_name}) }}">查看该商户的流水</a>
+    </div>
+    <div style="font-size: 16px">
+        <legend class="section"></legend>
+        <div class="col-lg-4"></div>
+        <div class="col-lg-4">
+            <div>
+                <div class="col-lg-4">
+                    <label class="control-label">名称</label>
+                </div>
+                <div class="col-lg-8">
+                    <p>{{ supplier.name }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="col-lg-4">
+                    <label class="control-label">短名称</label>
+                </div>
+                <div class="col-lg-8">
+                    <p>{{ supplier.short_name }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="col-lg-4">
+                    <label class="control-label">联系人</label>
+                </div>
+                <div class="col-lg-8">
+                    <p>{{ default(supplier.contact) }}&nbsp;</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4"></div>
+    </div>
+</div>
+{% end %}

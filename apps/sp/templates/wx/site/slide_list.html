@@ -1,0 +1,240 @@
+{% extends '../../layout.html' %}
+{% block title %}官网首页轮播{% end %}
+{% block menu %}
+{% module menu('wx.site.cover') %}
+{% end%}
+{% block styles %}
+<style>
+    .ui-tiptext-icon {
+        color: #b5de70;
+        font-size: 18px;
+        display: none;
+    }
+</style>
+{% end %}
+
+{% block content %}
+
+<div class="ui-tab" style="margin-top: 20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.cover') }}">封面设置</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.tpl') }}">模板选择</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">首页幻灯片</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.column') }}">分类栏目</a>
+        </li>
+    </ul>
+</div>
+
+<table class="ui-table ui-table-noborder" style="margin-top: 20px;">
+    <thead>
+    <tr>
+        <th style="width:70px">标题</th>
+        <th>显示顺序</th>
+        <th style="text-align: center;">图片（宽720高400）</th>
+        <th>链接到</th>
+        <th>首页显示</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for slide in slides %}
+    <tr>
+        <td><input type="text" id="name-{{slide.id}}" value="{{slide.name}}" style="width:70px"/></td>
+        <td><input type="text" id="display-order-{{slide.id}}" size="5" value="{{slide.display_order}}"/></td>
+        <td>
+            <input type="hidden" id="pic-{{slide.id}}" value="{{slide.pic}}">
+            <div style="text-align: center;">
+            <img src="{{img_url(slide.pic, 'max180')}}" id="img-preview-{{slide.id}}">
+            </div>
+            <div style="text-align: center;">
+                <button class="ui-button ui-button-swhite" type="button" pic-slide-id="{{slide.id}}">更换图片</button>
+            </div>
+        </td>
+        {#<td>
+            <select id="app-msg-{{slide.id}}">
+                {% for app_msg in app_msgs %}
+                <option value="{{app_msg.id}}" {{ 'selected' if app_msg.id==slide.app_msg_id else '' }} >{{app_msg.title}}</option>
+                {% end %}
+            </select>
+        </td>#}
+        <td>
+            <select id="link-type-{{ slide.id }}">
+                <option value="0" {% if slide.link_type == 0 %} selected {% end %}>图文消息</option>
+                <option value="1" {% if slide.link_type == 1 %} selected {% end %}>会员</option>
+                <option value="2" {% if slide.link_type == 2 %} selected {% end %}>留言</option>
+            </select>
+        </td>
+        <td><input type="checkbox" id="is-show-{{slide.id}}" {{ 'checked' if slide.is_show=='1' else ''}} ></td>
+        <td> <input type="button" class="ui-button ui-button-sorange" action="edit" save-slide-id="{{slide.id}}" value="保存">
+            <i class="ui-tiptext-icon iconfont" title="成功" id="tip-{{slide.id}}">&#xf0156;</i>
+        </td>
+    </tr>
+    {% end %}
+    {% for i in range(5-len(slides)) %}
+    <tr>
+        <td><input type="text" id="name-add{{i}}" style="width:70px"/></td>
+        <td><input type="text" id="display-order-add{{i}}" size="5"/></td>
+        <td>
+            <input type="hidden" id="pic-add{{i}}" value="">
+            <div style="text-align: center;">
+                <img src="http://img.uhcdn.com/images/autumn/default_180x100.png" id="img-preview-add{{i}}">
+            </div>
+            <div style="text-align: center;">
+                <button class="ui-button ui-button-swhite" type="button" pic-slide-id="add{{i}}">添加图片</button>
+            </div>
+        </td>
+        {#<td>
+            <select id="app-msg-add{{i}}">
+                {% for app_msg in app_msgs %}
+                <option value="{{app_msg.id}}">{{app_msg.title}}</option>
+                {% end %}
+            </select>
+        </td>#}
+        <td>
+            <select id="link-type-add{{i}}">
+                <option value="0">图文消息</option>
+                <option value="1">会员</option>
+                <option value="2">留言</option>
+            </select>
+        </td>
+        <td><input type="checkbox" id="is-show-add{{i}}" checked></td>
+        <td>
+            <input type="button" class="ui-button ui-button-sorange" action="add" save-slide-id="add{{i}}" value="保存">
+            <i class="ui-tiptext-icon iconfont" title="成功" id="tip-add{{i}}">&#xf0156;</i>
+        </td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+
+<form method="post" id="form" action="{{ reverse_url('wx.site.slide.update') }}">
+    {% module xsrf_form_html() %}
+</form>
+
+<input type="hidden" id="app-msg" value='<select name="app-msg"> {% for app_msg in app_msgs %} <option value="{{app_msg.id}}">{{app_msg.title}}</option> {% end %} </select>'>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'kindeditor'], function ($, autumn, ConfirmBox, KindEditor) {
+        $('select[id^="link-type"]').each(function(){
+            if ($(this).val() == 0) {
+                $(this).parent().append($('#app-msg').val());
+            }
+        });
+
+        $('select[id^="link-type"]').change(function(){
+            $(this).parent().find('select[name="app-msg"]').remove();
+            var link_type = $(this).val();
+            if (link_type == 0){
+                $(this).parent().append($('#app-msg').val());
+            }
+        });
+        $('[save-slide-id]').on('click', function(){
+            var ele = $(this);
+            var slide_id = ele.attr('save-slide-id');
+            var action = ele.attr('action');
+            var name = $('#name-'+slide_id).val();
+            var display_order = $('#display-order-'+slide_id).val();
+            var pic = $('#pic-'+slide_id).val();
+            var link_type = $('#link-type-' + slide_id);
+            var link_type_val = link_type.val();
+            if (link_type_val == 0) {
+                var val = link_type.closest('td').find('[name="app-msg"]').val();
+            } else if (link_type_val == 1) {
+                var val = 1;
+            } else {
+                var val = 2;
+            }
+
+            // var app_msg_id=$('#app-msg-' + slide_id).val();
+            var is_show = Number(Boolean($('#is-show-'+slide_id).attr('checked')));
+            if (!name){
+                alert('请输入标题');return;
+            }
+            if (!display_order || !Number(display_order)){
+                alert('请输入数字顺序');return;
+            }
+            if (!pic){
+                alert('请上传图片');return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url:'{{ reverse_url("wx.site.slide.update") }}',
+                cache: false,
+                data: {
+                    '_xsrf': autumn.get_cookie('_xsrf'),
+                    'id': slide_id,
+                    'action': action,
+                    'name': name,
+                    'display_order': display_order,
+                    'pic': pic,
+                    'link_type': link_type_val,
+                    'val': val,
+                    'is_show': is_show
+                },
+                error: function() {
+                    alert('请求发生错误，请刷新页面后重试');
+                },
+                success: function(data) {
+                    if (data.action == 'add') {
+                        ele.attr('action', 'edit');
+                        ele.attr('save-slide-id', data['slide_id']);
+                        var ele_par = ele.parent().parent();
+
+                        ele_par.find('[id^="name-add"]').attr('id', 'name-' + data['slide_id']).attr('value', name);
+                        ele_par.find('[id^="display-order-add"]').attr('id', 'display-order-' + data['slide_id']).attr('value', display_order);
+                        ele_par.find('[id^="pic-add"]').attr('id', 'pic-' + data['slide_id']);
+                        ele_par.find('img[id^="img-preview-add"]').attr('id', 'img-preview-' + data['slide_id']);
+                        ele_par.find('button[pic-slide-id]').attr('pic-slide-id', data['slide_id']).text('更换图片');
+                        ele_par.find('select[id^="link-type-add"]').attr('id', 'link-type-' + data['slide_id']);
+                        ele_par.find('[id^="is-show-add"]').attr('id', 'is-show-' + data['slide_id']);
+                        $('#tip-'+slide_id).show().delay(3000).fadeOut(1);
+                        ele_par.find('[id^="tip-add"]').attr('id', 'tip-' + data['slide_id']);
+                    }
+
+                    $('#tip-'+slide_id).show().delay(3000).fadeOut(1);
+                }
+            });
+
+
+
+        });
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf'),
+                    'source': 'max180'
+                }
+            });
+            K.create(); // 偷懒的方式让它自动加载css
+            K('[pic-slide-id]').click(function() {
+                var slide_id = $(this).attr('pic-slide-id');
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#pic-'+slide_id).val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview-'+slide_id).attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+    });
+</script>
+{% end %}

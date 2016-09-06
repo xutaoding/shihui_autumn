@@ -1,0 +1,8 @@
+<div id="nav" class="fn-clear">
+    <ul class="fn-right">
+        {% for page, name in [('', '首&nbsp;&nbsp;页'), ('crm', 'CRM营销'), ('distribution', '全网分销'),
+                             ('weixin', '微信运营'), ('tmall', '天猫代运营'), ('about', '关于我们')] %}
+            <li {% if menu_key == page %} class="active" {% end %} > <a href="{{ reverse_url('page', page)}}">{%raw name %}</a> </li>
+        {% end %}
+    </ul>
+</div>

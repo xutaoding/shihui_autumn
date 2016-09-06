@@ -1,0 +1,21 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布58商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end %}
+
+{% block content %}
+<div class="ui-tipbox {{ 'ui-tipbox-success' if ok else 'ui-tipbox-error' }}">
+    <div class="ui-tipbox-icon">
+        {% if ok %}
+        <i class="iconfont" title="成功">&#xF049;</i>
+        {% else %}
+        <i class="iconfont" title="出错">&#xF045;</i>
+        {% end %}
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">{{ title }}</h3>
+        <p class="ui-tipbox-explain">{% raw explain %}</p>
+    </div>
+</div>
+{% end %}

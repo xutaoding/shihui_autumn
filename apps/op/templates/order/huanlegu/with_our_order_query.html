@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}玛雅预约{% endblock %}
+{% set menu_key = 'order.hlg_entrance' %}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">玛雅预约</h2>
+    </div>
+    <form class="ui-form" method="post" action="{{ url_for('order.hlg_with_our_order_query') }}">
+        <fieldset>
+            <div class="ui-form-item">
+                <label for="" class="ui-label">
+                    <span class="ui-form-required">*</span> 一百券券号
+                </label>
+                <input class="ui-input" type="text" name="coupon" value="{{ c }}">
+                <input type="hidden" name="action" value="query">
+                <input type="submit" class="ui-button ui-button-morange" value="查询">
+                {% if error %}
+                    <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                        {{ error }}
+                    </p>
+                {% else %}
+                    <p class="ui-form-explain">同一订单的多张券号只需在此输入其中一张</p>
+                {% endif %}
+            </div>
+        </fieldset>
+    </form>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://aralejs.org/calendar/src/calendar.css"/>
+{% endblock %}
+
+{% block scripts %}
+    <script charset="utf-8" src="{{ url_for('static', filename='js/xdate.js') }}"></script>
+    <script>
+        seajs.config({
+            alias: {
+                '$': 'gallery/jquery/1.7.2/jquery'
+            }
+        });
+        seajs.use('arale/calendar/0.9.0/calendar', function (Calendar) {
+            var today = new XDate();
+            var cal = new Calendar({
+                trigger: '#appoint_date',
+                range: [today.addDays(1).toString('yyyy-MM-dd'), today.addDays(30).toString('yyyy-MM-dd')]
+            });
+        });
+    </script>
+{% endblock %}

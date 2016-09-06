@@ -1,0 +1,179 @@
+{% extends '../layout.html' %}
+
+{% block title %}订单详情{% end %}
+
+{% block style %}
+<style>
+    body {
+        background: none;
+    }
+    .goods-info {
+        position: relative;
+        margin: 10px;
+        min-height: 80px;
+    }
+    .goods-info-img-div {
+        position: absolute;
+        height: 100%;
+        max-width: 25%;
+        left: 0;
+    }
+    .goods-info-img {
+        display:block;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .goods-info-name {
+        margin-left: 30%
+    }
+    .goods-price-now {
+        color: red;
+        font-size: 16px;
+    }
+    .order-info {
+        background: #f4f4f4;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        margin-left: -5%;
+        margin-right: -5%;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        font-size: 16px;
+        border-top: 1px solid rgb(252, 189, 189);
+        border-bottom: 1px solid rgb(252, 189, 189);
+    }
+    .order-info > div {
+        height: 35px;
+        vertical-align:bottom;
+    }
+    .order-info-span {
+        width: 40%;
+        padding-left: 20%;
+        line-height: 35px;
+    }
+    .order-info-span-right {
+        line-height: 35px;
+    }
+    .order-info-num {
+        text-align: center;
+        height: 36px;
+        width: 50px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .shipping-info {
+        background: #f4f4f4;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        margin-left: -5%;
+        margin-right: -5%;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        font-size: 16px;
+        border-top: 1px solid rgb(252, 189, 189);
+        border-bottom: 1px solid rgb(252, 189, 189);
+    }
+    .shipping-info > div {
+        margin: 0 20%;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="order-info">
+    <div>
+        <span class="order-info-span">商品：</span>
+        <span class="order-info-span-right">{{ order.short_name }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">数量：</span>
+        <span class="order-info-span-right">{{ order.num }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">总金额：</span>
+        <span class="order-info-span-right">{{ order.payment }}{% if order.post_fee %}&nbsp;(包含邮费:{{ order.post_fee }}){% end %}</span>
+    </div>
+</div>
+
+{% if order.type == 'E' %}
+<div>收货手机</div>
+<div class="order-info">
+    <div>
+        <span class="order-info-span">手机号：</span>
+        <span class="order-info-span-right">{{ order.mobile }}</span>
+    </div>
+    {% if order.status == 2 %}
+    {% for item in sn %}
+    <div>
+        <span class="order-info-span">券号：</span>
+        <span class="order-info-span-right">{{ item.sn }}</span>
+    </div>
+    {% end %}
+    {% end %}
+</div>
+{% else %}
+<div>收货地址</div>
+<div class="order-info">
+    <div>
+        <span class="order-info-span">姓名：</span>
+        <span class="order-info-span-right">{{ shipping_info.receiver }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">手机号：</span>
+        <span class="order-info-span-right">{{ order.mobile }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">地址：</span>
+        <span class="order-info-span-right">{{ shipping_info.address }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">邮编：</span>
+        <span class="order-info-span-right">{{ shipping_info.zip_code }}</span>
+    </div>
+    {% if order.status == 2 %}
+    <div>
+        <span class="order-info-span">快递公司：</span>
+        <span class="order-info-span-right">{{ shipping_info.express }}</span>
+    </div>
+    <div>
+        <span class="order-info-span">运单号：</span>
+        <span class="order-info-span-right">{{ shipping_info.express_number }}</span>
+    </div>
+    {% end %}
+</div>
+{% end %}
+
+<div class="fix-btn">
+    {% if order.status == 0 %}
+    <form method="post" action="{{ reverse_url('mall.pay') }}" id="form">
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="wx_id" value="{{ current_user.wx_id }}">
+        <input type="hidden" name="goods_id" value="{{ order.gid }}">
+        <input type="hidden" name="order_id" value="{{ order.id }}">
+        <input type="button" class="btn btn-danger" value="去付款" id="offer">
+    </form>
+    {% elif order.status == 1 %}
+    <div>
+        <span class="glyphicon glyphicon-ok-circle" style="color: green; font-size: 30px"></span>
+        <span style="font-size: 30px">交易成功</span>
+    </div>
+    {% elif order.status == 8 %}
+    <div>
+        <span class="glyphicon glyphicon-remove-circle" style="color: red; font-size: 30px"></span>
+        <span style="font-size: 30px">交易已关闭</span>
+    </div>
+    {% else %}
+    {% end %}
+</div>
+{% module member(current_user.wx_id) %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('#offer').on('click', function(){
+            $('#form').submit();
+        });
+    });
+</script>
+{% end %}

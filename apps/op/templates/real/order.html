@@ -1,0 +1,146 @@
+{% extends "../layout.html" %}
+{% block title %}导入渠道订单{% end %}
+{% block menu %}
+{% module menu('real.import_partner_order') %}
+{% end%}
+
+{% block content %}
+<div class="ui-tab" style="margin-bottom: 20px; margin-top:20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">导入渠道订单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.show_order_shipping') }}">下载发货单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.import_order_shipping') }}">导入发货单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('real.show_track_no') }}">下载渠道运单文件</a>
+        </li>
+    </ul>
+</div>
+
+<div class="panels">
+    <div class="panel">
+
+        <form action="{{ reverse_url('real.import_partner_order') }}" method="post" class="ui-form"
+              enctype="multipart/form-data">
+            <div class="ui-form-item">
+                <label class="ui-label">
+                    <span class="ui-form-required">*</span>选择渠道</label>
+
+                <div style="position: relative">
+                    <div id="tb" onclick="order_file.click()" class="ui-distributor">淘宝</div>
+                    <div id="tm" onclick="order_file.click()" class="ui-distributor" style="left: 10px">天猫</div>
+
+                    <div id="jd" onclick="order_file.click()" class="ui-distributor" style="left: 20px">京东</div>
+                    <div id="yhd" onclick="order_file.click()" class="ui-distributor"
+                         style="left: 30px;">一号店
+                    </div>
+                    <div id="wb" onclick="order_file.click()" class="ui-distributor"
+                         style="left: 40px;">58团购
+                    </div>
+                </div>
+
+                <input type="hidden" name="partner">
+            </div>
+            <div class="ui-title">
+                    <a class="ui-button ui-button-sblue" style="margin-left: 175px ;margin-top: -30px"
+                       href="{{ reverse_url('real.auto_import_tb_order') }}">自动导入淘宝、天猫订单</a>
+                </div>
+            <div class="ui-form-item">
+                <div style="width: 200px; height: 50px; display: none">
+                    <input type="file" id="order_file" name="order_file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                           style="opacity: 0; z-index: -100">
+                </div>
+                <span id="filename" style=""></span>
+
+                <p class="ui-form-explain">(注意：上传时，保证是excel文件.) </p>
+                {% if message != '' %}
+                {% if message == 'success' %}
+                <p class="ui-form-explain ui-tiptext ui-tiptext-success">
+                    <i class="ui-tiptext-icon iconfont" title="成功">&#xF049;</i>
+                    上传渠道订单成功
+                </p>
+                {% else %}
+                <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                    <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                    {{ message }}
+                </p>
+                {% end %}
+                {% end %}
+            </div>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="submit" class="ui-button ui-button-morange" value="上传">
+            </div>
+            <div>
+                <span class="waring-info">{% if existed_orders %} 已存在的订单：{{','.join(existed_orders)}} {% end %}<br></span>
+                <span class="waring-info">{% if unbind_goods %} 未映射商品信息：{{','.join(unbind_goods)}} {% end %}<br></span>
+                <span class="success-info">{% if success_orders %} 导入订单：{{','.join(success_orders)}} 成功！{% end%}</span>
+            </div>
+
+            <div class="ui-form-item">
+            </div>
+        </form>
+    </div>
+</div>
+{% end %}
+
+{% block styles %}
+<link href="http://assets.spmjs.org/alice/tab/1.0.0/tab.css" rel="stylesheet">
+<style>
+    .waring-info {
+        color: red;
+    }
+
+    .success-info {
+        color: green;
+    }
+
+    .panel {
+        display: none;
+    }
+    .ui-distributor {
+        background-color: #E4F1DD;
+        color: #000000;
+        width: 135px;
+        font-size: 25px;
+        text-align: center;
+        height: 50px;
+        cursor: pointer;
+        line-height: 50px;
+        position: relative;
+        float: left;
+    }
+
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'tabs'], function ($, Tabs) {
+        new Tabs({
+            element: '.ui-tab',
+            triggers: '.ui-tab-item',
+            panels: '.panel',
+            triggerType: 'click',
+            activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+
+        $('.ui-distributor').click(function () {
+            $('.ui-distributor').css('background-color', '#E4F1DD');
+            $(this).css("background-color", "#20AC9B");
+            $('input[name=partner]').val($(this).attr('id'));
+        });
+        $('#order_file').change(function () {
+            var absolute_path = $(this).val();
+            var path_list = absolute_path.split('\\');
+            var filename = path_list[path_list.length - 1];
+            $('#filename').text(filename);
+        });
+    });
+</script>
+{% end %}

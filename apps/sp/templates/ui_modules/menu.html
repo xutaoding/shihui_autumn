@@ -1,0 +1,28 @@
+{% for menu in menu_data %}
+    {% if not menu['require'] or menu['require'] in current_user.sp_properties.split(',') %}
+    {% set menu_match=any([item['endpoint'] == menu_key for item in menu['items']]) or menu['endpoint']==menu_key %}
+    <li class="{{ 'nav-active' if menu_match else '' }}">
+        <a href="{{ reverse_url(menu['endpoint']) if menu['endpoint'] else 'javascript:;' }}">
+            <span style="padding: 0 10px 0 5px;"><i class="iconfont">{% raw menu['icon'] %}</i></span>
+            <span>{{ menu['title'] }}</span>
+            {% if menu['items'] %}
+                {% if menu_match %}
+                    <span style="float: right;padding: 0 10px 0 5px;"><i class="iconfont">&#xe623;</i></span>
+                {% else %}
+                    <span style="float: right;padding: 0 10px 0 5px; color: #57627c;"><i class="iconfont">&#xf0001;</i></span>
+                {% end %}
+            {% end %}
+        </a>
+        <ul>
+            {% for item in menu['items'] %}
+                <li class=" {{ 'nav-sub-active' if item['endpoint'] == menu_key else '' }}">
+                    <a href="{{ reverse_url(item['endpoint']) if item['endpoint'] else '#' }}">
+                        <span style="padding:0 30px 0 8px;">·</span>
+                        <span>{{ item['title'] }}</span>
+                    </a>
+                </li>
+            {% end %}
+        </ul>
+    </li>
+    {% end %}
+{% end %}

@@ -1,0 +1,139 @@
+{% extends "../layout.html" %}
+{% block title %}代理验证{% end %}
+{% block menu %}
+{% module menu('coupon.verify') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">券验证</h2>
+</div>
+
+<form class="ui-form  ui-form-large" method="post" action="{{ reverse_url('coupon.verify') }}" id="verify-form" onsubmit="return false;">
+    <fieldset>
+        <div class="ui-form-item">
+            <label for="coupon" class="ui-label"> 一百券券号 </label>
+            <input id="coupon" class="ui-input" type="text" name="coupon">
+            <button type="button" class="ui-button ui-button-lorange" id="query">查询</button>
+            <div class="ui-tiptext-container ui-tiptext-container-success" style="margin-top: 10px;display:none" id="success-box">
+                <p class="ui-tiptext ui-tiptext-success">
+                    <i class="ui-tiptext-icon iconfont" title="成功">&#xF049;</i>
+                    <span id="success-text">验证成功</span>
+                </p>
+            </div>
+            <div class="ui-tiptext-container ui-tiptext-container-error" style="margin-top: 10px;display:none" id="error-box">
+                <p class="ui-tiptext ui-tiptext-error">
+                    <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                    <span id="error-text"> 错误信息 </span>
+                    <a id="error-coupon" href="#" target="_blank" style="display: none">点击查看券详情</a>
+                </p>
+            </div>
+        </div>
+        <div id="verify-info" style="display: none">
+            <div class="ui-form-item">
+                <label class="ui-label"> 商品 </label>
+                <p id='goods' style="font-size: 14px; height: 18px; line-height: 18px; padding: 11px 10px;">商品名称</p>
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label"> 售价 </label>
+                <p id='price' style="font-size: 14px; height: 18px; line-height: 18px; padding: 11px 10px;">商品售价</p>
+            </div>
+            <div class="ui-form-item" >
+                <label class="ui-label"> 选择门店 </label>
+                <div style="height:400px; overflow:auto;">
+                <table class="ui-table">
+                    <thead>
+                    <tr>
+                        <th style="width:50px;">&nbsp;</th>
+                        <th style="min-width: 100px">商户</th>
+                        <th style="min-width: 300px">门店</th>
+                    </tr>
+                    </thead>
+                    <tbody id="shops">
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <button type="button" class="ui-button ui-button-lorange" id="submit">确定</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+{% end %}
+
+{% block scripts %}
+    <script>
+        seajs.use(['$', 'templatable', 'widget', 'autumn'], function ($, Templatable, Widget, autumn) {
+            var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+            $('#query').click(function(){
+                $('#goods,#price,#shops,#error-text').empty();
+                $('#error-box,#error-coupon,#success-box,#verify-info').hide();
+                $.post(
+                    '/coupon/verify-query',
+                    {'coupon': $('#coupon').val(), '_xsrf':autumn.get_cookie('_xsrf')},
+                    function(data){
+                        if (data.error) {
+                            $('#error-box').show();
+                            $('#error-text').text(data.error);
+                            if(data.coupon){
+                                $('#error-coupon').attr('href', '/coupon/'+data.coupon.id).show();
+                            }
+                            return;
+                        }
+                        $('#verify-info').show();
+                        $('#goods').text(data.coupon.gsname);
+                        $('#price').text(data.coupon.sales_price);
+                        new TemplateWidget({
+                            template: '{{!#each shops}}<tr><td> <input type="radio" name="shop" value="{{!id}}"/></td><td>{{!spname}}</td><td>{{!name}}</td></tr>{{!/each}}',
+                            model: data,
+                            parentNode: '#shops'
+                        }).render();
+                    }
+                ).error(function(){
+
+                });
+            });
+
+            $('#submit').click(function(){
+                $('#error-box,#error-coupon').hide();
+                if (!$('input[name=shop]:checked').val()) {
+                    $('#error-box').show();
+                    $('#error-text').text('请选择验证门店');
+                    return false;
+                }
+                else {
+                    coupon=$('#coupon').val();
+                    shop=$('input[name=shop]:checked').val();
+                    $.ajax({
+                        url: '/coupon/verify',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            '_xsrf': autumn.get_cookie('_xsrf'),
+                            'coupon': coupon,
+                            'shop': shop,
+                        },
+                        error: function() {
+                            $('#error-box').show();
+                            $('#error-text').text('请求数据失败，请稍后重试');
+                        },
+                        success: function(data) {
+                            if (data.error) {
+                                $('#error-box').show();
+                                $('#error-text').text(data.error);
+                                return;
+                            }
+                            else{
+                                $('#success-box').show();
+                            }
+                        }
+                    });
+                    $('#verify-info').hide();
+                }
+            });
+        });
+    </script>
+{% end %}

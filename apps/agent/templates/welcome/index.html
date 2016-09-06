@@ -1,0 +1,111 @@
+{% extends '../layout.html' %}
+{% block title %}首页{% end %}
+{% block menu %}
+{% module menu('welcome.index') %}
+{% end%}
+{% block styles %}
+    <link href="http://arale.uhcdn.com/n/gallery/thin/style/dashboard.css" rel="stylesheet" media="screen">
+{% end %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <h2 class="page-title">欢迎 :-) <small>这里可以看到各项统计以及其他</small></h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-3 col-xs-12"> <a href="#" class="stats-container">
+                <div class="stats-heading">总利润</div>
+                <div class="stats-body-alt">
+
+                    <div class="text-center"><span class="text-top">￥</span>{{default(profit, '0.00')}}</div>
+                    <small>昨日进账 ￥{{default(profit_yesterday, '0.00')}}元</small> </div>
+                <div class="stats-footer">查看明细</div>
+            </a> </div>
+            <div class="col-md-3 col-xs-12"> <a href="#" class="stats-container">
+                <div class="stats-heading">总销售额</div>
+                <div class="stats-body-alt">
+
+                    <div class="text-center"><span class="text-top">￥</span>{{default(sales.total, '0.00')}}</div>
+                    <small>昨日销售额 ￥{{ default(sales_yesterday.total, '0.00') }}元</small> </div>
+                <div class="stats-footer">查看明细</div>
+            </a> </div>
+            <div class="col-md-3 col-xs-12"> <a href="#" class="stats-container">
+                <div class="stats-heading">库存</div>
+                <div class="stats-body-alt">
+                    <div class="text-center">{{current_user.stock}}</div>
+                    <small>&nbsp;</small> </div>
+                <div class="stats-footer">&nbsp;</div>
+            </a> </div>
+            <div class="col-md-3 col-xs-12"> <a href="#" class="stats-container">
+                <div class="stats-heading">总销售量</div>
+                <div class="stats-body-alt">
+                    <div class="text-center">{{sales.count}}</div>
+                    <small>昨日销量 {{default(sales_yesterday.count, '0')}}</small> </div>
+                <div class="stats-footer">查看明细</div>
+            </a> </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <!--new earning start-->
+        <div class="panel terques-chart">
+            <div class="panel-body chart-texture">
+                <div class="chart">
+                    <div class="heading"> <span>昨日</span> <strong>$ 48,00 | 13%</strong> </div>
+                    <div class="sparkline" data-type="line" data-resize="true" data-height="90" data-width="90%" data-line-width="1" data-line-color="#fff" data-spot-color="#fff" data-fill-color="" data-highlight-line-color="#fff" data-spot-radius="4" data-data="[200,135,667,333,526,996,564,123,890,564,455]"><canvas width="427" height="90" style="display: inline-block; width: 427px; height: 90px; vertical-align: top;"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-tittle"> <span class="title">七日销量</span> <span class="value-pie"> <a href="#" class="active">Market</a> | <a href="#">Referal</a> | <a href="#">Online</a> </span> </div>
+        </div>
+        <!--new earning end-->
+    </div>
+    <div class="col-md-6">
+        <!--total earning start-->
+        <div class="panel green-chart">
+            <div class="panel-body">
+                <div class="chart">
+                    <div class="heading"> <span>3月</span> <strong>18 日 | 55%</strong> </div>
+                    <div id="barchart"><canvas width="294" height="90" style="display: inline-block; width: 294px; height: 90px; vertical-align: top;"></canvas></div>
+                </div>
+            </div>
+            <div class="chart-tittle"> <span class="title">七日利润</span> <span class="value-pie">$, 85,34,577</span> </div>
+        </div>
+        <!--total earning end-->
+    </div>
+</div>
+
+{% end %}
+
+{% block scripts %}
+    <script src="http://arale.uhcdn.com/n/gallery/thin/assets/sparkline/jquery.sparkline.js" type="text/javascript"></script>
+    <script>
+        $(function(){
+            $(".sparkline").each(function(){
+                var $data = $(this).data();
+
+                $data.valueSpots = {'0:': $data.spotColor};
+
+                $(this).sparkline( $data.data || "html", $data,
+                {
+                    tooltipFormat: '<span style="display:block; padding:0px 10px 12px 0px;">' +
+                    '<span style="color: {{!color}}">&#9679;</span> {{!offset:names}} ({{!percent.1}}%)</span>'
+                });
+            });
+            $("#barchart").sparkline([5,3,6,7,5,6,4,2,3,4,6,8,9,10,8,6,5,7,6,5,4,7,4], {
+                type: 'bar',
+                height: '90',
+                barWidth: 8,
+                barSpacing: 5,
+                barColor: '#fff'
+        //        tooltipFormat: '<span style="display:block; padding:0px 10px 12px 0px;">' +
+        //            '<span style="color: {{!color}}">&#9679;</span> {{!offset:names}} ({{!percent.1}}%)</span>'
+
+            });
+        });
+    </script>
+{% end %}

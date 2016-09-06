@@ -1,0 +1,67 @@
+{% extends '../../layout.html' %}
+{% block title %}关联商品{% end %}
+{% block menu %}
+    {% module menu('goods.distributor.show_list') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2>关联商品</h2>
+</div>
+
+<form action="{{ reverse_url('goods.distributor.relation') }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>商品id</label>
+        <input type="text" class="ui-input" name="goods_id">
+        {% if error %}
+        <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+            <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+            {{ error }}
+        </p>
+        {% end %}
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>分销店铺</label>
+        <select name="shop_id">
+            {% for shop in shops %}
+                <option value="{{ shop.id }}">{{ shop.name }}</option>
+            {% end %}
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>分销商品id</label>
+        <input type="text" class="ui-input" name="distributor_goods_id">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>商品状态</label>
+        <select name="status">
+            <option value="ON_SALE">已上架</option>
+            <option value="OFF_SALE">已下架</option>
+        </select>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <button type="submit" class="ui-button ui-button-morange">确定</button>
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+    seajs.use(['$', 'validator'], function($, Validator){
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: 'input[name="goods_id"]',
+            required: true,
+            errormessage:'请输入商品id'
+        });
+        validator.addItem({
+            element: 'input[name="distributor_goods_id"]',
+            required: true,
+            errormessage: '请输入分销商品号'
+        })
+    });
+</script>
+{% end %}

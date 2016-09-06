@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}首页{% end %}
+{% block menu %}
+{% module menu('welcome') %}
+{% end%}
+{% block content %}
+<div class="ui-tipbox ui-tipbox-stop" style="margin-top:10px;">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="阻止">&#xF048;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">对不起，你无权执行此操作。</h3>
+        <p class="ui-tipbox-explain">如有必要，请与管理员联系。</p>
+        <p class="ui-tipbox-explain"><a href="javascript:window.history.back();">后退</a></p>
+    </div>
+</div>
+{% end %}

@@ -1,0 +1,112 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布淘宝商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end %}
+
+{% block content %}
+{% if ok %}
+<div class="ui-tipbox ui-tipbox-success" style="margin-top:20px; margin-left:50px; margin-right:50px" id="success-box">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="成功">&#xF049;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">{{message}}</h3>
+        <p class="ui-tipbox-explain" id="success-message">开始上传图片</p>
+    </div>
+</div>
+<div class="ui-tipbox ui-tipbox-error" style="margin-top:20px; margin-left:50px; margin-right:50px; display:none" id="error-box">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="失败">&#xF045;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">上传图片失败,请重试。或至淘宝后台添加图片</h3>
+        <p class="ui-tipbox-explain" id="error-message">{{message}}</p>
+    </div>
+</div>
+<div class="ui-form-item" style="margin-top:20px; ">
+    <label class="ui-label">商品主图</label>
+    <input type="hidden" name="groupon_bimg" id="groupon_bimg" value="{{ img_paths.get('600x600', '') }}">
+    <button class="ui-button ui-button-swhite" type="button" id="upload-img">重新选择</button>
+    <label class="ui-form-explain">图片尺寸600x600 大小不超过500K</label>
+    <div style="margin-top: 10px">
+        <img src="{{ img_url(img_paths['600x600']) if '600x600' in img_paths else '' }}" id="img-preview" width="600" height="600">
+    </div>
+    <input type="hidden" value="{{num_iid}}" id="num_iid">
+    <input type="hidden" value="{{shop_id}}" id="shop_id">
+    <button id="upload-button" type="button" class="ui-button ui-button-sorange" style="margin-top: 20px;margin-left:270px">上传</button>
+</div>
+{% else %}
+<div class="ui-tipbox ui-tipbox-error" style="margin-top:20px; margin-left:50px; margin-right:50px">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="出错">&#xF045;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">失败</h3>
+        <p class="ui-tipbox-explain">{{message}}</p>
+    </div>
+</div>
+{% end %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'kindeditor', 'widget', 'templatable', 'autumn'],
+            function ($, Calendar, KindEditor, Widget, Templatable, autumn) {
+                // 传图请求
+                $('#upload-button').click(function(){
+                    var num_iid = $("#num_iid").val();
+                    var shop_id = $("#shop_id").val();
+                    var img_url = $("#groupon_bimg").val();
+                    $.ajax({
+                        url: "{{reverse_url('goods.taobao.upload_img')}}",
+                        type: "POST",
+                        data: {
+                            "num_iid": num_iid,
+                            "shop_id": shop_id,
+                            "img_url": img_url,
+                            "_xsrf": autumn.get_cookie('_xsrf'),
+                        },
+                        dataType: "json",
+                        success: function(data){
+                            if (data.error){
+                                $('#error-message').text(data.error);
+                                $('#success-box').css('display','none');
+                                $('#error-box').css('display','');
+                            }else{
+                                $('#success-message').text(data.success);
+                                $('#success-box').css('display','');
+                                $('#error-box').css('display','none');
+                            }
+                        },
+                    });
+                });
+
+                //富文本编辑器和上传图片
+                KindEditor.ready(function (K) {
+                    var editor = K.editor({
+                        allowFileManager: false,
+                        pluginsPath: K.basePath + 'plugins/',
+                        uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf')
+                        }
+                    });
+                    K('#upload-img').click(function () {
+                        editor.loadPlugin('image', function () {
+                            editor.plugin.imageDialog({
+                                showRemote: false,
+                                imageUrl: K('#groupon_bimg').val(),
+                                clickFn: function (url, title, width, height, border, align) {
+                                    var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                                    K('#groupon_bimg').val(img_reg.exec(url).slice(1).join(''));
+                                    K('#img-preview').attr('src', url);
+                                    editor.hideDialog();
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+</script>
+{% end %}

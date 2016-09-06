@@ -1,0 +1,113 @@
+{% extends "../layout.html" %}
+{% block title %}一百券推荐商品列表{% end %}
+{% block menu %}
+{% module menu('yibaiquan.recommend.list') %}
+{% end%}
+
+{% block content %}
+<h2 style="font-size:15px;color:#6d6969">已推荐产品</h2>
+<div class="content">
+    <p class="ui-form-explain">已推荐商品不能超过四个，否则推荐不成功</p>
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th style="width: 40%">商品名</th>
+            <th>进价</th>
+            <th>销售价</th>
+            <th style="width:20%">创建时间</th>
+            <th style="width:20%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for goods in recommend_page %}
+        <tr>
+            <td>{{ goods.short_name }}</td>
+            <td>{{ goods.purchase_price }}</td>
+            <td>{{ goods.sales_price }}</td>
+            <td>{{ goods.created_at }}</td>
+            <td><span style="cursor:pointer" cancel="{{ goods.id }}">取消推荐</span></td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+<h2 style="font-size:15px;color:#6d6969;margin-top: 40px;">未推荐商品</h2>
+<form class="ui-form" name="" method="get" action="{{ reverse_url('yibaiquan.recommend.list') }}">
+    <label for="supplier_name">商户</label>
+    <input id="supplier_name" type="text" name="supplier_name" value="{{ form.supplier_name.value }}"/>
+    <input id="supplier" name="supplier" type="hidden" value=""/>
+    <label for="goods">商品名</label>
+    <input id="goods" type="text" name="goods" value="{{ form.goods.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th style="width: 40%">商品名</th>
+            <th>进价</th>
+            <th>销售价</th>
+            <th style="width:20%">创建时间</th>
+            <th style="width:20%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for goods in page.rows %}
+        <tr>
+            <td>{{ goods.short_name }}</td>
+            <td>{{ goods.purchase_price }}</td>
+            <td>{{ goods.sales_price }}</td>
+            <td>{{ goods.created_at }}</td>
+            <td>
+                <span style="cursor:pointer;color:green" add="{{ goods.id }}">推荐</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn', 'templatable', 'widget', 'autocomplete'],
+            function ($, ConfirmBox, autumn, Templatable, Widget, AutoComplete) {
+            $("span[cancel]").click(function () {
+                var goods_id = $(this).attr('cancel');
+                ConfirmBox.confirm('是否取消该推荐', '确认取消', function () {
+                    var action = "{{ reverse_url('yibaiquan.recommend.cancel') }}";
+                    $("<form></form>").attr('action', action).attr('method', 'post')
+                            .append($("<input type='hidden' name='goods_id' />").attr('value', goods_id))
+                            .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                    return false;
+                });
+            });
+            $("span[add]").click(function () {
+                var goods_id = $(this).attr('add');
+                ConfirmBox.confirm('是否确认推荐', '确认推荐', function () {
+                    var action = "{{ reverse_url('yibaiquan.recommend.add') }}";
+                    $("<form></form>").attr('action', action).attr('method', 'post')
+                            .append($("<input type='hidden' name='goods_id' />").attr('value', goods_id))
+                            .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                    return false;
+                });
+            });
+            $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_name',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers
+                }).on('itemSelected', function(data, item) {
+                         $('#supplier').val(data.id);
+                     }).render();
+            })
+        });
+
+
+</script>
+{% end %}

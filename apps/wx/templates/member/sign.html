@@ -1,0 +1,84 @@
+{% extends '../layout.html' %}
+{% block title %}签到{% end %}
+
+{% block style %}
+<style type="text/css">
+    .check-in, .points, .check-no{
+        color: #fff;
+        position: relative;
+        border-radius: 10px;
+        -webkit-border-radius:5px;
+        text-align:center
+    }
+    .points {
+        height: 150px;
+        background-color:rgba(0, 0, 0, 0.25);
+    }
+
+    .check-in, .check-no {
+        margin-top: 10px;
+        height: 40px;
+        font-size: 10px;
+        line-height: 40px;
+    }
+    .check-in {
+        background-color: #ccc;
+    }
+    .check-no {
+        cursor: pointer;
+        background-color:#64B51E;
+        box-shadow: grey 2px 2px 2px;
+    }
+
+</style>
+{% end %}
+{% block content %}
+<div class="points">
+    <div style="margin-top: 10px; font-size: 200%;">可用积分</div>
+    <div style="font-size: 200%" id="sum">{{ sum }}分</div>
+    <span style="position:absolute; right:10px; bottom:5px;">编号：0000{{current_user.id}}</span>
+</div>
+<div {% if sign %} class="check-in" disabled {% else %} class="check-no" {% end %} id="sign">
+    <div style="margin-top: 10px; font-size: 200%;" id="sign-status">{% if sign %}今日已签到{% else %}签到{% end %}</div>
+</div>
+
+<ul class="list-group" style="margin-top: 10px">
+    <label style="color:white">积分账单</label>
+    <div id="contain">
+        {% for point in points %}
+        <li class="list-group-item">
+            <div style="float: right">{{ point.num }}</div>
+            <div>{{ {1: '签到'}.get(point.type) }}</div>
+        </li>
+        {% end %}
+    </div>
+</ul>
+{% raw links %}
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('#sign').on('click', function(){
+            var current = $(this);
+            $.ajax({
+                url: "{{ reverse_url('member.sign') }}?wx_id={{ current_user.wx_id }}",
+                data: {
+                    '_xsrf': $('input[name="_xsrf"]').val()
+                },
+                type: 'post',
+                success: function(date){
+                    if (date.ok) {
+                        current.removeClass('check-no').addClass('check-in');
+                        $('#sign-status').text('今日已签到');
+                        $('#sum').text("{{ sum + 1 }}分");
+                        $('#contain').append('<li class="list-group-item"> <div style="float: right">1</div> <div>签到</div> </li>');
+                        $('#sign').unbind('click');
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% end %}

@@ -1,0 +1,81 @@
+{% extends '../layout.html' %}
+{% block title %}已验证券列表{% end %}
+{% block menu %}
+{% module menu('coupon.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">已验证券列表</h2>
+</div>
+<form action="{{reverse_url('coupon.show_list')}}" method="get" class="ui-form record-search-form">
+    <span>券号</span>
+    <input type="text" name="sn" value="{{ form.sn.value }}"/>
+    <span>消费时间</span>
+    <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value}}"/> -
+    <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value}}"/>
+    <div style="margin-top: 10px">
+        <span style="margin-left:0px">手机</span>
+        <input type="text" name="mobile" value="{{ form.mobile.value }}"/>
+        <button type="submit" class="ui-button ui-button-sorange fn-right">筛选</button>
+    </div>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>券号</th>
+            <th>手机</th>
+            <th>订单来源</th>
+            <th>消费时间</th>
+            <th>消费门店</th>
+            <th>商品名称</th>
+            <th>面值</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if page %}
+            {% for item in page.rows %}
+            <tr>
+                <td>{{ item.sn }}</td>
+                <td>{{ item.mobile }}</td>
+                <td>{{ item.dsname }}</td>
+                <td>{{ item.used_at }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.goods_name }}</td>
+                <td>￥{{ item.payment }}</td>
+            </tr>
+            {% end %}
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% if page %}
+    {% raw page.links() %}
+{% end %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use('calendar', function (Calendar) {
+        var t1 = '2012-01-01';
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, null]})
+        var c2 = new Calendar({trigger: '#end-cal', range: [null, null]})
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, null]);
+        });
+
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+    });
+</script>
+{% end %}
+
+

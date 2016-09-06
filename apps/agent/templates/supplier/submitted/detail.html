@@ -1,0 +1,94 @@
+{% extends '../../layout.html' %}
+{% block title%} 申请详情 {% end %}
+{% block menu %}
+    {% module menu('supplier.submitted.list') %}
+{% end %}
+
+{% block content %}
+<div class="widget">
+    <div class="widget-header">
+        <i class="icon-arrow-down"></i>
+        <h3>详细信息</h3>
+    </div>
+    <div class="widget-content">
+        <div class="row">
+            <label class="col-lg-1">商户姓名:</label>
+            <label >{{supplier.name}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">商户手机:</label>
+            <label>{{supplier.phone}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">经营类别:</label>
+            {% set dict_category = {1:'美食', 2:'休闲娱乐', 3:'购物', 4:'丽人', 5:'结婚', 6:'亲子', 7:'运动健身', 8:'酒店', 9:'家装', 10:'爱车', 11:'生活服务'} %}
+            <label>{{dict_category[supplier.category]}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1 ">品牌名称</label>
+            <label>{{supplier.brand_name}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">商城名称：</label>
+            <label>{{supplier.shop_name}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1 ">商铺短名称:</label>
+            <label>{{default(supplier.shop_short_name)}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">商铺地址:</label>
+            <label>{{supplier.city}} {{supplier.district}} {{supplier.shop_address}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">商铺电话:</label>
+            <label>{{supplier.shop_phone_num}}</label>
+        </div>
+        <div class="row">
+            <label class="col-lg-1">合同文件:</label>
+            {% if supplier.contract%}
+                {% for image in contract_urls %}
+                <div class="contract-item">
+                    <a href="{{image}}" target="_blank" class="contract" title="合同文件">
+                    <img src="{{image}}" title="合同文件" >
+                    </a>
+                </div>
+                {% end %}
+            {% end %}
+        </div>
+        <div class="row">
+            <label class="col-lg-1">营业执照:</label>
+            {% if supplier.certificate%}
+                {% for image in certificate_urls %}
+                    <div class="contract-item">
+                        <a href="{{image}}" target="_blank" class="contract" title="营业执照">
+                        <img src="{{image}}" title="营业执照" >
+                        </a>
+                    </div>
+                {% end %}
+            {% end %}
+        </div>
+        <div class="row">
+            <label class="col-lg-1">备注:</label>
+            <label>
+            {% if supplier.remark %}
+                {% set logs = supplier.remark.split(',')%}
+                {% for log in logs%}
+                <span>{{log}} </span>
+                {% end %}
+            {% end %}
+            </label>
+        </div>
+    </div>
+</div>
+{% end %}
+{% block scripts %}
+    <style>
+        .contract-item {
+            border:1px solid #eee;width:150px;height:200px;float:left; margin:5px 10px; padding:10px; position:relative;
+        }
+        .contract-item img {
+            max-height:100%; max-width: 100%;
+        }
+    </style>
+{% end %}

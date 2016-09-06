@@ -1,0 +1,41 @@
+{% extends "../layout.html" %}
+{% block title %}待审批出货单{% end %}
+{% block menu %}
+{% module menu('real.order_sku_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">待审批出货单</h2>
+</div>
+<div>
+    <h3>有{{len(stock_batches)}}个待审批出货单</h3>
+
+</div>
+    <div class="content">
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>出库号</th>
+                <th>申请人</th>
+                <th>申请时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for batch in stock_batches %}
+            <tr>
+                <td>{{ batch.id }}</td>
+                <td>{{ batch.created_by }}</td>
+                <td>{{ batch.created_at }}</td>
+                <td>
+                     <a href="{{reverse_url('real.stock_batch_detail',batch.id)}}">查看详情</a>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+{% end %}
+
+
+

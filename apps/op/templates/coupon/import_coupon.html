@@ -1,0 +1,57 @@
+{% extends "../layout.html" %}
+{% block title %}导入券{% end %}
+{% block menu %}
+{% module menu('coupon.imported') %}
+{% end%}
+
+{% block content%}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">导入券</h2>
+</div>
+
+<div class="ui-grid-row">
+    <div class="ui-grid-15">
+        <form action="{{ reverse_url('coupon.import_coupon',goods.id) }}" method="post" class="ui-form" enctype="multipart/form-data">
+            <div class="ui-form-item">
+                <label for="partner" class="ui-label" style="padding-top: initial">
+                    <span class="ui-form-required">*</span>商品名称:</label>
+                <label id="partner" style="font-size: 14px">
+                    {{goods.short_name}}
+                </label>
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label">
+                    <span class="ui-form-required">*</span>导入券:</label>
+                <!--<input type="file" name="order_file"/>-->
+                <textarea name="coupon_text" class="ui-text" rows="10" cols="60" style="resize: none">
+
+                </textarea>
+            </div>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="submit" class="ui-button ui-button-morange" value="上传">
+                <!--<a href="{{ reverse_url('coupon.imported') }}" class="ui-button ui-button-morange">返回</a>-->
+            </div>
+
+            <div class="ui-form-item">
+            </div>
+        </form>
+    </div>
+
+    <div class="ui-grid-9">
+        <div style="padding:10px; border-left:2px solid #eee;">
+            <h2 style="font-size:150%;margin-top:10px;">无密码券的填写格式</h2>
+            <ul style="border:1px solid #333; padding-left: 20px; ">
+                <li style="color:grey">123456</li>
+                <li style="color:grey">345678</li>
+            </ul>
+            <br>
+            <h2 style="font-size:150%;margin-top:10px;">有密码券的填写格式</h2>
+            <ul style="border:1px solid #333; padding-left: 20px; ">
+                <li style="color:grey">123456, 111</li>
+                <li style="color:grey">345678, 222</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% end %}

@@ -1,0 +1,185 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '新增' if form.action.value == 'add' else '修改' }}代理商{% end %}
+{% block menu %}
+{% module menu('agent.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">代理商{{ '新增' if form.action.value == 'add' else '修改' }}</h2>
+</div>
+
+<form action="{{ reverse_url('agent.add') if form.action.value == 'add' else reverse_url('agent.edit', agent_id) }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label for="name" class="ui-label">公司名</label>
+        <input type="text" id="name" name="name" value="{{ form.name.value }}" class="ui-input" style="width: 50%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="short_name" class="ui-label">公司短名称</label>
+        <input type="text" id="short_name" name="short_name" value="{{ form.short_name.value }}" class="ui-input" style="width: 40%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="contact" class="ui-label">联系人</label>
+        <input type="text" id="contact" name="contact" value="{{ form.contact.value }}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="mobile" class="ui-label">联系电话</label>
+        <input type="text" id="mobile" name="mobile" value="{{ form.mobile.value }}" class="ui-input">
+    </div>
+
+    {# todo<div class="ui-form-item">
+        <label class="ui-label">地区</label>
+        <select name="region">
+
+        </select>
+    </div>#}
+
+    <div class="ui-form-item">
+        <label for="bank_account" class="ui-label">银行帐号</label>
+        <input type="text" id="bank_account" name="bank_account" value="{{ form.bank_account.value }}" class="ui-input" style="width: 40%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="bank_city" class="ui-label">开户城市</label>
+        <input type="text" id="bank_city" name="bank_city" value="{{ form.bank_city.value }}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="bank_head" class="ui-label">开户银行</label>
+        <input type="text" id="bank_head" name="bank_head" value="{{ form.bank_head.value }}" class="ui-input" style="width: 30%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="bank_branch" class="ui-label">支行</label>
+        <input type="text" id="bank_branch" name="bank_branch" value="{{ form.bank_branch.value }}" class="ui-input" style="width: 50%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="bank_holder" class="ui-label">开户人</label>
+        <input type="text" id="bank_holder" name="bank_holder" value="{{ form.bank_holder.value }}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label">销售</label>
+        <select name="sales_id">
+        {% for sale in sales %}
+            <option value="{{ sale.id }}" {% if sale.id == form.sales_id.value %} selected {% end %}>{{ sale.name }}</option>
+        {% end %}
+        </select>
+    </div>
+
+    {% if form.action.value == 'add' %}
+    <div class="ui-form-item">
+        <label for="username" class="ui-label">登录名</label>
+        <div>
+            <input type="text" id="username" name="username" value="{{ form.username.value }}" class="ui-input">
+            {% if form.username.error %}
+                <p style="color: #d66500;">{{ form.username.error }}</p>
+            {% end %}
+        </div>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="password" class="ui-label">密码</label>
+        <input type="password" id="password" name="password" value="{{ form.password.value }}" class="ui-input">
+    </div>
+    {% end %}
+
+    <div class="ui-form-item">
+        <label for="prepayment" class="ui-label">销售类型</label>
+        <input type="radio" name="type" value="1" id="prepayment" {% if form.type.value == 1 %} checked {% end %}><label for="prepayment">预付</label>
+        <input type="radio" name="type" value="2" id="retail" {% if form.type.value == 2 %} checked {% end %}><label for="retail">零售</label>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="button" class="ui-button ui-button-morange" value="{{ '新增' if form.action.value == 'add' else '修改' }}" id="offer">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+    seajs.use(['$', 'validator'], function($, Validator){
+        $('#offer').on('click', function(){
+            $('#form').submit();
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '请输入公司名'
+        });
+        validator.addItem({
+            element: '#short_name',
+            required: true,
+            errormessage: '请输入短名称'
+        });
+        validator.addItem({
+            element: '#contact',
+            required: true,
+            errormessage: '请输入联系人'
+        });
+        validator.addItem({
+            element: '#mobile',
+            required: true,
+            errormessage: '请输入联系方式'
+        });
+        validator.addItem({
+            element: 'select[name="sales_id"]',
+            required: true,
+            errormessage: '请选择销售人员'
+        });
+        validator.addItem({
+            element: 'input[name="type"]',
+            required: true,
+            errormessage: '请选择合作类型'
+        });
+        validator.addItem({
+            element: '#bank_head',
+            required: true,
+            errormessage: '请输入银行名字'
+        });
+        validator.addItem({
+            element: '#bank_city',
+            required: true,
+            errormessage: '请输入开户城市'
+        });
+        validator.addItem({
+            element: '#bank_branch',
+            required: true,
+            errormessage: '请输入支行'
+        });
+        validator.addItem({
+            element: '#bank_holder',
+            required: true,
+            errormessage: '请输入开户人'
+        });
+        validator.addItem({
+            element: '#bank_account',
+            required: true,
+            errormessage: '请输入银行帐号'
+        });
+
+        if ("{{ form.action.value == 'add' }}") {
+            validator.addItem({
+                element: '#username',
+                required: true,
+                errormessage: '请输入代理商登入名'
+            });
+            validator.addItem({
+                element: '#password',
+                required: true,
+                errormessage: '请输入密码'
+            });
+        }
+    });
+</script>
+{% end %}

@@ -1,0 +1,181 @@
+{% extends "../layout.html" %}
+{% block title %}报表{% end %}
+{% block menu %}
+{% module menu('report.prepayment') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" style="margin-top:10px; margin-left: 5px;">
+    <h2 class="fn-left">预付款使用查询</h2>
+</div>
+
+<div class="content" style="margin-top:20px;">
+
+    <div class="ui-grid-row">
+        <div class="ui-grid-2">
+        </div>
+        <div class="ui-switchable-content ui-grid-21" >
+            <!--Graph-->
+            <div class="ui-box">
+                <div class="ui-box-container" >
+                    <div class="ui-form record-search-form" style="margin-top:0px;">
+                        <form>
+                            <span style="margin-right: 10px">选择商户:</span>
+                            <select class="ui-select" id="suppliers" name="supplier_id">
+                                {% for supplier in suppliers %}
+                                <option class="ui-select-content" value ="{{supplier.id}}">{{supplier.short_name}}</option>
+                                {% end %}
+                            </select>
+                            <button type="button" class="ui-button ui-button-sorange" id="query" style="margin-left: 20px">查询</button>
+                        </form>
+                    </div>
+                    <div class="ui-box-content" id="chart" style="width:95%; height:350px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="ui-grid-1" >
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+<style>
+    .ui-tab-item-current a, .ui-tab-item-current a:hover{
+    background: #F6F6F6;
+    }
+</style>
+{% end %}
+
+{% block scripts%}
+<script>
+    seajs.use(['jquery/highcharts','tabs','autumn','calendar','moment'], function ($, Tabs, autumn, Calendar, Moment) {
+        Highcharts.setOptions({
+            lang: {
+                    shortMonths: [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "10" , "11" , "12"],
+                    resetZoom: "重置区域"
+            },
+            colors:['#2f7ed8']
+        });
+
+        // 新建一个highchart
+        var chart = $('#chart').highcharts({
+            chart: {
+                zoomType: 'x',
+                spacingRight: 20
+            },
+            credits: {
+                enabled: false
+            },
+            title: {
+                text: '选择商户查询预付款使用明细',
+                style: {color: 'red'}
+            },
+            tooltip: {
+                valueDecimals: 2,
+                valueSuffix: ' 元'
+            },
+            xAxis: {
+                title: {
+                    text: '日期'
+                },
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                    day: '%b月%e日',
+                    week: '%b月%e日',
+                    month: '%y年%b月'
+                },
+                minTickInterval: 24*3600*1000 // 设置最小显示的日期间隔为一天
+            },
+            yAxis: {
+                title: {
+                    text: '金额 (元)'
+                }
+            },
+            plotOptions: {
+                area: {
+                    fillColor: {
+                        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                        stops: [
+                            [0, Highcharts.getOptions().colors[0]],
+                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                        ]
+                    },
+                    lineWidth: 1,
+                    marker: {
+                        enabled: false
+                    },
+                    shadow: false,
+                    states: {
+                        hover: {
+                            lineWidth: 1
+                        }
+                    },
+                    threshold: null
+                }
+            },
+        });
+
+        // 查询按钮
+        $('#query').click(function(){
+            var chart = $('#chart').highcharts();
+            chart.showLoading();
+            $.ajax({
+                url: '/report/prepayment',
+                type: 'POST',
+                dataType: "json",
+                data: {
+                        'supplier_id': $('#suppliers').val(),
+                        '_xsrf': autumn.get_cookie('_xsrf')
+                },
+                error: function() {
+                    alert('获取数据失败');
+                },
+                success: function(data){
+                    if (data.error){
+                        alert(data.error);
+                        return;
+                    }
+                    else{
+                    // 设置表头
+                    chart.setTitle(
+                            {
+                                text: '预付款使用明细',
+                                style: {color: 'black'}
+                            },
+                            {
+                                text: '--鼠标选择区域可放大--',
+                                style: {color: 'red'}
+                            }
+                    );
+                    // 移除已有的数据
+                    var i_limit=chart["series"]["length"];
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        //总是移除第一个
+                        chart.series[0].remove(true);
+                    }
+                    var time = data[0].data[0][0];
+                    // 添加新数据
+                    var i_limit=data.length;
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        chart.addSeries({
+                            type: 'area',
+                            name: data[i].name,
+                            data: data[i].data,
+                            pointStart: (new Date(time)).getTime(),
+                            pointInterval: 24 * 3600 * 1000 // 规定两点之间的间隔为一天
+                        },false);
+                    }
+                    chart.redraw();
+                    chart.hideLoading();
+                    }
+                }
+            });
+        });
+
+    });
+</script>
+{% end %}

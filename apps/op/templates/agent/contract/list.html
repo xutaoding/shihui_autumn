@@ -1,0 +1,62 @@
+{% extends '../../layout.html' %}
+{% block title %}代理商合同列表{% end %}
+{% block menu %}
+    {% module menu('agent.list') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ agent.name }}({{ agent.short_name }})合同</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ url_concat(reverse_url('agent.contract.add'), {'agent_id': agent.id}) }}">添加合同</a>
+</div>
+
+<div>
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>合同生效日期</th>
+            <th>合同失效日期</th>
+            <th>合同说明</th>
+            <th>创建日期</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for contract in contracts.rows %}
+        <tr>
+            <td>{{ contract.start_at }}</td>
+            <td>{{ contract.expire_at }}</td>
+            <td>{{ contract.remark }}</td>
+            <td>{{ contract.created_at }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('agent.contract.detail', contract.id), {'agent_id': agent.id}) }}">查看</a> /
+                <a href="{{ url_concat(reverse_url('agent.contract.edit', contract.id), {'agent_id': agent.id}) }}">修改</a> /
+                <span data-id="{{ contract.id }}" style="cursor: pointer">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw contracts.links() %}
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+    seajs.use(['$', 'confirmbox'], function($, ConfirmBox){
+        $('span[data-id]').on('click', function(){
+            var contract_id = $(this).attr('data-id');
+            var agent_id = "{{ agent.id }}";
+            ConfirmBox.confirm('确定删除该合同', '删除合同', function(){
+                var action = "{{ reverse_url('agent.contract.delete') }}"
+                $('<form></form>').attr('action', action).attr('method', 'post')
+                        .append($('<input type="hidden" name="contract_id" />').attr('value', contract_id))
+                        .append($('<input type="hidden" name="agent_id" />').attr('value', agent_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', $('input[name=_xsrf]').val())).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

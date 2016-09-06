@@ -1,0 +1,53 @@
+{% extends '../../layout.html' %}
+{% block title %}提现列表{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">提现列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('finance.withdraw.apply') }}">申请提现</a>
+</div>
+
+    {% if page.rows %}
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>申请时间</th>
+                    <th>申请者</th>
+                    <th>收款人</th>
+                    <th>申请金额</th>
+                    <th>申请状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for item in page.rows %}
+                    <tr>
+                        <td>{{ item.applied_at }}</td>
+                        <td>{{ item.applier }}</td>
+                        <td>{{ item.user_name }}</td>
+                        <td>￥{{ item.amount }}</td>
+                        <td>{{ {0:'待审批',2:'成功',1:'被拒绝'}.get(item.status) }}</td>
+                        <td><a href="{{ url_concat(reverse_url('finance.withdraw.detail'), {'id': item.id})}}">查看详情</a></td>
+                    </tr>
+                    {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw page.links() %}
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title" style="padding-bottom: 10px">暂时没有提现</h3>
+            </div>
+        </div>
+    {% end %}
+{% end %}
+
+

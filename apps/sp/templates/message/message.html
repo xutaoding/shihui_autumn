@@ -1,0 +1,163 @@
+{% extends '../layout.html' %}
+{% block title %}信息{% end %}
+{% block menu %}
+    {% module menu('message.show') %}
+{% end%}
+
+
+{% block content %}
+    {% for item in unread_message %}
+        <div class="block fn-clear {% if item.type %} important {% end %}">
+            <div class="title fn-clear" >
+                <h3 class="fn-left">{{ item.title }}</h3>
+                <p class="fn-right">{{ item.created_at }}</p>
+            </div>
+            <div class="content">
+                {{ item.content }}
+            </div>
+            {% if item.url %}
+            <div class="fn-right">
+                <a href="{{ item.url }}">点击查看</a>
+            </div>
+            {% end %}
+        </div>
+    {% end %}
+
+    {% if today_message %}
+        <div class="poptip">今天的消息</div>
+
+        {% for m in today_message %}
+            <div class="block fn-clear {% if m.type %} important {% end %}">
+                <div class="title fn-clear" >
+                    <h3 class="fn-left">{{m.title}}</h3>
+                    <p class="fn-right">{{m.created_at}}</p>
+                </div>
+                <div class="content">
+                    {{m.content}}
+                </div>
+                {% if m.url %}
+                <div class="fn-right">
+                    <a href="{{m.url}}">点击查看</a>
+                </div>
+                {% end %}
+            </div>
+        {% end %}
+    {% end %}
+
+    {% if week_message %}
+        <div class="poptip">一周内的消息</div>
+
+        {% for m in week_message %}
+            <div class="block fn-clear {% if m.type %} important {% end %}">
+                <div class="title fn-clear" >
+                    <h3 class="fn-left">{{m.title}}</h3>
+                    <p class="fn-right">{{m.created_at}}</p>
+                </div>
+                <div class="content">
+                    {{m.content}}
+                </div>
+                {% if m.url %}
+                <div class="fn-right">
+                    <a href="{{m.url}}">点击查看</a>
+                </div>
+                {% end %}
+            </div>
+        {% end %}
+    {% end %}
+
+    <div id="load-more">点击查看更早的消息</div>
+    <div id="early"></div>
+{% end %}
+
+{% block styles %}
+<style>
+    .block {
+        margin: 10px 0 20px 0;
+        padding: 0 0 20px 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .block a {
+        font-size: 14px;
+    }
+
+    .block .title{
+        margin:5px 0 5px 0;
+        color: #6d6969;
+    }
+
+    .block .title h3 {
+         font-size: 18px;
+    }
+    .block .title p {
+        color: #999;
+        font-size: 12px;;
+    }
+    .block .content {
+        padding-left: 40px;
+        font-size: 14px;
+        color: #868686;
+    }
+
+    .important {
+        border-left: 3px solid #F39100;
+    }
+
+    .poptip {
+        color: #574D43;
+        z-index: 101;
+        font-size: 12px;
+        line-height: 1.5;
+        text-align: center;
+        background-color: #E7E7E7;
+        padding: 5px 15px;
+        margin: 10px 0;
+    }
+    #load-more {
+        text-align: center;
+        margin: 20px 14px;
+        background: #f8f8f9;
+        background-color: #f1f1f2;
+        background-image: -moz-linear-gradient(top,#f8f8f9,#e6e6e8);
+        background-image: -ms-linear-gradient(top,#f8f8f9,#e6e6e8);
+        background-image: -webkit-gradient(linear,0 0,0 100%,from(#f8f8f9),to(#e6e6e8));
+        background-image: -webkit-linear-gradient(top,#f8f8f9,#e6e6e8);
+        background-image: -o-linear-gradient(top,#f8f8f9,#e6e6e8);
+        background-image: linear-gradient(top,#f8f8f9,#e6e6e8);
+        background-repeat: repeat-x;
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f8f8f9', endColorstr='#e6e6e8', GradientType=0);
+        text-shadow: 0 1px 0 #fff;
+        border: 1px solid #bbb;
+        color: #535353 !important;
+        box-shadow: 0 1px 0 #fff inset,0 1px 0 rgba(0,0,0,.1);
+
+        display: block;
+        font-size: 13px;
+        padding: 5px 1px;
+        height: 22px;
+
+        cursor: pointer;
+    }
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$'], function($){
+        $('#load-more').on('click', function(){
+            $.get(
+                "{{ reverse_url('message.early') }}",
+                function(data){
+                    var load = $('#load-more');
+                    load.unbind('click');
+                    load.hide();
+                    if (data) {
+                        $('#early').append('<div class="poptip">更早的消息</div>').append(data);
+                    } else {
+                        $('#early').append('<div class="poptip">没有更早的消息</div>');
+                    }
+                }
+            )
+        })
+    });
+</script>
+{% end %}

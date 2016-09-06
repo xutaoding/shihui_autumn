@@ -1,0 +1,74 @@
+{% extends '../../layout.html' %}
+{% block title %}会员详情{% end %}
+{% block menu %}
+{% module menu('member.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">会员详情</h2>
+</div>
+<div style="position:relative; margin: 0 20px 0 20px; font-size:14px">
+    <div style="width:380px">
+        <ul class="ui-list ui-list-graylink">
+            <li class="ui-list-item">姓名:{{default(mem.name, '')}}</li>
+            <li class="ui-list-item">性别:{{mem.gender}}</li>
+            <li class="ui-list-item">生日: {{default(mem.birth_date, '')}}</li>
+            <li class="ui-list-item">地区: {{mem.province}}-{{mem.city}}</li>
+        </ul>
+    </div>
+    <div style="position:absolute; left: 400px; top:0; width:380px">
+        <ul class="ui-list ui-list-graylink">
+            <li class="ui-list-item">昵称:{{default(mem.wx_name, '')}}</li>
+            <li class="ui-list-item">等级:{{mem.level}}</li>
+            <li class="ui-list-item">积分:{{mem.points}}</li>
+            <li class="ui-list-item">关注时间: {{mem.wx_follow_at}}</li>
+        </ul>
+    </div>
+</div>
+
+<div>
+    <span style="font-size: 15px;">消费记录</span>
+    <table class="ui-table">
+        <thead>
+            <tr>
+                <th>订单号</th>
+                <th>商品</th>
+                <th>销售渠道</th>
+                <th style="width:70px">销售时间</th>
+                <th>价格</th>
+                <th>消费门店</th>
+                <th style="width:70px">消费时间</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for i in page.rows %}
+            <tr>
+                <td>
+                   {{i.order_no}}
+                </td>
+                <td>
+                    {{i.goods_name}}
+                </td>
+                <td>
+                    {{i.dname}}
+                </td>
+                <td>
+                    {{i.created_at}}
+                </td>
+                <td>
+                    {{i.payment}}
+                </td>
+                <td>
+                    {{i.sname}}
+                </td>
+                <td>
+                    {{i.used_at}}
+                </td>
+            </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+
+{% end %}

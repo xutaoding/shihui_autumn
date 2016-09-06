@@ -1,0 +1,206 @@
+{% extends "../layout.html" %}
+{% block title %}商品上下架状态{% end %}
+{% block menu %}
+{% module menu('goods.status.on_sale') %}
+{% end%}
+
+{% block content %}
+    <div class="ui-grid-row" style="margin-top: 20px">
+        <div class="ui-grid-17">
+            <div class="ui-box">
+                <div class="ui-box-container" style="height: 450px">
+                    <div class="ui-form record-search-form" style="margin-top:0px;">
+                        <span>选择日期</span>
+                        <input id="start-cal" type="text" name="start_date" value="" readonly/> -
+                        <input id="end-cal" type="text" name="end_date" value="" readonly/>
+                        <button type="button" class="ui-button ui-button-sorange" id="choose-date" >提交</button>
+                    </div>
+                    <div class="ui-box-content" id="chart" style="width:95%; height:350px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="ui-grid-5">
+            <div id="on_sale_chart" style="width:300px; height:450px; border:solid 1px #ccc">
+            </div>
+        </div>
+        {% module xsrf_form_html() %}
+    </div>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+seajs.use(['jquery/highcharts','calendar','moment', 'autumn'], function ($, Calendar, Moment, autumn) {
+        // 建饼图
+        var chart = $('#on_sale_chart').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false
+            },
+            title: {
+                text: '分销渠道商品在售情况'
+            },
+            subtitle: {
+                {%set total = 0%}
+                {% for i in goods_status%}
+                {% set total = total + i.c %}
+                {% end %}
+                text: '总共在售：{{total}} 个, 不同商品: {{default(total_goods.total)}}个',
+            },
+            credits: {
+                enabled: false
+            },
+            tooltip: {
+                  pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        color: '#000000',
+                        formatter: function() {
+                            return '<b>'+ this.point.name +'</b> <br/>'+ this.y +' 个';
+                        }
+                    },
+                    showInLegend: true
+                }
+            },
+            series: [{
+                type: 'pie',
+                name: '上架商品比例',
+                data: [
+                    {% for i in goods_status%}
+                    ["{{i.name}}", {{i.c}}],
+                    {% end %}
+                ]
+            }]
+        });
+
+        // 日期选择器
+        var t1 = '2012-01-01';
+        var t2 = Moment().add('d',0).format('YYYY-MM-DD');
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, t2]});
+        var c2 = new Calendar({trigger: '#end-cal', range: [t1, t2]});
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, t2]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+        Highcharts.setOptions({
+            lang: {
+                    shortMonths: [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "10" , "11" , "12"],
+            }
+        });
+
+        // 新建一个highchart
+        var chart = $('#chart').highcharts({
+            chart: {
+                type: 'line',
+                marginRight: 50,
+                plotBorderWidth: 1,
+                animation: false,
+            },
+            credits: {
+                enabled: false
+            },
+            title: {
+                text: '商品上下架趋势图'
+            },
+            tooltip: {
+                valueSuffix: ' 个'
+            },
+            legend: {
+               labelFormatter: function() {
+                  var total = 0;
+                  for(var i=this.yData.length; i--;) { total += this.yData[i]; };
+                  return this.name + '-总共: ' + Number((total).toFixed(2)) +' 个';
+               }
+            },
+            xAxis: {
+                title: {
+                    text: '日期'
+                },
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                    day: '%b月%e日',
+                    week: '%b月%e日',
+                    month: '%y年%b月',
+                },
+                minTickInterval: 24*3600*1000, // 设置最小显示的日期间隔为一天
+            },
+            yAxis: {
+                title: {
+                    text: '金额 (元)'
+                }
+            },
+        });
+
+        getData('', '', $('#chart'), '/goods/status/on-sale');
+
+        // 日期筛选按钮
+        $('#choose-date').click(function(){
+            start = $('#start-cal').val();
+            end = $('#end-cal').val();
+            if (start == '' || end == ''){
+                alert('请选择日期')
+            }
+            else{
+                getData(start, end, $('#chart'), '/goods/status/on-sale');
+            }
+        });
+
+        // 根据日期发送ajax请求，获得图表所需数据
+        function getData(start, end, chart, url){
+            var chart = chart.highcharts();
+            chart.showLoading();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                        'start': start,
+                        'end': end,
+                        '_xsrf': autumn.get_cookie('_xsrf'),
+                },
+                error: function() {
+                    alert('获取数据失败');
+                },
+                success: function(data){
+                    // 移除已有的数据
+                    var i_limit=chart["series"]["length"];
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        //总是移除第一个
+                        chart.series[0].remove(true);
+                    }
+                    var time = data[0].data[0][0];
+                    // 添加新数据
+                    var i_limit=data.length;
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        chart.addSeries({
+                            name: data[i].name,
+                            data: data[i].data,
+                            pointStart: (new Date(time)).getTime(),
+                            pointInterval: 24 * 3600 * 1000 // 规定两点之间的间隔为一天
+                        },false);
+                    }
+                    chart.redraw();
+                    chart.hideLoading();
+                },
+            });
+
+        }
+})
+
+</script>
+{% end %}

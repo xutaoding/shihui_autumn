@@ -1,0 +1,67 @@
+{% extends "../../layout.html" %}
+{% block title %}合同{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{ supplier.short_name }} ）</h2>
+</div>
+
+{% module supplier_menu('contract', supplier.id) %}
+
+<a class="ui-button ui-button-sblue fn-right fn-clear" style="margin-top: -50px;"
+   href="{{ url_concat(reverse_url('supplier.contract_add'), {'supplier_id': supplier.id}) }}" >添加合同</a>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>合同</th>
+            <th>合同生效日期</th>
+            <th>合同失效日期</th>
+            <th>合同说明</th>
+            <th>创建日期</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% set num=1 %}
+            {% for contract in page.rows %}
+            <tr>
+                <td>{{num}}</td>
+                <td>{{contract.start_at}}</td>
+                <td>{{contract.expire_at}}</td>
+                <td>{{contract.remark}}</td>
+                <td>{{contract.created_at}}</td>
+                <td>
+                    <a href="{{reverse_url('supplier.contract_detail', contract.id)}}">查看</a>
+                    / <a href="{{url_concat(reverse_url('supplier.contract_edit'), {'id': contract.id}) }}">修改</a>
+                    / <a class="contract_delete" id="{{contract.id}}" style="cursor:pointer" >删除</a>
+                </td>
+            </tr>
+            {% set num=num+1 %}
+            {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['validator', 'confirmbox', 'autumn', '$'], function (Validator, ConfirmBox, autumn, $) {
+
+        $(".contract_delete").click(function(){
+            var contract_id = $(this).attr('id');
+            ConfirmBox.confirm('是否删除该合同', '确认删除', function(){
+                var action= "{{reverse_url('supplier.contract_delete')}}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='contract_id' />").attr('value', contract_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

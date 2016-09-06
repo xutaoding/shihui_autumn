@@ -1,0 +1,69 @@
+{% extends "../layout.html" %}
+{% block title %}出库单详情{% end %}
+{% block menu %}
+{% module menu('real.order_sku_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">出库单详情</h2>
+</div>
+<form action="{{ reverse_url('real.stock_batch_confirm')}}" method="post" class="ui-form" id="stock_out_form">
+    <div class="content">
+
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>货品</th>
+                <th>货品价格</th>
+                <th>待出库数量</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sku in out_skus %}
+            <tr>
+                <td>{{ sku.name }}</td>
+                <td>{{ sku.price }}</td>
+                <td>{{sku.out_num}}</td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        {% module xsrf_form_html() %}
+        <button id="approve_out" type="button" class="ui-button ui-button-mblue">审批出库</button>
+        <button id="reject_out" type="button" class="ui-button ui-button-mblue">拒绝出库</button>
+    </div>
+    <input type="hidden" name="batch_id" id="batch_id" value="{{batch_id}}">
+    <input type="hidden" name="action" id="action">
+    <input type="hidden" name="stock_remark" id="stock_remark">
+
+
+</form>
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn'], function ($, ConfirmBox, autumn) {
+        $("#approve_out").click(function () {
+            $('#action').val('approve');
+            $('#stock_out_form').submit();
+        });
+
+        $("#reject_out").click(function () {
+            var frame = '<label class="ui-label" style="margin-left:-130px;"><span class="ui-form-required">*</span>备注: </label>' +
+                    '<textarea rows="3" cols="50" id="remark" class="ui-input ui-input-large" name="remark"></textarea>';
+            confirm_box = ConfirmBox.confirm(frame, '拒绝出库', function () {
+                var remark = $('#remark').val()
+                if ($.trim(remark) == '') {
+                    alert('请输入备注');
+                    return;
+                }
+                $('#stock_remark').val(remark);
+                $('#action').val('reject');
+                $('#stock_out_form').submit();
+            });
+        });
+
+    });
+</script>
+{% end %}

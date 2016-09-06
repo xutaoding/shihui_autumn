@@ -1,0 +1,183 @@
+{% extends "../layout.html" %}
+{% block title %}幸运大转盘{% end %}
+{% block style %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+    html {
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+    .activity{
+        position: relative;
+    }
+    #outer-div{
+        width: 100%;
+        height: auto;
+        position: relative;
+        margin:0 auto;
+    }
+    #wheel{
+        width: 240px;
+        max-width: 240px;
+        height: 240px;
+        margin: 0 auto;
+    }
+    #wheel img{
+        display: block;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    #inner-div {
+        position: absolute;
+        top: 2px;
+        width: 100%;
+        z-index: 99;
+    }
+    #start{
+        width: 120px;
+        max-width: 120px;
+        height: 240px;
+        margin: 0 auto;
+        cursor:pointer;
+        z-index: 90;
+    }
+    #start img{
+        display: block;
+        max-width: 100%;
+        margin: 0 auto;
+        cursor:pointer;
+        z-index: 99;
+    }
+    .rewards {
+        width: 240px;
+        padding-left: 15px;
+        font-size: 12px;
+        color: white;
+        z-indix: -1;
+    }
+
+</style>
+{% end %}
+
+{% block content %}
+    {% if day_remain_num > 0 %}
+    <div class="activity">
+        <div id="outer-div">
+            <div id="wheel" >
+                <img src="http://img0.uhcdn.com/p/839/745/76/d0b4f1e6_2014042910453638220_nw.png" id="wheel-img">
+            </div>
+        </div>
+        <div id="inner-div">
+            <div id="start">
+                <img src="http://img0.uhcdn.com/p/452/807/194/79cefadc_2014042914242206914_nw.png" id="start-btn">
+            </div>
+        </div>
+        {% for r in rewards %}
+        <div class="rewards" style="
+                transform:rotate({{r.deg}}deg);
+                -ms-transform:rotate({{r.deg}}deg); /* IE 9 */
+                -webkit-transform:rotate({{r.deg}}deg); /* Opera, Chrome, and Safari */
+            ">
+            {{r.type}}
+        </div>
+        {% end %}
+
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="act_id" value="{{act_id}}">
+    </div>
+    {% end %}
+    <div style="margin-top: 30px; border: solid 1px #F8F1BB; padding: 10px; background: #F8F1BB">
+        <div style="margin: -11px 0 10px -11px; background: red; width:120px; padding: 5px">
+            <span style="color: white; font-size: 16px; margin-left:20px">
+                奖项设置
+            </span>
+        </div>
+        <span style="color: red">今日还剩{{ day_remain_num }}次, 总共还剩{{ all_remain_num }}次</span>
+        <div style="margin-left:40px">
+            {% for r in win_rewards %}
+            <p><span>{{r.type}}:</span><span style="margin-left:5px">{{r.name}}</span></p>
+            {% end %}
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; border: solid 1px #F8F1BB; padding: 10px; background: #F8F1BB">
+        <div style="margin: -11px 0 10px -11px; background: red; width:120px; padding: 5px">
+        <span style="color: white; font-size: 16px; margin-left:20px">
+            活动说明
+        </span>
+        </div>
+        <div style="padding:10px">
+            {% raw activity.detail %}
+
+        </div>
+    </div>
+{% end %}
+
+{% block scripts %}
+<script src="http://assets.uhcdn.com/gallery/jquery/plugins/rotate/2.3/jQueryRotateCompressed.js"></script>
+<script>
+    $(document).ready(function(){
+        divWidth = $('#outer-div').width();
+        $('.rewards').css({'position':'absolute', 'top':'115px', 'left': divWidth/2-120+'px'});
+    });
+
+    function getDegree(reward){
+        var degree = 0;
+        var rewards = {% raw json_dumps(rewards) %};
+        for (i = 0; i< rewards.length; i++){
+            if (rewards[i].type == reward){
+                degree = rewards[i].deg;
+                break;
+            }
+        }
+        return degree
+    }
+
+    var clicked = false;
+    $("#start-btn").click(function(){
+        act_id = $('input[name=act_id]').val();
+        if (!clicked){
+            clicked = true;
+            $.post(
+                "{{ reverse_url('activity.check', act_id)}}",
+                {'_xsrf': $('input[name="_xsrf"]').val(), 'wx_id': "{{ current_user.wx_id }}"},
+                function(data){
+                    if (data.pass){
+                        //向服务器发抽奖请求
+                        $.post(
+                            "{{ reverse_url('activity.result', act_id)}}",
+                            {'_xsrf': $('input[name="_xsrf"]').val(), 'wx_id': "{{ current_user.wx_id }}"},
+                            function(data) {
+                                var deg = getDegree(data['reward']);
+                                $('#start-btn').rotate({
+                                    duration:10000,//转动时间间隔（转动速度）
+                                    angle: 0,  //开始角度
+                                    animateTo:3600+90+deg, //转动角度，10圈+
+                                    easing: $.easing.easeOutSine, //动画扩展
+                                    callback: function(){ //回调函数
+                                        if (data['result']){
+                                            alert('{{activity.win_desc}}, 获得：'+data['name']);
+                                            clicked = false;
+                                        }
+                                        else{
+                                            alert('{{activity.lose_desc}}');
+                                            clicked = false;
+                                        }
+                                    }
+                                });
+                            }
+                        );
+                    }
+                    else{
+                        alert('对不起，今天的人品已经用完了');
+                        clicked = false;
+                    }
+
+                }
+            );
+
+        }
+    });
+
+</script>
+{% end %}

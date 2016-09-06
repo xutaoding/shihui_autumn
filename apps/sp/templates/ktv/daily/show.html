@@ -1,0 +1,82 @@
+{% extends '../../layout.html' %}
+{% block title %}KTV每日预订{% end %}
+{% block menu %}
+    {% module menu('ktv.daily.show') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">KTV每日预订</h2>
+</div>
+<form action="{{ reverse_url('ktv.daily.show') }}" method="get" id="form">
+    <label for="day">预订日期</label>
+    <input id="day" class="ui-form-text" type="text" name="day" value="{{ day }}">
+
+    <label for="shop">请选择门店</label>
+    <select id="shop" name="shop">
+        <option value="">--请选择--</option>
+        {% for shop_item in shop_list %}
+        <option value="{{ shop_item.id }}" {% if shop == str(shop_item.id) %} selected {% end %}>{{ shop_item.name }}</option>
+        {% end %}
+    </select>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>预订时间</th>
+            <th>迷你包</th>
+            <th>小包</th>
+            <th>中包</th>
+            <th>大包</th>
+            <th>豪华包</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for k, v in order_range_list.items() %}
+        <tr>
+            <td>{{ k }}</td>
+            <td>{% for mini in v['MINI'] %}<br>{{ mini }}{% end %}</td>
+            <td>{% for small in v['SMALL'] %}<br>{{ small }}{% end %}</td>
+            <td>{% for middle in v['MIDDLE'] %}<br>{{ middle }}{% end %}</td>
+            <td>{% for large in v['LARGE'] %}<br>{{ large }}{% end %}</td>
+            <td>{% for deluxe in v['DELUXE'] %}<br>{{ deluxe }}{% end %}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}
+
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator', 'autumn', '$', 'calendar', 'moment'], function (Validator, autumn, $, Calendar, moment) {
+        var now_time = moment().format('YYYY-MM-DD');
+        if($('#day').val() == ''){
+            $('#day').val(now_time);
+        } else {
+            now_time = $('#day').val();
+        }
+        new Calendar({trigger:'#day', focus: now_time});
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#day',
+            required: true,
+            errormessage: '请选择日期'
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+    });
+</script>
+{% end %}

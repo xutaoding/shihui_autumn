@@ -1,0 +1,165 @@
+{% extends '../../layout.html' %}
+{% block title %}图文消息组管理{% end %}
+{% block menu %}
+    {% module menu('weixin.app_msg') %}
+{% end%}
+
+{% block styles %}
+<style type="text/css">
+    .appmsg {
+        width: 28%;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 20px;
+        border: 1px solid #d3d3d3;
+        background-color: #fff;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+        border-radius: 5px;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        float: left;
+        margin: 2px;
+    }
+    .multi {
+        padding: 4px 14px 0 14px
+    }
+    .appmsg_content {
+        border-bottom: 1px solid #d3d3d3;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    .appmsg_info {
+        font-size: 13px;
+        line-height: 20px;
+        padding-bottom: 6px;
+    }
+    .appmsg_date {
+        font-weight: 400;
+        font-style: normal;
+    }
+    .cover_appmsg_item {
+        position: relative;
+    }
+    .appmsg_title {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.6)!important;
+        filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr='#99000000',endcolorstr = '#99000000');
+    }
+    .appmsg_thumb_wrp {
+        height: 160px;
+        overflow: hidden;
+    }
+    .appmsg_thumb {
+        width: 100%;
+    }
+    a.cover_a:link, a.cover_a:visited {
+        text-decoration: none;
+        padding: 4px 4px;
+        display: block;
+        color: #fff;
+        font-size: 16px;
+    }
+    .appmsg_opr {
+        background-color: #f4f4f4;
+    }
+</style>
+{% end %}
+{% block content %}
+<div class="ui-tab fn-clear" style="margin-top: 20px">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('weixin.app_msg') }}">图文信息</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">图文信息组</a>
+        </li>
+        <li class="fn-right fn-clear">
+            <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('weixin.app_msg.group.add') }}" style="">添加图文消息组</a>
+        </li>
+    </ul>
+</div>
+
+<div class="panels fn-clear">
+    <div class="panel">
+        {% if groups %}
+            {% for group in groups %}
+            <div class="appmsg multi">
+                <div class="appmsg_content">
+                    <div class="appmsg_info">
+                        {{group.name}}
+                        <em class="appmsg_date">{{ group.created_at }}</em>
+                    </div>
+                    <div class="cover_appmsg_item">
+                        <h4 class="appmsg_title">
+                            <a href="{{reverse_url('weixin.app_msg.detail', group.app_msg_list[0].id)}}" class="cover_a">
+                                {{group.app_msg_list[0].title}}
+                            </a>
+                        </h4>
+                        <div class="appmsg_thumb_wrp">
+                            <img src="{{img_url(group.app_msg_list[0].cover)}}" class="appmsg_thumb">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    {% for app_msg in group.app_msg_list[1:] %}
+                        <div style="border-bottom: 1px solid #d3d3d3; padding: 15px 0;" class="fn-clear">
+                            <div class="fn-left" style="font-size: 16px; color: #222;">
+                                <a href="{{ reverse_url('weixin.app_msg.detail', app_msg.id) }}"> {{app_msg.title}}</a>
+                            </div>
+                            <div class="fn-right">
+                                <img src="{{img_url(app_msg.cover)}}" style="max-width: 60px; max-height: 40px">
+                            </div>
+                        </div>
+                    {% end %}
+                </div>
+                <div class="appmsg_opr fn-clear" style="padding: 10px; 0; text-align: center; margin: -1px -14px 0 -14px;">
+                    <ul>
+                        <li style="float: left; width: 50%;">
+                            <a href="{{url_concat(reverse_url('weixin.app_msg.group.edit'), {'gp_id': group.id}) }}"> 编辑 </a>
+                        </li>
+                        <li >
+                            <a href="javascript:;" data-del-id="{{ group.id }}" class="del" > 删除 </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% end %}
+        {% else %}
+            <div class="ui-tipbox ui-tipbox-message">
+                <div class="ui-tipbox-icon">
+                    <i class="iconfont" title="提示">&#xF0142;</i>
+                </div>
+                <div class="ui-tipbox-content">
+                    <h3 class="ui-tipbox-title">暂时未添加图文信息组</h3>
+                    <p class="ui-tipbox-explain"><a href="{{ reverse_url('weixin.app_msg.group.add') }}">添加图文信息组</a></p>
+                </div>
+            </div>
+        {% end %}
+        <div class="fn-clear"></div>
+    </div>
+</div>
+{% end %}
+
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn'], function($, ConfirmBox, autumn){
+        $('.del').on('click', function(){
+            var msg_id = $(this).attr('data-del-id');
+            ConfirmBox.confirm('是否删除该图文信息组', '是否删除', function(){
+                var action = "{{ reverse_url('weixin.app_msg.group.deleted') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', msg_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}
+

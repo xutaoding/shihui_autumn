@@ -1,0 +1,66 @@
+{% extends '../../layout.html' %}
+{% block title %}KTV价格策略{% end %}
+{% block menu %}
+    {% module menu('ktv.price.show') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">KTV价格策略</h2>
+</div>
+<form action="#" method="get">
+    <label for="shop">适用门店</label>
+    <select name="shop" id="shop">
+        <option value="">--请选择--</option>
+        {% for shop in shops %}
+        <option value="{{ shop.id }}" {% if form.shop.value == str(shop.id) %} selected {% end %}>{{ shop.name }}</option>
+        {% end %}
+    </select>
+    <label for="product">产品选择</label>
+    <select name="product" id="product">
+        <option value="">--请选择--</option>
+        {% for product in products %}
+        <option value="{{ product.id }}" {% if form.product.value == str(product.id) %} selected {% end %}>{{ product.name }}</option>
+        {% end %}
+    </select>
+    <label for="box">包厢类型</label>
+    <select name="box" id="box">
+        <option value="">--请选择--</option>
+        {% for type,name in (('MINI', '迷你包'), ('SMALL', '小包'), ('MIDDLE', '中包'), ('LARGE', '大包'), ('DELUXE', '豪华包')) %}
+            <option value="{{type}}" {% if form.box.value == type %} selected {% end %}>{{name}}</option>
+        {% end %}
+    </select>
+    <button type="submit"  class="ui-button ui-button-sorange">查询</button>
+    <a href="{{ reverse_url('ktv.price.add') }}" class="ui-button ui-button-sblue">添加策略</a>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>门店/数量</th>
+            <th>产品</th>
+            <th>包厢</th>
+            <th>日期范围</th>
+            <th>时间段</th>
+            <th>价格</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for result in page.rows %}
+        <tr>
+            <td>{% raw '<br/>'.join(result.shop_info.split(','))%}</td>
+            <td>{{ result.name }}</td>
+            <td>{{ {'MINI': '迷你包', 'SMALL': '小包', 'MIDDLE': '中包', 'LARGE': '大包', 'DELUXE': '豪华包'}[result.room_type] }}</td>
+            <td>{% raw '<br/>'.join(result.date_range.split(','))%}</td>
+            <td>{% raw '<br/>'.join(['%s点至%s点' % (t, int(t)+ result.duration if (int(t) + result.duration) <= 24 else int(t) + result.duration - 24) for t in result.start_times.split(',')]) %}</td>
+            <td>{{ result.price }}</td>
+            <td><a href="{{ reverse_url('ktv.price.edit', result.id) }}">编辑</a></td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}

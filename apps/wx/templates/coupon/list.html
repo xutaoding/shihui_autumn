@@ -1,0 +1,83 @@
+{% extends '../layout.html' %}
+
+{% block title %}我的券{% end %}
+
+{% block style %}
+<style>
+    .order-list, .title{
+        margin: 5px 0;
+        min-width: 200px;
+        background: #eee;
+    }
+    .order-list {
+        height: 60px;
+        -webkit-border-radius: 5px;
+    }
+    .title {
+        position: fixed;
+        top: -5px;
+        left: 0;
+        height: 40px;
+        width: 100%;
+    }
+    .title-item {
+        width: 50%;
+        height: 40px;
+        text-align: center;
+        line-height: 40px;
+        cursor: pointer;
+    }
+    .choice {
+        background: #428bca;
+        color: white;
+    }
+    .img {
+        width: 104px;
+        height: 58px;
+        padding-top: 1px;
+        padding-bottom: 1px;
+        margin-left: 2px;
+        float: left;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="title">
+    <div class="title-item {% if type == 'unused' %} choice {% end %}" style="float: left;" type="unused">未使用</div>
+    <div class="title-item {% if type == 'used' %} choice {% end %}" style="float: right" type="used">已使用</div>
+</div>
+
+<div style="padding-top: 40px; clear: both"></div>
+{% for coupon in coupons.rows %}
+    <div class="order-list" coupon="{{ coupon.id }}">
+        <img src="{{  img_url(json.loads(coupon.img_paths)['720x400']) }}" class="img">
+        <div style="height:60px; margin-left: 120px; padding-bottom: 10px; padding-top: 10px">
+            <span style="font: 20px bold">{{ coupon.goods_name }}</span><br>
+            <span style="color: #757575">{{ coupon.created_at }}</span>
+        </div>
+    </div>
+{% end %}
+
+{% raw coupons.gen_html('wx') %}
+{% module member(current_user.wx_id) %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('.title-item').on('click', function(){
+            $('<form></form>').attr('method', 'get').attr('action', '{{ reverse_url("coupon") }}')
+                    .append($('<input type="hidden" name="type" />').attr('value', $(this).attr('type')))
+                    .append($('<input type="hidden" name="wx_id" />').attr('value', "{{ current_user.wx_id }}")).submit();
+        });
+
+        $('.order-list').on('click', function(){
+            var action = "{{ reverse_url('coupon.detail') }}";
+            $('<form></form>').attr('method', 'get').attr('action', action)
+                    .append($('<input type="hidden" name="coupon" />').attr('value', $(this).attr('coupon')))
+                    .append($('<input type="hidden" name="wx_id" />').attr('value', "{{ current_user.wx_id }}")).submit();
+        });
+    });
+</script>
+{% end %}

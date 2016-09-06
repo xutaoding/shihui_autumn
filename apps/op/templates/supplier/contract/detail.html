@@ -1,0 +1,58 @@
+{% extends "../../layout.html" %}
+{% block title %}合同详情{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('contract', supplier.id) %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">合同详情</h2>
+</div>
+<form class="ui-form" id="form"  >
+    <fieldset>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>商户：</label>
+            <label class="ui-form-text">{{ contract.short_name}}</label>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>合同有效期：</label>
+            <input class="ui-input" type="text" disabled id="start_at" name="start_at" value="{{ contract.start_at.strftime('%Y-%m-%d') }}" autocomplete="off">
+            至
+            <input class="ui-input" type="text" disabled id="expire_at" name="expire_at" value="{{ contract.expire_at.strftime('%Y-%m-%d') }}" autocomplete="off">
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>合同说明：</label>
+            <textarea name="remark" disabled id="remark" style="width:400px; height:150px;">{{ contract.remark}}</textarea>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> 合同内容：</label>
+            <p></p>
+        </div>
+        <div id="J_imageView" class="fn-clear" >
+        {% for image in image_urls %}
+        <div class="contract-item">
+            <a href="{{image}}" target="_blank" class="contract" title="合同文件">
+            <img src="{{image}}" title="合同文件" >
+            </a>
+        </div>
+        {% end %}
+    </div>
+    </fieldset>
+</form>
+
+{% end %}
+{% block scripts %}
+    <style>
+        .contract-item {
+            border:1px solid #eee;width:150px;height:200px;float:left; margin:5px 10px; padding:10px; position:relative;
+        }
+        .contract-item img {
+            max-height:100%; max-width: 100%;
+        }
+    </style>
+{% end %}

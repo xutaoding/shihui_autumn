@@ -1,0 +1,147 @@
+{% extends "../layout.html" %}
+{% block title %}商户详情{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('info', supplier.id) %}
+
+<dl class="ui-dlist">
+    <dt class="ui-dlist-tit">名称：</dt>
+    <dd class="ui-dlist-det">
+        {{ supplier.name }}
+    </dd>
+    <dt class="ui-dlist-tit">短名称：</dt>
+    <dd class="ui-dlist-det">
+        {{ supplier.short_name }}
+    </dd>
+    <dt class="ui-dlist-tit">域名：</dt>
+    <dd class="ui-dlist-det">
+        <a href="http://{{supplier.domain_name}}.{{ options.supplier_domain }}" target="_blank">
+            {{ supplier.domain_name }}</a>
+    </dd>
+    <dt class="ui-dlist-tit">销售专员：</dt>
+    <dd class="ui-dlist-det">
+        {{ supplier.sales_name }}
+    </dd>
+
+    <dt class="ui-dlist-tit">协议编号：</dt>
+    <dd class="ui-dlist-det">
+        {{ supplier.code if supplier.code  else '无' }}
+    </dd>
+
+    <dt class="ui-dlist-tit">代理商：</dt>
+    <dd class="ui-dlist-det">
+        {{ supplier.agent_name if supplier.agent_name else '无' }}
+    </dd>
+
+    <dt class="ui-dlist-tit">联系方式：</dt>
+    <dd class="ui-dlist-det">{{ default(supplier.contact) }}&nbsp;</dd>
+
+    <dt class="ui-dlist-tit">门店独立结算：</dt>
+    <dd class="ui-dlist-det">{{ {'1':'是','0':'否'}.get(supplier.separate_account,'否') }}</dd>
+    <dt class="ui-dlist-tit">商户属性：</dt>
+    <dd class="ui-dlist-det">
+        <input type="checkbox" disabled {{ 'checked' if 'coupon' in supplier.properties else '' }}>
+        <label >销售电子券</label>
+        <input type="checkbox" disabled {{ 'checked' if 'real' in supplier.properties else '' }}>
+        <label>销售实物</label>
+        <input type="checkbox" disabled {{ 'checked' if 'ktv' in supplier.properties else '' }}>
+        <label>销售KTV商品</label>
+        <input type="checkbox" disabled {{ 'checked' if 'crm' in supplier.properties else '' }}>
+        <label>CRM</label>
+        <input type="checkbox" disabled {{ 'checked' if 'weixin' in supplier.properties else '' }}>
+        <label>微信</label>
+    </dd>
+    <dt class="ui-dlist-tit">最大提现金额：</dt>
+    <dd class="ui-dlist-det"><span id="wid">{% if not max_withdraw %}无</span>{% else %}{{ max_withdraw.value }}</span><span>元</span>{% end %} (<span supplier="{{ supplier.id }}" action="withdraw" style="color: #08c; cursor: pointer">设置</span>)</dd>
+    <dt class="ui-dlist-tit">微信商品费率：</dt>
+    <dd class="ui-dlist-det"><span id="wx_commission">{% if not wx_commission %}无</span>{% else %}{{ wx_commission.value }}</span><span>%</span>{% end %}</span> (<span supplier="{{ supplier.id }}" action="commission" style="color: #08c; cursor: pointer">设置</span>)</dd>
+    <dt class="ui-dlist-tit">最大支持门店：</dt>
+    <dd class="ui-dlist-det"><span id="wx_shop_max">{% if not wx_shop_max or wx_shop_max.value == '0' %}无限制</span>{% else %}{{ wx_shop_max.value }}间</span>{% end %}</span> (<span supplier="{{ supplier.id }}" action="wx_shop" style="color: #08c; cursor: pointer">设置</span>)</dd>
+    <dt class="ui-dlist-tit">培训教材：</dt>
+    <dd class="ui-dlist-det">
+        <a href="javascript:window.open('{{ reverse_url('supplier.manual', supplier.id) }}', '', 'width=2000,height=2000,left=200,top=200,status=no,scrollbars=no,menubar=no,toolbar=no,resizable=1,location=no')">导出培训教材</a> </dd>
+</dl>
+
+<div style="position: relative;left: 167px;top: 10px;">
+    {% module xsrf_form_html() %}
+    <button class="ui-button ui-button-sorange" onclick="location.href='{{ url_concat(reverse_url('supplier.edit'), {'id': supplier.id}) }}'">修改</button>
+    <a href="javascript:;" id="btn-del" sp-id="{{supplier.id}}" class="ui-button ui-button-sorange" style="color: white; margin-left: 10px; background-color: #ff5243;" >删除</a>
+</div>
+{% end%}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'validator'], function($, autumn, ConfirmBox, Validator){
+        $('#btn-del').click(function(){
+            var supplier_id = $(this).attr('sp-id');
+            ConfirmBox.confirm('确认要删除此商户吗？删除后无法恢复', '删除商户', function() {
+                $('<form></form>').attr('method', 'post').attr('action', '{{ reverse_url("supplier.delete") }}')
+                        .append($('<input type="hidden" name="id" />').attr('value', supplier_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf'))).submit();
+                return false;
+            });
+        });
+        $('span[supplier]').on('click', function(){
+            var supplier_id = $(this).attr('supplier');
+            var action = $(this).attr('action');
+            if (action == 'withdraw') {
+                var form = '<div class="ui-form-item"><label for="max-withdraw" class="ui-label">最大提现金额</label><input id="max-withdraw" type="text" class="ui-input"></div>';
+                var tip = '修改最大提现金额';
+                var obj = '#wid';
+            } else if (action == 'commission') {
+                var form = '<div class="ui-form-item"><label for="max-withdraw" class="ui-label">微信商品费率</label><input id="max-withdraw" type="text" class="ui-input"></div>'
+                var tip = '修改微信商品费率';
+                var obj = '#wx_commission';
+            } else if (action == 'wx_shop') {
+                var form = '<div class="ui-form-item"><label for="max-withdraw" class="ui-label">最大支持门店</label><input id="max-withdraw" type="text" class="ui-input"></div>'
+                var tip = '修改最大支持门店数量 (0:表示门店数量不受限制)';
+                var obj = '#wx_shop_max';
+            } else {
+                return false;
+            }
+
+            ConfirmBox.confirm(form, tip, function(){
+                var max_withdraw = $('#max-withdraw').val();
+                if (action == 'withdraw') {
+                    if (!/^\d+(\.\d{1,2})?$/.test(max_withdraw)) {
+                        alert('设置的金额必须为数字，且小数点后最多有两位');
+                        throw '错误的金额';
+                    }
+                    var url = '{{ reverse_url("supplier.max_withdraw.edit") }}'
+                } else if (action == 'commission') {
+                    if (!/^([3-9]|[1-9][0-9]|100)$/.test(max_withdraw)) {
+                        alert('请输入3-100间的整数');
+                        throw '错误的费率';
+                    }
+                    var url = '{{ reverse_url("supplier.wx.commission") }}'
+                } else if (action == 'wx_shop') {
+                    if (!/^[0-9]\d*$/.test(max_withdraw)) {
+                        alert('请输入整数');
+                        throw '错误的数量';
+                    }
+                    var url = '{{ reverse_url("supplier.wx.shop") }}'
+                }
+                $.ajax({
+                    'type': 'post',
+                    'url': url,
+                    'data': {
+                        'supplier_id': supplier_id,
+                        'max_withdraw': max_withdraw,
+                        '_xsrf': autumn.get_cookie("_xsrf")
+                    },
+                    success: function(data){
+                        $(obj).text(data.result);
+                    }
+                });
+                return false;
+            })
+        });
+    });
+</script>
+{% end %}

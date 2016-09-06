@@ -1,0 +1,101 @@
+{% extends "../../layout.html" %}
+{% block title %}微活动列表{% end %}
+{% block menu %}
+{% module menu('wx.activity.cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.activity.cover') }}">活动封面</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="{{ reverse_url('wx.activity.list') }}">微信活动列表</a>
+        </li>
+    </ul>
+</div>
+<div class="ui-title fn-clear" style="margin-top: -28px">
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('wx.activity.add') }}" >新建微活动</a>
+</div>
+
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>活动名称</th>
+        <th style="width:60px">类型</th>
+        <th style="width:140px">开始/结束时间</th>
+        <th style="width:70px">状态</th>
+        <th style="width:100px">操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for act in acts %}
+    <tr>
+        <td>{{ act.name }}</td>
+        <td>{{act_dict.get(default(act.type, 1))}}</td>
+        <td>{{act.start_at}}<br/>{{act.expire_at}}</td>
+        <td>{{ {0: '未开始', 1: '已开始'}.get(act.is_active) }}</td>
+        <td>
+            <span style="color: #08c; cursor: pointer;"><a href="{{url_concat(reverse_url('wx.activity.sn'), {'act_id': act.id})}}" style="text-decoration: none;">SN管理</a></span> /
+            <span style="color: #08c; cursor: pointer;"><a href="{{url_concat(reverse_url('wx.activity.edit'), {'act_id': act.id})}}" style="text-decoration: none;">编辑</a></span> /
+            {% if act.is_active == 0 %}
+            <span style="color: #08c; cursor: pointer;" name="active" act_id="{{act.id}}" operator="1">开始</span> /
+            {% else %}
+            <span style="color: #08c; cursor: pointer;" name="active" act_id="{{act.id}}" operator="0">结束</span> /
+            {% end %}
+            <span style="cursor: pointer;" data-del-id="{{act.id}}">删除</span>
+        </td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'dialog', 'autumn', 'confirmbox', 'kindeditor', 'validator', 'tabs'],
+    function ($, AutoComplete, Calendar, moment, Dialog, autumn, ConfirmBox, KindEditor, Validator, Tabs) {
+        //删除活动
+        $("span[data-del-id]").on('click', function(){
+            var act_id = $(this).attr('data-del-id');
+            ConfirmBox.confirm('是否确认删除该活动', '确认删除', function(){
+                var action = "{{ reverse_url('wx.activity.delete') }}";
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="act_id" />').attr('value', act_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+            });
+        });
+        // 上下线
+        $("span[name='active']").on('click', function(){
+            var current = $(this);
+            var act_id = current.attr('act_id');
+            var operator = current.attr('operator');
+            if (operator == '0'){
+                var info = '确认 结束活动？';
+            }
+            else{
+                var info = '确认 开始活动？';
+            }
+            ConfirmBox.confirm(info, '微活动', function(){
+                var action = "{{ reverse_url('wx.activity.set_active') }}";
+                $.post(
+                        action,
+                        {'act_id': act_id, operator: operator, '_xsrf': autumn.get_cookie('_xsrf')},
+                        function(result){
+                            if (result.is_ok){
+                                window.location.reload();
+                            }
+                            else{
+                                alert('操作失败，请刷新重试');
+                            }
+                        }
+                );
+            });
+        });
+
+    });
+</script>
+{% end %}

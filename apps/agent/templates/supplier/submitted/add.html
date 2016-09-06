@@ -1,0 +1,318 @@
+{% extends '../../layout.html' %}
+{% block title%} 申请步骤 {% end %}
+{% block styles%}
+    <link href="http://assets.uhcdn.com/gallery/kindeditor/4.1.10/themes/default/default.css" rel="stylesheet">
+    <style type="text/css">
+        .my-error-class {
+        color:#FF0000;  /* red */
+        }
+        .my-valid-class {
+        color:#00CC00; /* green */
+        }
+        .close-button {
+            position:absolute; top:0; right:0; font-size:large; opacity: 0.4; color: white; background-color: black; font-family: courier new; padding: 1px 8px;
+        }
+        .contract-item {
+            border:1px solid #eee;width:150px;height:200px;float:left; margin:5px 10px; padding:10px; position:relative;
+        }
+        .contract-item img {
+            max-height:100%; max-width: 100%;
+        }
+        .contract-item>a[title="删除文件"]:link {
+            color:white;
+        }
+        .contract-item>a[title="删除文件"]:hover {
+            text-decoration:none;
+            background-color: red;
+            opacity:1;
+        }
+    </style>
+{% end %}
+{% block menu %}
+    {% module menu('supplier.submitted.list') %}
+{% end %}
+
+{% block content%}
+<div class="row">
+    <div class="col-lg-12">
+        <h2 class="page-title">申请成为自己的商户 </h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="widget">
+            <div class="widget-header"> <i class="icon-arrow-down"></i>
+                  <h3>请保证信息准确有效</h3>
+            </div>
+            <div class="widget-content">
+                <form id="form" name="form" method="post" class="form-horizontal" action="{{reverse_url('supplier.submitted.add')}}" enctype="multipart/form-data">
+                    {% module xsrf_form_html() %}
+                    <input type="hidden" name="id" value="{{supplier.id}}">
+                    <fieldset>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label for="supplier_name" class="control-label">商户姓名</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="icon-user"></i></span>
+                                        <input type="text" name="supplier_name" value="{{default(supplier.name)}}" size="16" class="form-control" id="supplier_name">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label for="supplier_phone" class="control-label">商户手机</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input type="text" name="supplier_phone" value="{{default(supplier.phone)}}" class="form-control input-transparent" id="supplier_phone">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label  class="control-label">经营类别</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <SELECT disabled  NAME="category" class="form-control"  SIZE="1">
+                                        <option value="1">美食</option>
+                                        <option value="2">休闲娱乐</option>
+                                        <option value="3">购物</option>
+                                        <option value="4">丽人</option>
+                                        <option value="5">结婚</option>
+                                        <option value="6">亲子</option>
+                                        <option value="7">运动健身</option>
+                                        <option value="8">酒店</option>
+                                        <option value="9">家装</option>
+                                        <option value="10">爱车</option>
+                                        <option value="11">生活服务</option>
+                                    </SELECT>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label for="tooltip-enabled" class="control-label ">品牌名称</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input type="text" disabled value="{{default(supplier.brand_name)}}" data-original-title="Some explanation text here" data-placement="top" class="form-control" id="tooltip-enabled">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label  class="control-label ">商铺名称</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input type="text"  value="{{default(supplier.shop_name)}}" disabled="disabled" class="form-control">
+                                </div>
+                            </div>
+                       </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label class="control-label ">商铺短名称</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input type="text" name="shop_short_name" id="shop_short_name" value="{{default(supplier.shop_short_name)}}" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label for="normal-field" class="control-label">商铺地址</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input type="text" disabled value="{{(supplier.city)}} {{(supplier.district)}} {{default(supplier.shop_address)}}" size="16" class="form-control" id="normal-field">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label class="control-label">商铺电话</label>
+                            </div>
+                            <div class="col-md-9">
+                            <div class="form-group">
+                                <input type="text" disabled value="{{supplier.shop_phone_num}}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label class="control-label">导入合同</label>
+                            </div>
+                            <div class="col-md-9">
+                                <input type="button" class="btn btn-success" id="J_selectImage" kind-img-view="contract" value="批量上传">
+                                 <div id="contract" class="fn-clear">
+                                    {% if supplier.contract %}
+                                        {% for image in contract_urls %}
+                                        <div class="contract-item">
+                                            <a href="javascript:" class="close-button" title="删除文件">X</a>
+                                            <a href="{{image}}" target="_blank" class="contract" title="合同文件">
+                                            <img src="{{image}}" title="合同文件" >
+                                            </a>
+                                            <input type="hidden" name="contract" value="{{image}}">
+                                        </div>
+                                        {% end %}
+                                    {% end %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                <label class="control-label">导入营业执照</label>
+                            </div>
+                            <div class="col-md-9">
+                                <input type="button" id="C_selectImage" class="btn btn-success" kind-img-view="certificate" value="批量上传">
+                                <div id="certificate" class="fn-clear">
+                                    {% if supplier.certificate %}
+                                        {% for image in certificate_urls %}
+                                        <div class="contract-item">
+                                            <a href="javascript:" class="close-button" title="删除文件">X</a>
+                                            <a href="{{image}}" target="_blank" class="contract" title="合同文件">
+                                            <img src="{{image}}" title="合同文件" >
+                                            </a>
+                                            <input type="hidden" name="certificate" value="{{image}}">
+                                        </div>
+                                        {% end %}
+                                    {% end %}
+                                 </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="col-md-3">
+                                    <label  class="control-label ">日志记录:</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    {% if supplier.remark %}
+                                        {% set logs = supplier.remark.split(',')%}
+                                        {% for log in logs%}
+                                        <p>{{log}} </p>
+                                        {% end %}
+                                    {% end %}
+                                    <textarea class="form-control" id="remark" name="remark" ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                    </fieldset>
+                    <div class="form-actions">
+                        <div>
+                            <button class="btn btn-primary" type="submit">提交审核</button>
+                            <a class="btn btn-default" name="cancel" href="{{ reverse_url('supplier.marked.list') }}">取消</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block scripts %}
+<script src="http://assets.uhcdn.com/gallery/kindeditor/4.1.10/kindeditor.js"></script>
+<script src="http://assets.uhcdn.com/gallery/kindeditor/4.1.10/lang/zh_CN.js"></script>
+<script>
+$('#contract,#certificate').delegate('.close-button','click', function(){
+    $(this).parent().remove();
+});
+KindEditor.ready(function(K) {
+    var editor = K.editor({
+        allowFileManager : true,
+        pluginsPath: '/static/img/',
+        imageSizeLimit: '10MB',
+        uploadJson: '{{reverse_url("supplier.submitted.upload")}}',
+        extraFileUploadParams: {
+            '_xsrf': $('input[name=_xsrf]').val(),
+            'root': 'contract'
+        }
+    });
+
+    K('#J_selectImage,#C_selectImage').click(function() {
+        var viewItemId = $(this).attr('kind-img-view')
+        editor.loadPlugin('multiimage', function() {
+            editor.plugin.multiImageDialog({
+                clickFn : function(urlList) {
+                    var div = K('#'+viewItemId);
+                    K.each(urlList, function(i, data) {
+                        div.append('<div class="contract-item"><a href="javascript:" class="close-button" title="删除文件">X</a><a href="' + data.url + '" target="_blank" class="contract" title="合同文件"><img src="' + data.url + '" title="合同文件"></a><input type="hidden" name="'+viewItemId+'" value="' + data.url + '"></div>');
+                    });
+                    editor.hideDialog();
+                }
+            });
+        });
+    });
+});
+
+$(document).ready(function(){
+    $('form').validate({
+        errorClass:"my-error-class",
+        validClass:"my-valid-class",
+        rules: {
+            supplier_name: {
+                required: true,
+                minlength: 1,
+                maxlength: 15
+            },
+            supplier_phone:{
+                required:true,
+                minlength:11,
+                maxlength:11
+            },
+            shop_short_name:{
+                required:true,
+                minlength:1,
+                maxlength:15
+            },
+            remark:{
+                minlength:5,
+                maxlength:100
+            }
+        },
+        messages: {
+            supplier_name:{
+                required: "请输入姓名",
+                minlength: "请输入正确姓名",
+                maxlength: "请输入正确姓名"
+            },
+            supplier_phone:{
+                required: "请输入手机号",
+                minlength: "请输入11位手机号码",
+                maxlength: "请输入11位手机号码"
+            },
+            shop_short_name:{
+                required: "请输入商铺短名称",
+                minlength: "请输入正确的商铺短名称",
+                maxlength: "请输入正确的商铺短名称"
+
+            },
+            remark:{
+                minlength:"请认真填写，日志信息至少5个字符",
+                maxlength:"日志信息超过了100个字符"
+            }
+        }
+    });
+
+    $('[name="contract"],[name="certificate"]').change(function () {
+        var absolute_path = $(this).val();
+        var path_list = absolute_path.split('\\');
+        var filename = path_list[path_list.length - 1];
+        if ($(this).attr('name') == 'contract')
+        {
+            $('[name="contract_tip"]').text(filename);
+        }
+        else
+        {
+            $('[name="certificate_tip"]').text(filename);
+        }
+        });
+})
+</script>
+{% end %}

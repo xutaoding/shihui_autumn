@@ -1,0 +1,248 @@
+{% extends "../../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改'  }}商户门店{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('shop', form.supplier_id.value) %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}商户门店</h2>
+</div>
+
+<form action="{{ url_concat(reverse_url('supplier.shop.add'),{'supplier_id': form.supplier_id.value}) if form.action.value == 'add' else url_concat(reverse_url('supplier.shop.edit'),{'id':form.id.value}) }}"
+      method="post" class="ui-form" id="form">
+
+    <div class="ui-form-item">
+        <label for="name" class="ui-label">
+            <span class="ui-form-required">*</span>门店名称</label>
+        <input id="name" type="text" style="width: 400px;" class="ui-input ui-input-large" value="{{ form.name.value }}"
+               name="name">
+    </div>
+    <div class="ui-form-item">
+        <label for="city" class="ui-label">
+            <span class="ui-form-required">*</span>城市</label>
+        <select name="city_id" size="1" id="city">
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="district" class="ui-label">
+            <span class="ui-form-required">*</span>区域</label>
+        <select name="district_id" size="1" id="district">
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="area" class="ui-label">
+            <span class="ui-form-required">*</span>商圈</label>
+        <select name="area_id" size="1" id="area">
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="phone" class="ui-label"> 门店咨询电话</label>
+        <input id="phone" type="text" style="width: 500px;" class="ui-input ui-input-large" value="{{ default(form.phone.value) }}"
+               name="phone">
+    </div>
+    <div class="ui-form-item">
+        <label for="phone" class="ui-label"> 门店验证电话</label>
+        <input id="verify_phones" type="text" style="width: 500px;" class="ui-input ui-input-large" value="{{ default(form.verify_phones.value) }}"
+               name="verify_phones">
+        <p class="ui-form-explain">需要加上区号！多个验证电话请用半角逗号 , 分割。示例： 02150272617,01045372834</p>
+    </div>
+    <div class="ui-form-item">
+        <label for="traffic_info" class="ui-label">
+            交通</label>
+        <input id="traffic_info" type="text" style="width: 500px;" class="ui-input ui-input-large"
+               value="{{default(form.traffic_info.value) }}"
+               name="traffic_info">
+    </div>
+    <div class="ui-form-item">
+        <label for="manager_name" class="ui-label">
+            经理名称</label>
+        <input id="manager_name" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ default(form.manager_name.value) }}"
+               name="manager_name">
+    </div>
+    <div class="ui-form-item">
+        <label for="manager_mobile" class="ui-label">
+            经理手机</label>
+        <input id="manager_mobile" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ default(form.manager_mobile.value) }}"
+               name="manager_mobile">
+    </div>
+    <div class="ui-form-item">
+        <label for="address" class="ui-label">
+            <span class="ui-form-required">*</span>门店地址</label>
+        <input id="address" type="text" style="width: 500px;" class="ui-input ui-input-large" value="{{ form.address.value }}"
+               name="address">
+        <button type="button" id="auto-location" class="ui-button ui-button-morange">自动定位</button>
+        <p class="ui-form-explain">点击按钮自动获取经纬度，如果获取失败，请手动点击地图中的正确位置，以生成经纬度。</p>
+    </div>
+    <div class="ui-form-item">
+        <div class="maps_container">
+            <div id="map_canvas" style="width:340; height: 360px"></div>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        经度: <input type="text" id="longitude" name="longitude" class="ui-input ui-input-large" readonly="true"
+                   value="{{form.longitude.value}}">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        纬度: <input type="text" id="latitude" name="latitude" class="ui-input ui-input-large" readonly="true"
+                   value="{{form.latitude.value}}">
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange"
+               value="{{ '添加' if form.action.value == 'add' else '修改' }}">
+    </div>
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" name="supplier_id" value="{{ form.supplier_id.value}}">
+    <input type="hidden" id="error" name="error" value="{{error}}">
+    <input type="hidden" id="origin_area_id" value="{{form.area_id.value}}">
+
+
+</form>
+{% end %}
+{% block scripts %}
+<script src="http://api.map.baidu.com/api?v=2.0&ak=Zctt3TcRriN1Hc4z48uElbkB" type="text/javascript"></script>
+
+<script>
+    seajs.use(['validator', 'widget', 'autocomplete', 'templatable', 'autumn', '$'], function (Validator, Widget, AutoComplete, Templatable, autumn, $) {
+        var restore_area;
+        var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=name]',
+            required: true
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+
+        //初始化区域
+        var shop_areas = [];
+        var district = $('#district');
+        var area = $('#area');
+
+        $('#district').change(function () {
+            var value = $('#district :checked').val();
+            district_change(value,null)
+        });
+
+        function district_change(value,area_id){
+            $('#' + value).attr("selected", "selected");
+            $.each(shop_areas, function (i, d) {
+                if (d.children != null){
+                    $.each(d.children, function (j, a) {
+                        if (a.id == value) {
+                            area.empty();
+                            new TemplateWidget({
+                                template: '{{!#each this}}<option value="{{!id}}" id="{{!id}}">{{!name}}</option>{{!/each}}',
+                                model: a.children,
+                                parentNode: '#area'
+                            }).render();
+                            $('#'+area_id).attr("selected", "selected");
+                        }
+                    });
+                }
+            });
+        }
+        $('#city').change(function () {
+            var value = $('#city :checked').val();
+            city_change(value);
+            $('#district').change();
+        });
+        function city_change(value){
+            $.each(shop_areas, function (index, item) {
+                if (item.id == value) {
+                    district.empty();
+                    new TemplateWidget({
+                        template: '{{!#each this}}<option value="{{!id}}" id="{{!id}}">{{!name}}</option>{{!/each}}',
+                        model: item.children,
+                        parentNode: '#district'
+                    }).render();
+                }
+            });
+        }
+        //查询所有城市
+        $.post(
+                '{{ reverse_url("common.areas") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf')},
+                function (areas) {
+                    shop_areas = areas;
+                    new TemplateWidget({
+                        template: '{{!#each this}}<option value="{{!id}}" id="{{!id}}">{{!name}}</option>{{!/each}}',
+                        model: areas,
+                        parentNode: '#city'
+                    }).render();
+                    restore_area();
+                }
+        );
+
+        restore_area = function () {
+            var area_id = $('#origin_area_id').val();
+            if (area_id) {
+                var city_id = area_id.substring(0, area_id.length - 5)
+                var district_id = area_id.substring(0, area_id.length - 3)
+                $('#' + city_id).attr("selected", "selected")
+                city_change(city_id)
+                district_change(district_id,area_id)
+            }else{
+                $('#city').change();
+            }
+        };
+
+        var map = new BMap.Map("map_canvas");            // 创建Map实例
+        map.enableScrollWheelZoom();
+        map.addControl(new BMap.NavigationControl());
+
+        var lng = $('#longitude').val();
+        var lat = $('#latitude').val();
+        var marker = new BMap.Marker(new BMap.Point(116.384, 39.925));  // 创建假标注
+        if (lng && lat){
+            map.centerAndZoom(new BMap.Point(Number(lng), Number(lat)), 15);
+            marker = new BMap.Marker(new BMap.Point(lng, lat));  // 创建标注
+            map.addOverlay(marker);
+        }else{
+            map.centerAndZoom("上海",15);                     // 初始化地图,设置中心点坐标和地图级别。
+        }
+
+        map.addEventListener("click", function(e){
+            map.removeOverlay(marker);
+            marker = new BMap.Marker(new BMap.Point(e.point.lng, e.point.lat));  // 创建标注
+            map.addOverlay(marker);
+            $('#longitude').val(e.point.lng);
+            $('#latitude').val(e.point.lat);
+        });
+        var geo = new BMap.Geocoder(); // 创建地址解析器实例
+        $('#auto-location').click(function(e){
+            geo.getPoint($('#address').val(), function(point){
+              if (point) {
+                map.centerAndZoom(point, 16);
+                map.removeOverlay(marker);
+                marker= new BMap.Marker(point);
+                map.addOverlay(marker);
+                $('#longitude').val(point.lng);
+                $('#latitude').val(point.lat);
+              }else {
+                $('#longitude').val('');
+                $('#latitude').val('');
+              }
+            }, $('#city :selected').text());
+        });
+
+
+    });
+
+
+</script>
+{% end %}

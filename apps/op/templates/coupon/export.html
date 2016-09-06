@@ -1,0 +1,130 @@
+{% extends "../layout.html" %}
+{% block title %}批量导出券{% end %}
+{% block menu %}
+{% module menu('coupon.export') %}
+{% end%}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">批量导出电子券</h2>
+    </div>
+    <div class="ui-form">
+        <form method="post" action="{{reverse_url('coupon.export')}}" >
+        <fieldset>
+            <div class="ui-form-item">
+                <label class="ui-label">指定分销店铺:</label>
+                <select id="distributor_id" name="distributor_id">
+                    {% for shop in distributor_shops %}
+                    <option value ="{{shop.id}}">{{shop.name}}</option>
+                    {% end %}
+                </select>
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label">选择商户:</label>
+                <input type="text" class="ui-input" id="supplier_input" style="width:200px;">
+                <span class="ui-form-other"><a href="javascript:" id="query-goods">查询商品</a></span>
+                <input id="supplier_id" name="supplier" type="hidden">
+                <p class="ui-form-explain ui-tiptext ui-tiptext-error" style="display:none; color:red" id="error-text">
+                    错误信息
+                </p>
+            </div>
+            <div class="ui-form-item" id="goods">
+                <label class="ui-label">商品:</label>
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label">导出数量:</label>
+                <input type="text" class="ui-input" id="num" name="num" style="width:200px;">
+                <p class="ui-form-explain">最大单次导出数量100张</p>
+            </div>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="submit" class="ui-button ui-button-morange" value="导出" id="export">
+            </div>
+        </fieldset>
+        </form>
+    </div>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'autumn'], function ($, AutoComplete, autumn) {
+        // 自动补全
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#error-text,#error-icon').hide();
+                    $('#supplier_id').val(data.id);
+                    getSupplierGoods(data.id);
+                }).render();
+
+            }
+        );
+
+        // 查询商品按钮
+        $('#query-goods').click(function(){
+            $('#error-text,#error-icon').hide();
+            supplier_id = $('#supplier_id').val();
+            getSupplierGoods(supplier_id);
+        });
+
+        // 导出按钮
+        $('#export').click(function(){
+            var distributor_id = $('#distributor_id').val();
+            var supplier = $('#supplier_input').val();
+            var goods_id = $('#goods_id').val();
+            var num = $('#num').val();
+            if (distributor_id == '' || supplier == '' || !goods_id || num == ''){
+                alert('参数不能为空');
+                return false;
+            };
+            if (!/^[\d]+$/.test(num)){
+                alert('数量必须为0-100的整数');
+                return false;
+            }
+            if (num > 100){
+                alert('超过最大单次导出数量');
+                return false;
+            }
+            else{
+                $('form').submit();
+            };
+        });
+
+        // 获取商户商品请求
+        function getSupplierGoods(supplier_id){
+            $.post(
+                '/common/supplier/goods',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'supplier_id': supplier_id},
+                function(data){
+                    if (data.error){
+                        $('#error-text').text(data.error);
+                        $('#error-text,#error-icon').show();
+                    }
+                    else{
+                        var goods = data.goods;
+                        var selection = '<label class="ui-label">商品:</label><select id="goods_id" name="goods_id">';
+                        for (var i=0;i<goods.length;i++)
+                        {
+                            if (goods[i].type == 'E') {
+                                selection = selection + '<option value="' + goods[i].id + '">' + goods[i].name +'</option>'
+                            }
+                        }
+                        selection = selection + "</select>";
+                        $('#goods').html(selection);
+                    }
+                }
+            );
+
+        }
+    });
+</script>
+{% end %}

@@ -1,0 +1,118 @@
+{% extends '../../layout.html' %}
+{% block title %}微信代理商管理{% end %}
+{% block menu %}
+{% module menu('finance.agent_sequence') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" xmlns="http://www.w3.org/1999/html">
+    <h2 class="fn-left">代理商资金明细</h2>
+</div>
+<div class="ui-tab" style="margin-bottom: 20px; margin-top:20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:void(0);">代理商资金</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{reverse_url('finance.agent_pay_list')}}">代理商充值</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{reverse_url('finance.agent_add_supplier')}}">商户入账</a>
+        </li>
+    </ul>
+</div>
+
+<form class="ui-form record-search-form" method="get" action="{{reverse_url('finance.agent_sequence')}}" id="form">
+    <span>代理商名称</span>
+    <input id="agent_input" type="text" name="agent_name" class="" value="{{form.agent_name.value}}" />
+    <input id="agent_id" name="agent_id" type="hidden" value="{{form.agent_id.value}}">
+    <input id="agent_type" name="type" type="hidden" value="{{form.agent_type.value}}">
+    <span style="margin-left:5px">交易日</span>
+    <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value}}" /> -
+    <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value}}" />
+    <input type="hidden" name="status" value="{{form.status.value }}">
+    <input type="hidden" name="action">
+    <button type="button" id="query" class="ui-button ui-button-sorange">查询</button>
+    <!--<button type="button" id="download" class="ui-button ui-button-sblue">下载</button>-->
+</form>
+<div class="content">
+    <div style="font-size: 15px; margin-bottom:5px;">
+        <p>交易金额为：</p>
+    </div>
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>商户名称</th>
+            <th>交易金额</th>
+            <th style="width: 180px">交易备注</th>
+            <th style="width: 70px">交易时间</th>
+            <th>添加人</th>
+            <th>结算金额</th>
+            <th style="width: 180px;">结算备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page.rows %}
+        <tr>
+            <td>{{ item.short_name }}</td>
+            <td>{{ item.eamount }}</td>
+            <td>{{ item.eremark }}</td>
+            <td>{{ item.created_at }}</td>
+            <td>{{ item.created_by }}</td>
+            <td>{{ default(item.aamount, '0.00') }}</td>
+            <td>{{ default(item.aremark, '零售单独结算') }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{#% raw page.links() %#}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'autocomplete', 'widget', 'templatable', 'autumn'], function ($, Calendar, AutoComplete, Widget, Templatable, autumn) {
+        var t1 = '2012-01-01 00:00:00';
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, null], format: 'YYYY-MM-DD 00:00:00'})
+        var c2 = new Calendar({trigger: '#end-cal', range: [null, null], format: 'YYYY-MM-DD 23:59:59'})
+
+        //初始化代理商选择的自动补全
+        $.post(
+            '{{ reverse_url("common.autocomplete.agent") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function (common_agent) {
+                new AutoComplete({
+                    trigger: '#agent_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_agent
+                }).on('itemSelected',function (data) {
+                    $('#agent_id').val(data.id);
+                    $('#agent_type').val(data.type);
+                }).render()
+            }
+        );
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, null]);
+        });
+
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+        $('#query').bind('click', function(){
+            $('input[name=action]').val('show');
+            $('#form').submit();
+        });
+        $('#download').bind('click', function(){
+            $('input[name=action]').val('download');
+            $('#form').submit();
+        });
+    });
+</script>
+{% end %}

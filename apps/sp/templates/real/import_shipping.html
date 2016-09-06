@@ -1,0 +1,67 @@
+{% extends '../layout.html' %}
+{% block title %}上传发货单{% end %}
+{% block menu %}
+    {% module menu('real.import_shipping') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">上传发货单</h2>
+</div>
+
+
+<form action="{{ reverse_url('real.import_shipping') }}" method="post" class="ui-form" enctype="multipart/form-data">
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>选择文件</label>
+        <input type="file" name="order_shipping_file"/>
+        {% if error == 1 %}
+            <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                <i class="ui-tiptext-icon iconfont" title="出错">&#xF0155;</i>
+                {% if message is '' %}
+                   请选择文件
+                {% else %}
+                    {{ message }}
+                {% end %}
+            </p>
+        {% end %}
+        {% if error is '' %}
+            {% if len(success_list)>0 %}
+                <p class="ui-form-explain ui-tiptext ui-tiptext-success">
+                    <i class="ui-tiptext-icon iconfont" title="成功">&#xf0156;</i>
+                        {{ message }}
+                </p>
+                <p class="ui-form-explain">以下为导入成功的订单：</p>
+                <p class="ui-form-explain">{{ ','.join(success_list) }}</p>
+            {% end %}
+            {% if len(failure_list) %}
+                <p class="ui-form-explain">以下订单还没有填写快递信息：</p>
+                <p style="color: red">{{ ','.join(failure_list)}}</p>
+            {% end %}
+            {% if taobao_failure %}
+                <p class="ui-form-explain">以下为淘宝自动发货失败的订单：</p>
+                <p class="ui-form-explain" >{{ ','.join(taobao_failure) }}</p>
+            {% end %}
+        {% end %}
+        <p class="ui-form-explain">(请在下载的发货单中指定位置填写快递信息.请勿随意修改发货单中其他信息!) </p>
+        <table class="ui-table ui-table-border" style="width: 60%">
+            <thead>
+            <tr>
+                <th>快递公司</th>
+                <th>快递编码</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for e in express %}
+            <tr><td>{{ e.name}}</td><td>{{ e.code}}</td></tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="上传">
+    </div>
+</form>
+{% end %}
+

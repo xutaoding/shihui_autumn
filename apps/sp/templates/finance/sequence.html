@@ -1,0 +1,90 @@
+{% extends '../layout.html' %}
+{% block title %}财务明细{% end %}
+{% block menu %}
+{% module menu('finance.sequence') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" xmlns="http://www.w3.org/1999/html">
+    <h2 class="fn-left">财务明细</h2>
+</div>
+
+<form class="ui-form record-search-form" name="" method="get" action="#">
+    <span>交易日期</span>
+    <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value}}"/> -
+    <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value}}"/>
+    <span>交易类型</span>
+     <select name="type">
+        <option value="">--全部--</option>
+        <option value="1"
+        {% if form.type.value =='1' %}selected {% end %} >验证/发货</option>
+        <option value="2"
+        {% if form.type.value == '2' %}selected {% end %}>退款</option>
+        <option value="3"
+        {% if form.type.value == '3' %}selected {% end %}>刷单</option>
+        <option value="4"
+        {% if form.type.value == '4' %}selected {% end %}>预付款</option>
+        <option value="5"
+        {% if form.type.value == '5' %}selected {% end %}>保证金</option>
+    </select>
+    <button type="submit" class="ui-button ui-button-sorange">查询</button>
+</form>
+    {% if page.rows %}
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>交易时间</th>
+                    <th>备注</th>
+                   <th style="width:80px;">交易类型</th>
+                    <th style="width: 50px">收入支出（元）</th>
+                    <th style="width: 50px">状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in page.rows %}
+                <tr>
+                    <td>{{ item.created_at }}</td>
+                    <td>{{ item.remark if item.remark else ''}}</td>
+                     <td>{{ {1:'验证/发货', 2:'退款', 3:'刷单', 4:'预付款', 5:'保证金'}.get(item.type,'') }}</td>
+                    <td>{{ item.amount }}</td>
+                    <td>{{ {3:'已结算',1:'未结算',2:'待结算'}.get(item.status,'') }}</td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw page.links() %}
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title" style="padding-bottom: 10px">暂时没有交易记录</h3>
+            </div>
+        </div>
+    {% end %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use('calendar', function (Calendar) {
+        var t1 = '2012-01-01';
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, null]})
+        var c2 = new Calendar({trigger: '#end-cal', range: [null, null]})
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, null]);
+        });
+
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+    });
+</script>
+{% end %}

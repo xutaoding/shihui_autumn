@@ -1,0 +1,69 @@
+{% extends '../../layout.html' %}
+{% block title %}关键字应答{% end %}
+{% block menu %}
+{% module menu('weixin.keyword') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">关键字列表</h2>
+    <a href="{{ reverse_url('weixin.keyword.add') }}" class="ui-button ui-button-sblue fn-right">添加规则</a>
+</div>
+
+{% if key_maps %}
+    <div>
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>关键词</th>
+                <th>匹配类型</th>
+                <th>应答内容</th>
+                <th>应答类型</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in key_maps %}
+            <tr>
+                <td>{{ item.keyword }}</td>
+                <td>{{ {1: '精确匹配', 2: '模糊匹配'}.get(item.key_type, '') }}</td>
+                <td>{{ item.response }}</td>
+                <td>{{ {1: '文字', 2: '图文信息', 3: '图文组信息'}.get(item.response_type, '') }}</td>
+                <td>
+                    <a href="{{ url_concat(reverse_url('weixin.keyword.edit'), {'key_id': item.id}) }}">编辑</a> /
+                    <span name="del" data-id="{{ item.id }}" style="cursor: pointer">删除</span>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="ui-tipbox ui-tipbox-message">
+        <div class="ui-tipbox-icon">
+            <i class="iconfont" title="提示">&#xF0142;</i>
+        </div>
+        <div class="ui-tipbox-content">
+            <h3 class="ui-tipbox-title">暂时未添加关键字</h3>
+            <p class="ui-tipbox-explain"><a href="{{ reverse_url('weixin.keyword.add') }}">添加关键字</a></p>
+        </div>
+    </div>
+{% end %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn'], function($, ConfirmBox, autumn){
+       $('span[name="del"]').click(function(){
+           var key_id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该关键词', '确认删除', function(){
+                var action = "{{ reverse_url('weixin.keyword.delete') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='key_id' />").attr('value', key_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+       })
+    });
+</script>
+{% end %}

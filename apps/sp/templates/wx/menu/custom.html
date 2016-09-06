@@ -1,0 +1,273 @@
+{% extends '../../layout.html' %}
+{% block title %}自定义菜单{% end %}
+{% block menu %}
+    {% module menu('weixin.menu.show') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">自定义菜单</h2>
+</div>
+
+<div class="ui-tiptext-container ui-tiptext-container-success" style="margin-top: 10px">
+    <p class="ui-tiptext ui-tiptext-success">
+        小提示:<br>
+        1.二级菜单名字为空时，不添加该条目<br>
+        2.+号用于添加对应一级菜单目录下的二级菜单<br>
+        3.点击+号后，一级菜单就不能作为功能键，只能为目录。如果要回复，则需把对应的二级菜单全部删除<br>
+        4.一级菜单后的按钮作用是：是否需要将该菜单直接作为一个功能键
+    </p>
+</div>
+
+<form action="{{ reverse_url('weixin.menu.edit') }}" method="post" id="form">
+    <div>
+    {% for index, m_menu in enumerate(main_menu) %}
+    <div name="{{ 'm_menu--' + str(index) }}" style="margin-left: 8%; margin-top: 10px">
+        <input type="text" class="ui-input" placeholder="一级菜单" value="{{ m_menu.name }}" name="m_input" style="float: left">
+        <input type="hidden" name="direct" value="{{ '1' if m_menu.action_type else '0' }}">
+        <input type="hidden" main='main_content'>
+        <div name="direct_action" class="reverse" style="margin-top: 10px;{% if not m_menu.action_type %} display: none {% end %}">
+            <select name="option">
+                {% for val, action in action_type.iteritems() %}
+                <option value="{{ val }}" {% if m_menu.action_type and int(m_menu.action_type) == val %} selected {% end %}>{{ action[0] }}</option>
+                {% end %}
+            </select>
+            <span name="item">
+                {% if m_menu.action_type %}
+                    {% set m_menu_action_type = action_type.get(int(m_menu.action_type))[1] %}
+                    {% set m_menu_action = action_type.get(int(m_menu.action_type))[0] %}
+                    {% if m_menu_action_type == 1 %}
+                        <span name="entry_content">{{ m_menu_action }}</span>
+                    {% elif m_menu_action_type == 2 %}
+                        <input type="text" class="ui-input" name="entry_content" placeholder="请输入自定义URL" value="{{ m_menu.action }}">
+                    {% elif m_menu_action_type == 3 %}
+                        <textarea name="entry_content" cols="50" rows="10" class="ui-textarea">{{ m_menu.action[12:] }}</textarea>
+                    {% elif int(m_menu.action_type) == 4 %}
+                        <select name="entry_content">
+                            {% for picture in pictures %}
+                            <option value="{{ picture.id }}" {% if int(m_menu.action) == picture.id %} selected {% end %}>{{ picture.title }}</option>
+                            {% end %}
+                        </select>
+                    {% elif int(m_menu.action_type) == 5 %}
+                        <select name="entry_content">
+                            {% for picture_group in picture_groups %}
+                            <option value="{{ picture_group.id }}" {% if int(m_menu.action) == picture_group.id %} selected {% end %}>{{ picture_group.name }}</option>
+                            {% end %}
+                        </select>
+                    {% elif int(m_menu.action_type) == 6 %}
+                        <select name="appointment">
+                            {% for appointment in appointments %}
+                            <option value="{{ appointment.id }}" {% if int(m_menu.action) == appointment.id %} selected {% end %}>{{ appointment.info['title'] }}</option>
+                            {% end %}
+                        </select>
+                    {% else %}
+
+                    {% end %}
+                {% else %}
+                    <span name="entry_content">官网</span>
+                {% end %}
+            </span>
+        </div>
+        <div style="clear: left"></div>
+        <div name="s_menu" style="padding-left: 50px">
+        {% for s_menu in sub_menu %}
+            {% if s_menu.parent_id == m_menu.id %}
+                <div style="margin-top: 10px">
+                    <label class="ui-label">&#8627;</label>
+                    <input type="text" class="ui-input" placeholder="输入菜单名" value="{{ s_menu.name }}" name="s_menu_name">
+                    <a href="javascript:" class="del_item" name="delete">删除</a>
+                    <select name="option">
+                        {% for val, action in action_type.iteritems() %}
+                        <option value="{{ val }}" {% if int(s_menu.action_type) == val %} selected {% end %}>{{ action[0] }}</option>
+                        {% end %}
+                    </select>
+                    <span name="item">
+                        {% set s_menu_action_type = action_type.get(int(s_menu.action_type))[1] %}
+                        {% set s_menu_action = action_type.get(int(s_menu.action_type))[0] %}
+                        {% if int(s_menu_action_type) == 1 %}
+                            <span name="entry_content">{{ s_menu_action }}</span>
+                        {% elif int(s_menu_action_type) == 2 %}
+                            <input type="text" class="ui-input" name="entry_content" placeholder="请输入自定义URL" value="{{ s_menu.action }}">
+                        {% elif int(s_menu_action_type) == 3 %}
+                            <textarea name="entry_content" cols="50" rows="10" class="ui-textarea">{{ s_menu.action[12:] }}</textarea>
+                        {% elif int(s_menu_action_type) == 4 %}
+                            <select name="entry_content">
+                                {% for picture in pictures %}
+                                <option value="{{ picture.id }}" {% if int(s_menu.action) == picture.id %} selected {% end %}>{{ picture.title }}</option>
+                                {% end %}
+                            </select>
+                        {% elif int(s_menu_action_type) == 5 %}
+                            <select name="entry_content">
+                                {% for picture_group in picture_groups %}
+                                <option value="{{ picture_group.id }}" {% if int(s_menu.action) == picture_group.id %} selected {% end %}>{{ picture_group.name }}</option>
+                                {% end %}
+                            </select>
+                        {% elif int(s_menu_action_type) == 6 %}
+                            <select name="entry_content">
+                                {% for appointment in appointments %}
+                                <option value="{{ appointment.id }}" {% if int(s_menu.action) == appointment.id %} selected {% end %}>{{ appointment.info['title'] }}</option>
+                                {% end %}
+                            </select>
+                        {% else %}
+                        {% end %}
+                    </span>
+                    <input type="hidden" name="{{ 's_menu--' + str(index) }}" use="content"> {#用来记录二级菜单内容，名字在提交的时候要更改为形式为s_menu-主菜单数字-子菜单顺序位置 内容为’二级菜单名-action_type-content’#}
+                </div>
+            {% end %}
+        {% end %}
+        </div>
+        <a href="javascript:" class='add' style="padding-left: 28px" {% if m_menu.action_type %} display: none {% end %}>&#8627;添加二级菜单</a><br><br>
+    </div>
+    {% end %}
+
+    {% for i in range (3 - len(main_menu)) %}
+    <div name="{{ 'm_menu--' + str(3 + i) }}" style="margin-left: 8%; margin-top: 10px">
+        <input type="text" class="ui-input" placeholder="一级菜单" name="m_input" style="float: left">
+        <input type="hidden" name="direct" value="1">
+        <input type="hidden" main="main_content">
+        <div name="direct_action" class="reverse" style="margin-top: 10px">
+            <select name='option'>
+                {% for val, action in action_type.iteritems() %}
+                <option value='{{ val }}'>{{ action[0] }}</option>
+                {% end %}
+            </select>
+            <span name="item"><span name="entry_content">官网</span></span>
+        </div>
+        <div style="clear: left"></div>
+        <div name="s_menu" style="padding-left: 50px">
+        </div>
+        <a href="javascript:" class='add' style="padding-left: 28px">&#8627;添加二级菜单</a><br><br>
+    </div>
+    {% end %}
+    </div>
+    <div>
+        <div id="error" style="color: red"></div>
+        {% module xsrf_form_html() %}
+        <input type="button" id="confirm" class="ui-button ui-button-morange" value="保存" style="margin-left:340px">
+    </div>
+</form>
+
+<input type="hidden" name="select" value="<select name='option'>{% for val, action in action_type.iteritems() %}<option value='{{ val }}'>{{ action[0] }}</option>{% end %}</select>">
+<input type="hidden" name="image" value="<select name='entry_content'>{% for picture in pictures %}<option value='{{ picture.id }}'>{{ picture.title }}</option>{% end %}</select>">
+<input type="hidden" name="images" value="<select name='entry_content'>{% for picture_group in picture_groups %}<option value='{{ picture_group.id }}'>{{ picture_group.name }}</option>{% end %}</select>">
+<input type="hidden" name="apps" value='<select name="entry_content">{% for appointment in appointments %}<option value="{{ appointment.id }}">{{ appointment.info["title"] }}</option>{% end %}</select>'>
+{% end %}
+
+{% block styles %}
+    <style type="text/css">
+    </style>
+{% end %}
+
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'validator'], function($, Validator){
+        $('.add').on('click', function(){
+            if ($(this).parent().find('[name="s_menu"]').children().length < 5){
+                var current = $(this);
+                var option = $('[name="select"]').val();
+                current.parent().find('[name="direct_action"]').hide();
+                current.parent().find('[name="direct"]').val('0');
+                current.parent().find('[name="s_menu"]').append('<div style="margin-top: 10px"><label class="ui-label">&#8627;</label><input type="text" class="ui-input" placeholder="输入菜单名" name="s_menu_name"><a href="javascript:" class="del_item" name="delete"> 删除 </a>' + option + '<span name="item"><span name="entry_content">官网</span></span><input type="hidden" name="" use="content" val="aaaaa"></div>');
+                current.parent().find('.reverse').hide();
+            }
+
+        });
+
+        $('[name="option"]').live('change', function(){
+            var change_area = $(this).parent().find('[name="item"]');
+            var option_val = $(this).val();
+            var action_type = {% raw action_type %};
+            var type = 1;
+            var action_name = '';
+
+            $.each(action_type, function (k, v) {
+                if (k == Number(option_val)) {
+                    type = v[1];
+                    action_name = decodeURIComponent(escape(v[0]));
+                }
+            });
+            var html = ''
+            if (type == 1) {
+                html = '<span name="entry_content">' + action_name + '</span>';
+            } else if (type == 2) {
+                html = '<input type="text" class="ui-input" name="entry_content" placeholder="请输入自定义URL">';
+            } else if (type == 3) {
+                html = '<textarea name="entry_content" cols="50" rows="10" class="ui-textarea"></textarea>';
+            } else if (type == 4) {
+                html = $('input[name="image"]').val();
+            } else if (type == 5) {
+                html = $('input[name="images"]').val();
+            } else if (type == 6) {
+                html = $('input[name="apps"]').val();
+            } else {
+                html = '';
+            }
+
+            change_area.html(html);
+        });
+
+        $('[name="delete"]').live('click', function(){
+            var front_ele = $(this).parent().parent();
+            $(this).parent().remove();
+            if (front_ele.children().length <= 0) {
+                front_ele.parent().find(".reverse").show();
+                front_ele.parent().find("[name='direct']").val('1');
+            }
+        });
+        $('#confirm').on('click', function(){
+            var flag = true;
+            var count_m_menu = 0;
+            //把每个二级菜单对应的值都包近use=content的项中
+            $('div[name^="m_menu-"]').each(function(){
+                var count_s_menu = 0;
+                var m_content = $(this).children('input[name="m_input"]').val();
+                if (m_content.length > 4) {
+                    flag = false;
+                    return false;
+                }
+                var storage_main = $(this).children('input[main="main_content"]');
+                storage_main.attr('name', 'm_menu_title--' + count_m_menu.toString());
+                var is_direct = $(this).children('input[name="direct"]').val();
+                if (is_direct == '0') {
+                    var s_menus = $(this).children('div[name="s_menu"]').children();
+                    s_menus.each(function(){
+                        var s_menu_name = $(this).children('input[name="s_menu_name"]').val();
+                        var s_menu_option = $(this).children('select[name="option"]').val();
+                        if ($.inArray(s_menu_option.toString(), {% raw fix_list %}) > -1) {
+                            var content = $(this).children('span[name="item"]').children('[name="entry_content"]').text();
+                        } else {
+                            var content = $(this).children('span[name="item"]').children('[name="entry_content"]').val();
+                        }
+                        var storage_obj = $(this).children('[use="content"]');
+                        storage_obj.attr('name', 's_menu_item--' + count_m_menu.toString() + '--' + count_s_menu.toString());
+                        storage_obj.val(s_menu_name + '--' + s_menu_option + '--' + content);
+                        count_s_menu++;
+                    });
+                    storage_main.val(m_content);
+                } else {
+                    var m_menus = $(this).children('div[name="direct_action"]');
+                    m_menus.each(function(){
+                        var m_option = $(this).children('select[name="option"]').val();
+                        if ($.inArray(m_option.toString(), {% raw fix_list %}) > -1) {
+                            var option_content = $(this).children('span[name="item"]').children('[name="entry_content"]').text();
+                        } else {
+                            var option_content = $(this).children('span[name="item"]').children('[name="entry_content"]').val();
+                        }
+                        storage_main.val(m_content + '--' + m_option + '--' + option_content);
+                    });
+                }
+
+                count_m_menu++;
+            });
+            if (flag) {
+                $('#form').submit();
+            } else {
+                $('#error').show();
+                $('#error').text('一级菜单不能超过四个字').delay(3000).hide(0);
+            }
+        });
+    });
+</script>
+{% end %}
+

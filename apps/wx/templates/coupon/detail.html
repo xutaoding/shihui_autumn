@@ -1,0 +1,42 @@
+{% extends '../layout.html' %}
+
+{% block content %}券详情{% end %}
+
+{% block style %}
+<style>
+    body {
+        background: #eee;
+    }
+    .coupon {
+        font-size: 14px;
+        color: #838383;
+        margin-left: 40px;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div style="font: 20px bold">
+    {{ coupon.goods_name }}
+</div>
+<br>
+<div style="width: 100%; margin: auto; ">
+    <img src="{{ img_url(coupon.img_path) }}" width="310px" height="200px">
+</div>
+<hr style="border-color: #6e6e6e">
+<div class="sn">
+    <span style="font: 16px bold">券号</span><br>
+    <span style="font: 30px bold; margin-left: 40px">{{ ''.join([i for i in coupon.sn]) }}</span><br>
+    {% if coupon.used_at %}
+    <span class="coupon">券消费时间: {{ coupon.used_at }}</span>
+    {% else %}
+    <span class="coupon">券过期时间: {{ coupon.expire_at.strftime('%Y-%m-%d') }}</span>
+    {% end %}
+</div>
+<hr style="border-color: #6e6e6e">
+<div>
+    <span style="font: 20px bold">商品详情</span><br><br>
+    {% raw coupon.detail %}
+</div>
+{% module member(current_user.wx_id) %}
+{% end %}

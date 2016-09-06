@@ -1,0 +1,70 @@
+{% extends '../layout.html' %}
+{% block title %}我的预约{% end %}
+
+{% block content %}
+<div class="from-group">
+    <h2 style="color: white">我的预约</h2>
+</div>
+<div class="from-group">
+    <ul class="list-group">
+    {% for order in orders %}
+        <li class="list-group-item">
+            <h4 class="list-group-item-heading">{{ order.sname }} | {{ order.date }} {{ order.time }}:00</h4>
+            <p class="list-group-item-text">下单时间: {{ order.created_at }}</p>
+            <p class="list-group-item-text">联系人: {{ order.name }}</p>
+            <p class="list-group-item-text">联系电话: {{ order.phone }}</p>
+            <p class="list-group-item-text">备注: {{ order.remark}}</p>
+            {% if order.status == 1 %}
+            <span data-toggle="modal" data-target="#myModal" style="cursor: pointer; color: #08c" order-id="{{ order.id }}" content="{{ order.sname }} | {{ order.date }}{{ order.time }}">
+               取消订单
+            </span>
+            {% else %}
+            <p class="list-group-item-text">订单状态:{{ {2: '已取消', 3: '已完成', 4: '商家取消'}.get(order.status, '') }}</p>
+            {% end %}
+        </li>
+    {% end %}
+    </ul>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">取消订单</h4>
+            </div>
+            <div class="modal-body">
+                <p>您确定取消</p>
+                <p id="order-title"></p>
+                <p>的预约吗？</p>
+            </div>
+            <div class="modal-footer">
+                <input name="order_id" type="hidden">
+                {% module xsrf_form_html() %}
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% raw links %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('span[data-toggle]').on('click', function(){
+            $('#order-title').text($(this).attr('content'));
+            $('input[name="order_id"]').val($(this).attr('order-id'))
+        });
+        $('button.btn-primary').on('click', function(){
+            var order_id = $('input[name="order_id"]').val();
+            $('<form></form>').attr('method', 'post').attr('action', "{{ reverse_url('book.orders.cancel') }}")
+                    .append($('<input type="hidden" name="order_id" />').attr('value', order_id))
+                    .append($('<input type="hidden" name="wx_id" />').attr('value', '{{ current_user.wx_id }}'))
+                    .append($('<input type="hidden" name="_xsrf" />').attr('value', $('input[name="_xsrf"]').val()))
+                    .submit();
+        });
+    });
+</script>
+{% end %}

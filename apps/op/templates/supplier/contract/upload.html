@@ -1,0 +1,100 @@
+{% extends "../../layout.html" %}
+{% block title %}合同上传{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('contract', supplier.id) %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">合同上传</h2>
+</div>
+<form class="ui-form" name="" method="post" action="{{ reverse_url('supplier.contract_upload', contract_id) }}" id="form"  >
+    <fieldset>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>文件：</label>
+            <button type="button" id="J_selectImage" >批量上传</button>
+            {% module xsrf_form_html() %}
+            <input type="submit" class="ui-button ui-button-sorange fn-right" value="完成">
+            <input type="hidden" name="supplier_id" value="{{supplier.id}}">
+        </div>
+    </fieldset>
+    <div id="J_imageView" class="fn-clear" >
+        {% for image in image_urls %}
+        <div class="contract-item">
+            <a href="javascript:" class="close-button" title="删除文件">X</a>
+            <a href="{{image}}" target="_blank" class="contract" title="合同文件">
+            <img src="{{image}}" title="合同文件" >
+            </a>
+            <input type="hidden" name="image_path" value="{{image}}">
+        </div>
+        {% end %}
+    </div>
+</form>
+{% end %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+    <style>
+        .close-button {
+            position:absolute; top:0; right:0; font-size:large; opacity: 0.4; color: white; background-color: black; font-family: courier new; padding: 1px 8px;
+        }
+        .contract-item {
+            border:1px solid #eee;width:150px;height:200px;float:left; margin:5px 10px; padding:10px; position:relative;
+        }
+        .contract-item img {
+            max-height:100%; max-width: 100%;
+        }
+        .contract-item>a[title="删除文件"]:link {
+            color:white;
+        }
+        .contract-item>a[title="删除文件"]:hover {
+            text-decoration:none;
+            background-color: red;
+            opacity:1;
+        }
+    </style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'kindeditor', 'autumn'],  function($, Kindeditor, autumn){
+        $('#J_imageView').delegate('.close-button','click', function(){
+            $(this).parent().remove();
+        });
+
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : true,
+                pluginsPath: '/static/img/',
+                imageSizeLimit: '10MB',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf'),
+                    'root': 'contract'
+                }
+            });
+
+            K.create(''); // 为了让其自动加载 default.css
+            K('#J_selectImage').click(function() {
+                editor.loadPlugin('multiimage', function() {
+                    editor.plugin.multiImageDialog({
+                        clickFn : function(urlList) {
+                            var div = K('#J_imageView');
+                            K.each(urlList, function(i, data) {
+                                div.append('<div class="contract-item"><a href="javascript:" class="close-button" title="删除文件">X</a><a href="' + data.url + '" target="_blank" class="contract" title="合同文件"><img src="' + data.url + '" title="合同文件"></a><input type="hidden" name="image_path" value="' + data.url + '"></div>');
+                            });
+
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+    });
+</script>
+{% end %}

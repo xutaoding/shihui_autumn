@@ -1,0 +1,55 @@
+body {
+    background-color: #54364a;
+    background-attachment: fixed;
+    background: url(http://arale.uhcdn.com/n/gallery/thin/images/a.jpg) no-repeat center 0;
+    background-size: 100% 100%;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+}
+
+.main {
+    padding:2% 5% 5% 5%;
+    min-height: 600px;
+}
+
+@font-face {
+    font-family: 'iconfont';
+    src: url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot'); /* IE9*/
+    src:
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.woff') format('woff'), /* chrome、firefox */
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.svg#uxiconfont') format('svg'); /* iOS 4.1- */
+}
+.iconfont {
+    font-family:"iconfont" !important;
+    font-style:normal;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-stroke-width: 0.2px;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.separate-line {
+    border: 0;
+    border-top: 1px solid #eaeaea;
+    border-bottom: 1px solid #FFF;
+    clear: both;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: -5%;
+    margin-right: -5%;
+}
+
+.fix-btn {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    background: #f4f4f4;
+    height: 50px;
+    width: 100%;
+    padding: 8px 0 0 0;
+    z-index: 100;
+}

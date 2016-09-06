@@ -1,0 +1,74 @@
+{% extends "../../layout.html" %}
+{% block title %}redis 管理{% end %}
+{% block menu %}
+{% module menu('temple.redis') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">Redis 管理</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('supplier.show_list') }}">
+    <label for="commander">命令:</label>
+    <textarea id="commander" rows="2" style="width: 800px;"></textarea>
+    {% module xsrf_form_html() %}
+    <button type="submit" class="ui-button ui-button-sorange">提交</button>
+</form>
+<div class="ui-grid-row">
+    <div class="ui-grid-8">
+        <h1>队列情况</h1>
+        <ul class="ui-list" id="queue">
+            {% for key in keys %}
+            <li class="ui-list-item"><a href="javascript:;" queue="{{key}}">{{key}}({{keys[key]}})</a></li>
+            {% end %}
+        </ul>
+    </div>
+    <div class="ui-grid-15">
+        <div id="resp"></div>
+    </div>
+</div>
+
+{% end %}
+{% block styles %}
+    <style>
+        #resp div {
+            padding: 10px 5px;
+            border: 1px solid #eee;
+            margin-top: 5px;
+        }
+    </style>
+{% end %}
+{% block scripts %}
+    <script>
+        seajs.use(['$', 'autumn'], function ($, autumn) {
+            var html_list = {};
+            $('#queue li a').click(function(){
+                var ele = $(this);
+                var queue = ele.attr('queue');
+                if (queue in html_list) {
+                    $('#resp').html(html_list[queue]);
+                    return false;
+                }
+
+                $.post(
+                    '/temple/redis/execute/LRANGE',
+                    {
+                        '_xsrf': autumn.get_cookie('_xsrf'),
+                        '1': queue,
+                        '2': '0',
+                        '3': '-1'
+                    },
+                    function(resp) {
+                        var html = '';
+                        for (var i=0; i < resp.result.length; i ++){
+                            html += '<div>' + resp.result[i] + '</div>'
+                        }
+                        $('#resp').html(html);
+                        html_list[queue] = html;
+                    },
+                    'json'
+                );
+            });
+        });
+    </script>
+{% end %}

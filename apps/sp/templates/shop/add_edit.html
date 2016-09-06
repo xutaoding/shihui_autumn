@@ -1,0 +1,233 @@
+{% extends '../layout.html' %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改' }}门店{% end %}
+{% block menu %}
+    {% module menu('shop.show') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}门店</h2>
+</div>
+
+<form {% if form.action.value == 'add' %} action="{{ reverse_url('shop.add') }}" {% else %} action="{{ reverse_url('shop.edit', shop_id) }}" {% end %} method="post" id="form">
+    <div class="ui-form-item">
+        <label for="name" class="ui-label">
+            <span class="ui-form-required">*</span>门店名称</label>
+        <input id="name" type="text" size="20" class="ui-input ui-input-large" value="{{ form.name.value }}"
+               name="name" style="width: 40%">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="city_id" class="ui-label">
+            <span class="ui-form-required">*</span>城市</label>
+        <select id="city_id">
+        {% if form.action.value == 'add' %}
+            <option value="">请选择城市</option>
+            {% for city in city_list %}
+            <option value="{{ city.id }}">{{ city.name }}</option>
+            {% end %}
+        {% else %}
+            {% for city in city_list %}
+            <option value="{{ city.id }}" {% if city_id == city.id %} selected {% end %}>{{ city.name }}</option>
+            {% end %}
+        {% end %}
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="district_id" class="ui-label">
+            <span class="ui-form-required">*</span>区域</label>
+        <select id="district_id">
+            {% if form.action.value == 'edit' %}
+                {% for district in district_list %}
+                <option value="{{ district.id }}" {% if district_id == district.id %} selected {% end %}>{{ district.name }}</option>
+                {% end %}
+            {% end %}
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="area_id" class="ui-label">
+            <span class="ui-form-required">*</span>商圈</label>
+        <select id="area_id" name="area_id">
+            {% if form.action.value == 'edit' %}
+                {% for area in area_list %}
+                <option value="{{ area.id }}" {% if area_id == area.id %} selected {% end %}>{{ area.name }}</option>
+                {% end %}
+            {% end %}
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="telephone" class="ui-label">门店咨询电话</label>
+        <input id="telephone" type="text" size="20" class="ui-input ui-input-large" value="{{ form.telephone.value }}"
+               name="telephone">
+    </div>
+    <div class="ui-form-item">
+        <label for="verify" class="ui-label">门店验证电话</label>
+        <input id="verify" type="text" class="ui-input ui-input-large" value="{{ form.verify.value }}"
+               name="verify" style="width: 50%">
+        <p class="ui-form-explain">需要加上区号！多个验证电话请用半角逗号 , 分割。示例： 02150272617,01045372834</p>
+    </div>
+    <div class="ui-form-item">
+        <label for="traffic" class="ui-label">交通</label>
+        <input id="traffic" type="text" class="ui-input ui-input-large" value="{{ form.traffic.value }}"
+               name="traffic" style="width: 50%">
+    </div>
+     <div class="ui-form-item">
+        <label for="manager_mobile" class="ui-label">经理手机</label>
+        <input id="manager_mobile" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ form.manager_mobile.value }}" name="manager_mobile">
+    </div>
+     <div class="ui-form-item">
+        <label for="manager_name" class="ui-label">经理名称</label>
+        <input id="manager_name" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ form.manager_name.value }}" name="manager_name">
+    </div>
+     <div class="ui-form-item">
+        <label for="address" class="ui-label">
+            <span class="ui-form-required">*</span>门店地址</label>
+        <input id="address" type="text" size="20" class="ui-input ui-input-large" value="{{ form.address.value }}"
+               name="address" style="width: 50%">
+        <button type="button" id="auto-location" class="ui-button ui-button-morange">自动定位</button>
+        <p class="ui-form-explain">点击按钮自动获取经纬度，如果获取失败，请手动点击地图中的正确位置，以生成经纬度。</p>
+    </div>
+    <div class="ui-form-item">
+        <div class="maps_container">
+            <div id="map_canvas" style="width:340; height: 360px"></div>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        经度: <input type="text" id="longitude" name="longitude" class="ui-input ui-input-large" readonly="true"
+                   value="{{form.longitude.value}}">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        纬度: <input type="text" id="latitude" name="latitude" class="ui-input ui-input-large" readonly="true"
+                   value="{{form.latitude.value}}">
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script src="http://api.map.baidu.com/api?v=2.0&ak=Zctt3TcRriN1Hc4z48uElbkB" type="text/javascript"></script>
+<script>
+    seajs.use(['$', 'validator', 'autumn'], function ($, Validator, autumn) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '门店名称不能为空'
+        });
+        validator.addItem({
+            element: '#address',
+            required: true,
+            errormessage: '门店地址不能为空'
+        });
+        validator.addItem({
+            element: '#verify',
+            required: true,
+            errormessage: '门店电话不能为空'
+        });
+//        validator.addItem({
+//            element: '#manager_mobile',
+//            required: true,
+//            errormessage: '门店手机不能为空'
+//        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+        $('#city_id').change(function(){
+            var city_id = $('#city_id').val();
+            $.post( '{{ reverse_url("shop.district_ajax") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'city_id': city_id},
+                function(data){
+                    var template = '<option value="{0}">{1}</option>';
+                    String.format = function() {
+                        if (arguments.length == 0)
+                            return null;
+                        var str = arguments[0];
+                        for ( var i = 1; i < arguments.length; i++) {
+                            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+                            str = str.replace(re, arguments[i]);
+                        }
+                        return str;
+                    };
+                    var html = '<option value="">请选择区域</option>';
+                    for (var i = 0; i < data.length; i++){
+                        html += String.format(template, data[i].id, data[i].name);
+                    }
+                    $('#district_id').empty();
+                    $('#district_id').append(html);
+            })
+        });
+
+        $('#district_id').change(function(){
+            var district_id = $('#district_id').val();
+            $.post( '{{ reverse_url("shop.area_ajax") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'district_id': district_id},
+                function(data){
+                    var template = '<option value="{0}">{1}</option>';
+                    String.format = function() {
+                        if (arguments.length == 0)
+                            return null;
+                        var str = arguments[0];
+                        for ( var i = 1; i < arguments.length; i++) {
+                            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+                            str = str.replace(re, arguments[i]);
+                        }
+                        return str;
+                    };
+                    var html = '';
+                    for (var i = 0; i < data.length; i++){
+                        html += String.format(template, data[i].id, data[i].name);
+                    }
+                    $('#area_id').empty();
+                    $('#area_id').append(html);
+            })
+        });
+
+        var map = new BMap.Map("map_canvas");            // 创建Map实例
+        map.enableScrollWheelZoom();
+        map.addControl(new BMap.NavigationControl());
+
+        var lng = $('#longitude').val();
+        var lat = $('#latitude').val();
+        var marker = new BMap.Marker(new BMap.Point(116.384, 39.925));  // 创建假标注
+        if (lng && lat){
+            map.centerAndZoom(new BMap.Point(Number(lng), Number(lat)), 15);
+            marker = new BMap.Marker(new BMap.Point(lng, lat));  // 创建标注
+            map.addOverlay(marker);
+        }else{
+            map.centerAndZoom("上海",15);                     // 初始化地图,设置中心点坐标和地图级别。
+        }
+
+        map.addEventListener("click", function(e){
+            map.removeOverlay(marker);
+            marker = new BMap.Marker(new BMap.Point(e.point.lng, e.point.lat));  // 创建标注
+            map.addOverlay(marker);
+            $('#longitude').val(e.point.lng);
+            $('#latitude').val(e.point.lat);
+        });
+        var geo = new BMap.Geocoder(); // 创建地址解析器实例
+        $('#auto-location').click(function(e){
+            geo.getPoint($('#address').val(), function(point){
+              if (point) {
+                map.centerAndZoom(point, 16);
+                map.removeOverlay(marker);
+                marker= new BMap.Marker(point);
+                map.addOverlay(marker);
+                $('#longitude').val(point.lng);
+                $('#latitude').val(point.lat);
+              }else {
+                $('#longitude').val('');
+                $('#latitude').val('');
+              }
+            }, $('#city :selected').text());
+        });
+    });
+</script>
+{% end %}

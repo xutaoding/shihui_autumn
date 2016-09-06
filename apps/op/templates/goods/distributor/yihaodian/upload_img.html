@@ -1,0 +1,31 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布一号店商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+        {% if error %}
+            <p class="ui-tiptext ui-tiptext-error">
+                <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                {{ error }}
+            </p>
+        {% else %}
+            <p class="ui-tiptext ui-tiptext-message">
+                <i class="ui-tiptext-icon iconfont" title="提示">&#xF046;</i>
+                请为刚刚上传的商品添加一个主图
+            </p>
+        {% end %}
+        <form method="post" enctype="multipart/form-data" action="{{ reverse_url('goods.yhd.push.img')}}">
+            <fieldset>
+                <div style="margin-top:20px;">
+                    <input id="img_file" name="img_file" type="file" value="选择文件">
+                </div>
+
+                <input type="hidden" name="goods_link_id" value="{{ goods_link_id }}">
+                {% module xsrf_form_html() %}
+
+                <button style="margin-top:20px;" type="submit" class="ui-button ui-button-lorange">上传图片</button>
+            </fieldset>
+        </form>
+{% end %}

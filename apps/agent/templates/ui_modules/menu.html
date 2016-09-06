@@ -1,0 +1,23 @@
+{% for menu in menu_data %}
+    {% if not menu['require_agent_type'] or current_user.type in menu['require_agent_type'] %}
+    <li class="{{ 'current' if menu['endpoint'] == menu_key and not menu['items'] else '' }}">
+        <a href="{{ reverse_url(menu['endpoint']) if menu['endpoint'] else '#' }}">
+            <i class="{{menu['icon']}}"></i> {{ menu['title'] }}
+            {% if menu['items'] %} <i class="arrow icon-angle-left"></i> {% end %}
+        </a>
+        {% if menu['items'] %}
+        <ul class="sub-menu {{ 'opened' if any([item['endpoint'] == menu_key for item in menu['items']]) else '' }}">
+            {% for item in menu['items'] %}
+            {% if not item['require_agent_type'] or current_user.type in item['require_agent_type'] %}
+            <li class="{{ 'current' if item['endpoint'] == menu_key else '' }}">
+                <a href="{{ reverse_url(item['endpoint']) if item['endpoint'] else '#' }}">
+                    <i class="icon-angle-right"></i> {{ item['title'] }}
+                </a>
+            </li>
+            {% end %}
+            {% end %}
+        </ul>
+        {% end %}
+    </li>
+    {% end %}
+{% end %}

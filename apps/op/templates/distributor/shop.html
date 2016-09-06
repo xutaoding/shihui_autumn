@@ -1,0 +1,70 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改'  }}分销店铺{% end %}
+{% block menu %}
+{% module menu('distributor.show_shop_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}分销店铺</h2>
+</div>
+
+
+<form action="{{ url_concat(reverse_url('distributor.shop_add'), {'distributor-id': form.distributor_id.value}) if form.action.value == 'add' else url_concat(reverse_url('distributor.shop_edit'), {'id':form.id.value}) }}"
+      method="post" class="ui-form" id="form">
+    <div class="ui-form-item">
+        <label for="shop_name" class="ui-label">
+            <span class="ui-form-required">*</span>分销店铺名称</label>
+        <input id="shop_name" type="text" size="20" class="ui-input ui-input-large" value="{{ form.name.value }}"
+               name="name">
+    </div>
+    <div class="ui-form-item">
+        <label for="taobao_nick" class="ui-label">
+            卖家昵称(淘宝必填)</label>
+        <input id="taobao_nick" class="ui-input" type="text" name="taobao_nick" value="{{ form.taobao_nick.value }}">
+    </div>
+    <div class="ui-form-item">
+        <label for="shop_url" class="ui-label"> 网址</label>
+        <input id="shop_url" type="text" size="20" class="ui-input ui-input-large" value="{{ form.url.value }}"
+               name="url">
+        <span class="ui-form-explain">分销平台URL</span>
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span> 资金管理方</label>
+        <input type="radio" name="money_manager" value="PLATFORM"
+        {% if form.money_manager.value == 'PLATFORM' %} checked {% end %} > 视惠信息
+        <span class="ui-form-explain">分销平台资金收入由我们系统平台收款，进入平台账户</span>
+        <br>
+        <input type="radio" name="money_manager" value="SHOP"
+        {% if form.money_manager.value == 'SHOP' %} checked {% end %} > 商户自主管理
+        <span class="ui-form-explain">分销平台资金收入由此店铺自己收款，资金不流入我们系统平台账户</span>
+
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange"
+               value="{{ '添加' if form.action.value == 'add' else '修改' }}">
+    </div>
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" name="distributor_id" value="{{ form.distributor_id.value}}">
+    <input type="hidden" id="error" name="error" value="{{error}}">
+</form>
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['validator', '$'], function (Validator, $) {
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=name]',
+            required: true
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}

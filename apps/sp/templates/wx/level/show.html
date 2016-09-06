@@ -1,0 +1,45 @@
+{% extends '../../layout.html' %}
+
+{% block title %}微信会员等级{% end %}
+{% block menu %}
+{% module menu('wx.member.level') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微信会员等级</h2>
+    <a href="{{ reverse_url('wx.member.level.setting') }}" class="ui-button ui-button-sblue fn-right">设置等级</a>
+</div>
+
+<div style="margin-top: 20px;">
+    {% if level_dict %}
+    <table class="ui-table ui-table-noborder" style="">
+        <thead>
+        <tr>
+            <th style="min-width: 100px">等级</th>
+            <th style="min-width: 400px">称呼</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in range(1, 6) %}
+        <tr name="level">
+            <td name="i">{{ i }}</td>
+            <td>{% if str(i) in level_dict.keys() %} {{ level_dict[str(i)] }} {% end %}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="ui-tipbox ui-tipbox-message">
+        <div class="ui-tipbox-icon">
+            <i class="iconfont" title="提示">&#xF046;</i>
+        </div>
+        <div class="ui-tipbox-content">
+            <h3 class="ui-tipbox-title">没有设置会员等级</h3>
+            <p class="ui-tipbox-explain"><a href="{{ reverse_url('wx.member.level.setting') }}">设置会员等级</a></p>
+        </div>
+    </div>
+    {% end %}
+</div>
+{% end %}
+

@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block title %}玛雅预约{% endblock %}
+{% set menu_key = 'order.hlg_entrance' %}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">玛雅预约查询</h2>
+    </div>
+
+    <div class="ui-title fn-clear">
+        <h2 class="fn-right">一百券订单</h2>
+    </div>
+
+    {% for order_id in orders %}
+        <table class="ui-table ui-table-no-border" style="margin-bottom: 10px">
+            <thead>
+            <tr>
+                <th style="width: 150px">创建时间</th>
+                <th style="width: 100px">券号</th>
+                <th style="width: 100px">订单号</th>
+                <th style="width: 400px">商品</th>
+                <th>购买手机号</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for coupon in orders[order_id] %}
+                <tr>
+                    <td>{{ coupon.created_at }}</td>
+                    <td>{{ coupon.e_coupon_sn }}</td>
+                    <td>{{ coupon.order_id }}</td>
+                    <td>{{ coupon.gsname }}</td>
+                    <td>{{ coupon.phone }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+    <div class="ui-title fn-clear">
+        <h2 class="fn-right">欢乐谷订单</h2>
+    </div>
+    {% if hlg and hlg.status_code == '200' %}
+    <table class="ui-table ui-table-no-border" style="margin-bottom: 10px">
+        <thead>
+        <tr>
+            <th>一百券订单号</th>
+            <th>欢乐谷订单号</th>
+            <th>订单状态</th>
+            <th>票种</th>
+            <th>券状态</th>
+            <th>券号</th>
+            <th>二维码</th>
+            <th>可使用</th>
+            <th>已使用</th>
+            <th>预约日期</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order in hlg.message.findall('Order') %}
+            <tr>
+                <td>{{ order.findtext('OrderId') }}</td>
+                <td>{{ order.findtext('HvOrderId') }}</td>
+                <td>{{ {'0':'未付款','1':'已付款', '2':'部分退款', '3':'全额退款'}.get(order.findtext('HvOrderStatus')) }}</td>
+                <td>{{ {'SH1991007001441':'周末票', 'SH1991007001444':'平日票'}[order.findtext('TicketId')] }}</td>
+                <td> {{ {'0':'未使用', '1':'已使用', '2':'过期结算', '3':'已作废'}[order.find('./Voucher/VoucherStatus').text    ] }} </td>
+                <td>{{ order.findtext('Voucher/VoucherValue') }}</td>
+                <td>
+                    <a href="http://ec.sh.happyvalley.cn/list.html?tradeId=queryVoucherImageURL&sign={{ order.findtext('Voucher/VoucherValue') }}" target="_blank">
+                        <img src="http://ec.sh.happyvalley.cn/list.html?tradeId=queryVoucherImageURL&sign={{ order.findtext('Voucher/VoucherValue') }}"/>
+                    </a>
+                </td>
+                <td>{{ order.findtext('Voucher/VoucherMaxUseTimes') }}次</td>
+                <td>{{ order.findtext('Voucher/VoucherUsedTimes') }}次</td>
+                <td>{{ order.findtext('./Voucher/StartUseDate')[:10]}}</td>
+                <td>退款</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock %}
+

@@ -1,0 +1,124 @@
+{% extends '../../layout.html' %}
+{% block title %}提现详情{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div style="width: 50%; float: left">
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">提现详情</h2>
+</div>
+<form class="ui-form" name="" method="post" action="{{ reverse_url('finance.withdraw') }}" id="form">
+    <div class="ui-grid-row">
+        <div class="ui-grid-8">
+            <dl class="ui-dlist">
+                <dt class="ui-dlist-tit">账户：</dt>
+                <dd class="ui-dlist-det">{{ {1:'商户',2:'门店'}.get(withdraw_bill.account_type,'') }}({{withdraw_bill.account_name }})
+                    {% if withdraw_bill.account_type == 1%}
+                    <a target="_blank" href="/sequence/supplier?from_withdraw_supplier={{supplier.id}}&applied_at={{withdraw_bill.applied_at.strftime('%Y-%m-%d %H:%M:%S')}}&status={{ {0:'2',2:'3'}.get(withdraw_bill.status,'') }}">查看商户资金明细</a>
+                    {% else %}
+                    <a target="_blank" href="/sequence/supplier?from_withdraw_supplier={{supplier.id}}&from_withdraw_shop_account_id={{withdraw_bill.account_id}}&applied_at={{withdraw_bill.applied_at.strftime('%Y-%m-%d %H:%M:%S')}}&status={{ {0:'2',2:'3'}.get(withdraw_bill.status,'') }}">查看商户资金明细</a>
+                    {% end %}
+                </dd>
+                <dt class="ui-dlist-tit">申请时间：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.applied_at }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">申请人：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.applier }} &nbsp;</dd>
+                <dt class="ui-dlist-tit">申请金额：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.amount }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">所在城市：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.bank_city }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">开户银行：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.bank_name }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">分行名称：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.sub_bank_name }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">开户姓名：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.user_name }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">银行卡号：</dt>
+                <dd class="ui-dlist-det">{{ withdraw_bill.card_number }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">申请状态：</dt>
+                <dd class="ui-dlist-det">{{ {0:'待审批',1:'已拒绝',2:'成功'}.get(withdraw_bill.status,'') }}&nbsp;</dd>
+                <dt class="ui-dlist-tit">手续费：</dt>
+                <dd class="ui-dlist-det"><input type="text" id="fee" name="fee"
+                                                value="{{ withdraw_bill.fee if withdraw_bill.fee else '0' }}" {% if withdraw_bill.status != 0 %} disabled {% end %}>
+                    {% if error_info %}
+                    <p class="ui-form-explain ui-tiptext ui-tiptext-error" id="fee_err"> <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>{{ error_info }}</p>
+                    {% end %}
+                </dd>
+                <dt class="ui-dlist-tit">备注：</dt>
+                <dd class="ui-dlist-det" >
+                    <textarea name="comment" cols="50" id="comment" rows="5" {% if withdraw_bill.status != 0 %} disabled {% end %}>
+                    {{withdraw_bill.comment if withdraw_bill.comment else ''}}</textarea>
+                    <span id="comment_err"></span>
+
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="content">
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            {% if withdraw_bill.status ==0 %}
+            <a class="ui-button ui-button-mblue" id="approve" data-action-val="approve" href="javascript:;">通过</a>
+            <a class="ui-button ui-button-morange" id="reject" data-action-val="reject" href="javascript:;">拒绝</a>
+            {% else %}
+            <a class="ui-button ui-button-morange" data-action-val="reject" href="{{ reverse_url('finance.withdraw') }}">返回</a>
+            {% end %}
+            <input name="action" id="action" type="hidden">
+            <input name="id" type="hidden" value="{{ withdraw_bill.id }}">
+        </div>
+    </div>
+</form>
+</div>
+<div style="width: 50%; float: left">
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商户信息</h2>
+</div>
+<div class="ui-grid-row">
+        <div class="ui-grid-8">
+            <dl class="ui-dlist">
+                <dt class="ui-dlist-tit">商户名：</dt>
+                <dd class="ui-dlist-det">{{ supplier.name }}<a href="{{ reverse_url('supplier.contract', supplier.id) }}"> 查看合同</a></dd>
+                <dt class="ui-dlist-tit">商户简称：</dt>
+                <dd class="ui-dlist-det">{{ supplier.short_name }}</dd>
+                <dt class="ui-dlist-tit">业务员：</dt>
+                <dd class="ui-dlist-det">{{ supplier.oname }}</dd>
+                <dt class="ui-dlist-tit">商户业务：</dt>
+                <dd class="ui-dlist-det">{{ sales_type }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+<div class="fn-clear"></div>
+{% end %}
+{% block scripts %}
+<script>
+
+    seajs.use(['$', 'autumn', 'confirmbox'],
+            function ($, autumn, ConfirmBox) {
+                $("#approve,#reject").click(function () {
+                    var action_text = $(this).text();
+                    var action = $(this).attr('data-action-val')
+                    ConfirmBox.confirm('确定' + action_text, action_text + '审核', function(){
+                        $("#action").val(action);
+                        if ($("#comment").val() == '') {
+                            $("#comment_err").html('<p class="ui-form-explain ui-tiptext ui-tiptext-error"> <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>请输入原因备注</p>')
+                            return;
+                        } else {
+                            $("#form").submit()
+                        }
+                    });
+                });
+
+                $("#comment").focus(function () {
+                    $("#comment_err").html('')
+                })
+                 $("#fee").focus(function () {
+                    $("#fee_err").html('')
+                })
+            });
+
+
+</script>
+{% end %}

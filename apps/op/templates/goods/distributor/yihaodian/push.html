@@ -1,0 +1,272 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布一号店商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发布一号店商品</h2>
+</div>
+
+<div>
+    <form class="ui-form" name="" method="post" action="{{ reverse_url('goods.yhd.push') }}" id="form">
+        <fieldset>
+            <legend>发布一号店商品</legend>
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>商品分类</label>
+                <p> {{ category_name }} </p>
+
+                <input type="hidden" name="categoryId" value="{{ category_id}}">
+            </div>
+
+            <div class="ui-form-item">
+                <label class="ui-label"> <span class="ui-form-required">*</span>类型 </label>
+                <input type="radio" name="electronicCerticate" value="是" id="type-e" {% if goods.type == 'E' %} checked {% end %} >
+                <label for="type-e">电子券</label>
+                <input type="radio" name="electronicCerticate" value="否" id="type-r" {% if goods.type == 'R' %} checked {% end %} >
+                <label for="type-r">实物</label>
+                <p class="ui-form-explain">保存后无法修改</p>
+            </div>
+
+            <div class="ui-form-item">
+                <label class="ui-label"> <span class="ui-form-required">*</span>是否可销售 </label>
+                <input type="radio" name="canSale" value="1" id="canSale-y" checked >
+                <label for="canSale-y">是</label>
+                <input type="radio" name="canSale" value="0" id="canSale-n" >
+                <label for="canSale-n">否</label>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="brandId" class="ui-label"> <span class="ui-form-required">*</span>商家品牌 </label>
+                <div>
+                    <select name="brandId" id="brandId">
+                        {% for brand in brands %}
+                        <option value="{{ brand.brandId }}">{{ brand.brandName }}</option>
+                        {% end %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="merchantCategoryId" class="ui-label"> <span class="ui-form-required">*</span>商家产品类别 </label>
+                <input class="ui-input" type="hidden" id="merchantCategoryId" name="merchantCategoryId">
+                <div id="merchant_category_tree" class="ztree" ></div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productCname" class="ui-label"> <span class="ui-form-required">*</span>产品名称 </label>
+                <textarea class="ui-input" name="productCname" style="width: 750px;" rows="2" id="productCname" data-max-length="100">
+                    {{ goods.short_name }}
+                </textarea>
+                <div>
+                    <span id="productCname-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入100字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productSubTitle" class="ui-label"> 产品名称副标题 </label>
+                <textarea class="ui-input" name="productSubTitle" style="width: 750px;" rows="2" id="productSubTitle" data-max-length="100"></textarea>
+                <div>
+                    <span id="productSubTitle-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入100字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productNamePrefix" class="ui-label"> 产品名称前缀 </label>
+                <input type="text" class="ui-input" name="productNamePrefix"  id="productNamePrefix" data-max-length="10"/>
+                <div>
+                    <span id="productNamePrefix-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入10字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productMarketPrice" class="ui-label"> <span class="ui-form-required">*</span>市场价 </label>
+                <input class="ui-input" type="text" value="{{ goods.face_value }}" name="productMarketPrice" id="productMarketPrice">
+                <p class="ui-form-explain">最多两位小数,不能超过销售价的1.5倍</p>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productSalePrice" class="ui-label"> <span class="ui-form-required">*</span>销售价 </label>
+                <input class="ui-input" type="text" name="productSalePrice" id="productSalePrice" value="{{ goods.sales_price }}">
+                <p class="ui-form-explain">不能大于市场价，最多两位小数</p>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="virtualStockNum" class="ui-label"> <span class="ui-form-required">*</span>库存 </label>
+                <input class="ui-input" type="text" id="virtualStockNum" name="virtualStockNum" value="{{ goods.stock }}">
+                <p class="ui-form-explain">大于或等于0</p>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="weight" class="ui-label"> <span class="ui-form-required">*</span>毛重 </label>
+                <input class="ui-input" type="text" value="1" id="weight" name="weight">
+                <p class="ui-form-explain">单位千克，最多两位小数</p>
+            </div>
+
+            {% for attr_info in attributes %}
+            <div class="ui-form-item">
+                <label class="ui-label">
+                    {% if attr_info.findtext('./isMustEnter') == '1' %}  <span class="ui-form-required">*</span> {% end %}
+                    {{ attr_info.findtext('./attributeName') }}
+                </label>
+                {% if attr_info.findtext('./editType') == '0' %}
+                    <input class="ui-input" type="text" name="attr_text_{{attr_info.findtext('./attributeId')}}">
+                {% elif attr_info.findtext('./editType') == '1' %}
+                    {% if any([bool(item.find('subAttributeEditItemInfoList')) for item in attr_info.findall('./attributeItemInfoList/attributeItemInfo')]) %}
+                        <input type="hidden" name="attr_item_{{attr_info.findtext('./attributeId')}}"  id="attr_item_{{attr_info.findtext('./attributeId')}}">
+                        <div style="max-height: 300px; overflow-x:scroll;padding:10px;border: 1px solid #eee">
+                            <div class="ztree" id="ztree_{{attr_info.findtext('./attributeId')}}"></div>
+                        </div>
+                    {% else %}
+                    <select name="attr_item_{{attr_info.findtext('./attributeId')}}">
+                        {% for item in attr_info.findall('./attributeItemInfoList/attributeItemInfo') %}
+                            <option value="{{ item.findtext('./itemId') }}"> {{ item.findtext('./itemLabel') }} </option>
+                        {% end %}
+                    </select>
+                    {% end %}
+                {% elif attr_info.findtext('./editType') == '2' %}
+                    {% for item in attr_info.findall('./attributeItemInfoList/attributeItemInfo') %}
+                        <input name="attr_item_{{attr_info.findtext('./attributeId')}}" type="checkbox" value="{{ item.findtext('./itemId') }}"> {{ item.findtext('./itemLabel') }} &nbsp;&nbsp;&nbsp;&nbsp;
+                    {% end %}
+                {% end %}
+            </div>
+            {% end %}
+
+            <div class="ui-form-item">
+                <label for="productDescription" class="ui-label"> <span class="ui-form-required">*</span>产品描述</label>
+                <textarea id="productDescription" name="productDescription" style="width: 750px;" rows="50">
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/316/493/089b3c37367a0f5fc77fecedee40a191.jpg"></span></p>
+                    {{goods.tips}}
+
+                    {% if goods.type == 'E' %}
+                    <p style="font-size:14px;"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/149/494/4a78c67f6862e133c77fecedee40a191.jpg"><br/>
+                        本商品为电子券，购买后会以短信形式发送一串数字到您的手机<br>
+                        如果您不小心遗失了您的电子券，请拨打一百券客服热线<br>
+                        本产品由【一百券】提供，客服热线：400-686-5151<br>
+                    </p>
+                    {% end %}
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d12.yihaodianimg.com/t20/2012/0918/482/491/a8cd44b5220bbbefc77fecedee40a191.jpg"></span></p>
+                    <table border="1" cellpadding="0" width="680px">
+                        {% for shop in goods_shops %}
+                        <tr>
+                            <td  style="font-size:14px;">{{shop.name}}</td>
+                            <td  style="font-size:14px;">地址：{{shop.address}}<br/>电话：{{shop.phone}}</td>
+                        </tr>
+                        {% end %}
+                    </table>
+
+                    <p>
+                        <img class="blogimg" src="http://d13.yihaodianimg.com/t20/2012/0919/53/22/acc198b608020f48c77fecedee40a191.jpg">
+                    </p>
+                    {{ goods.detail }}
+
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/261/494/41c50245eeda685bc77fecedee40a191.jpg"></span></p>
+
+                    {{goods.supplier_intro}}
+                </textarea>
+            </div>
+
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="goods_id" value="{{goods.id}}">
+                <input type="hidden" name="productType" value="0">
+                <input type="submit" class="ui-button ui-button-morange" value="确定">
+            </div>
+
+        </fieldset>
+    </form>
+</div>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'kindeditor', 'ztree'], function ($, autumn, KindEditor, zTree) {
+        autumn.word_count_monitor('[data-max-length]');
+
+        function get_onclick(inputId, concat){
+            return function(e,treeId, treeNode) {
+                var zTree = $.fn.zTree.getZTreeObj(treeId);
+                zTree.expandNode(treeNode);
+
+                var parent = treeNode.getParentNode();
+                if (parent && concat) {
+                    $("#" + inputId).val((parent.id + '_' + treeNode.id).replace(' ', ''))
+                }else {
+                    $("#" + inputId).val(treeNode.id)
+                }
+            }
+        }
+        var settings = {
+            view: {
+				dblClickExpand: false,
+				showIcon:       false
+			},
+			async: {
+				enable: true,
+				url:"{{ reverse_url("goods.yhd.category.merchant") }}",
+				autoParam:["id"],
+				otherParam:{"_xsrf": autumn.get_cookie('_xsrf')}
+			},
+            callback: {
+				onClick: get_onclick("merchantCategoryId", false)
+			}
+        };
+        $.fn.zTree.init($("#merchant_category_tree"), settings);
+
+        KindEditor.ready(function(K) {
+            K.create('#productDescription',{
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+        });
+
+        // 带子选项的属性
+
+        {% for attr_info in attributes %}
+            {% if attr_info.findtext('./editType') == '1' %}
+                {% if any([bool(item.find('subAttributeEditItemInfoList')) for item in attr_info.findall('./attributeItemInfoList/attributeItemInfo')]) %}
+                    settings = {
+                        view: {
+                            dblClickExpand: false,
+                            showIcon:       false
+                        },
+                        callback: {
+                            onClick: get_onclick("attr_item_{{attr_info.findtext('./attributeId')}}", true)
+                        }
+                    }
+                    $.fn.zTree.init($("#ztree_{{attr_info.findtext('./attributeId')}}"), settings,
+                    [
+                    {% for i, item in enumerate(attr_info.findall('./attributeItemInfoList/attributeItemInfo')) %}
+                    {{ ',' if i > 0 else ''}}
+                    {
+                        id: "{{ item.findtext('./itemId')}} ",
+                        name: "{{ item.findtext('./itemLabel') }}"
+
+                        {% if bool(item.find('subAttributeEditItemInfoList')) %}
+                        ,
+                        children:[
+                            {% for j, s_item in enumerate(item.findall('./subAttributeEditItemInfoList/subAttributeEditItemInfo')) %}
+                            {{ ',' if j > 0 else ''}}
+                            {
+                                id: "{{ s_item.findtext('./itemId') }}",
+                                name: "{{ s_item.findtext('./itemLabel') }}"
+                            }
+                            {% end %}
+                        ]
+                        {% end %}
+                    }
+                    {% end %}
+                    ]);
+                {% end %}
+            {% end %}
+        {% end %}
+    });
+</script>
+{% end %}

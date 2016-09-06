@@ -1,0 +1,442 @@
+{% extends "../../layout.html" %}
+{% block title %}商品{{ '添加' if action == 'add' else '修改' }}{% end %}
+{% block menu %}
+{% module menu('wx.mall.cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微商城商品{{ '添加' if action == 'add' else '修改' }}</h2>
+</div>
+
+<form class="ui-form" name="" method="post" action="{{ reverse_url('wx.goods.' + action) }}" id="form"  >
+<fieldset>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>类型 </label>
+    <input type="radio" name="type" value="E" id="type-e" {% if form.type.value in ('E','')%} checked {% end %}>
+    <label for="type-e">电子券</label>
+    <input type="radio" name="type" value="R" id="type-r" {% if form.type.value == 'R' %} checked {% end %}>
+    <label for="type-r">实物</label>
+</div>
+<div id="coupon-info" style="display: {{ 'none' if form.type.value == 'R' else 'block'}}">
+    <div class="ui-form-item">
+        <label class="ui-label"> <span class="ui-form-required">*</span>券生成类型 </label>
+        <input type="radio" name="generate_type" value="GENERATE" id="gtype-g" {% if form.generate_type.value in ('GENERATE', '') %} checked {% end %}>
+        <label for="gtype-g">由一百券自动生成</label>
+        <input type="radio" name="generate_type" value="IMPORT" id="gtype-i"{% if form.generate_type.value == 'IMPORT' %} checked {% end %}>
+        <label for="gtype-i">由您将券导给我们</label>
+    </div>
+    <div class="ui-form-item">
+        <label for="expire_at" class="ui-label"> <span class="ui-form-required">*</span>券有效期 </label>
+        <input class="ui-input" type="text" id="expire_at" name="expire_at" value="{{ default(form.expire_at.value) if type(form.expire_at.value) in (type(None), str) else form.expire_at.value.strftime('%Y-%m-%d')}}" autocomplete="off">
+        <p class="ui-form-explain">指当天的 23:59:59</p>
+    </div>
+</div>
+<div id="real-info" style="display: {{ 'none' if form.type.value in ('E', '') else 'block' }}">
+    <div class="ui-form-item">
+        <label for="postage" class="ui-label"> <span class="ui-form-required">*</span>运费</label>
+        <input class="ui-input" type="text" name="postage" id="postage" autocomplete="off" value="{{ default(form.postage.value, '0.00') }}" >
+        <span class="ui-form-other">元</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label" for="category_1"> <span class="ui-form-required">*</span>分类 </label>
+    <select id="category_1">
+    </select>
+    <select id="category_2" name="category_id">
+    </select>
+    <input type="hidden" id="form-category" value="{{ form.category_id.value }}">
+</div>
+<div class="ui-form-item">
+    <label for="short-name" class="ui-label"> <span class="ui-form-required">*</span>商品标题 </label>
+    <input class="ui-input" type="text" name="short_name" id="short-name" style="width:550px;" data-max-length="50" autocomplete="off" value="{{ form.short_name.value }}">
+    <div>
+        <span id="short-name-wordcount"></span>
+        <span class="ui-form-explain">最多可输入50字</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="sms-name" class="ui-label"> <span class="ui-form-required">*</span>短信标题 </label>
+    <input class="ui-input" type="text" name="sms_name" id="sms-name" style="width: 550px;" data-max-length="50" autocomplete="off" value="{{ form.sms_name.value }}">
+    <div>
+        <span id="sms-name-wordcount"></span>
+        <span class="ui-form-explain">最多可输入50字。用于给客户发短信时使用的名称，请尽量简单明确的将关键信息写上</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="face_value" class="ui-label"> <span class="ui-form-required">*</span>面值 </label>
+    <input class="ui-input" type="text" name="face_value" id="face_value" autocomplete="off" value="{{ form.face_value.value }}" >
+    <span class="ui-form-other">元</span>
+</div>
+<div class="ui-form-item">
+    <label for="sales_price" class="ui-label"> <span class="ui-form-required">*</span>销售价 </label>
+    <input class="ui-input" type="text" name="sales_price" id="sales_price" autocomplete="off" value="{{ form.sales_price.value }}" >
+    <span class="ui-form-other">元</span>
+</div>
+<div class="ui-form-item">
+    <label for="stock" class="ui-label"> <span class="ui-form-required">*</span>库存 </label>
+    <input class="ui-input" type="text" name="stock" id="stock" autocomplete="off" value="{{ form.stock.value }}" >
+    <span class="ui-form-other">个</span>
+    <div>
+        <span id="stock-count"></span>
+        <span class="ui-form-explain">库存必须为大于0的整数</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="max_buy" class="ui-label"> <span class="ui-form-required">*</span>限购</label>
+    <input class="ui-input" type="text" name="max_buy" id="max_buy" autocomplete="off" value="{{ default(form.max_buy.value, 0) }}" >
+    <span class="ui-form-other">个</span>
+    <div>
+        <span class="ui-form-explain">每个账号限购件数，0表示不限</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="on_sale_at" class="ui-label">自动上下架日期</label>
+    <input class="ui-input" type="text" id="on_sale_at" name="on_sale_at" value="{{ default(form.on_sale_at.value, '') if isinstance(default(form.on_sale_at.value, ''), str) else form.on_sale_at.value.strftime('%Y-%m-%d')}}" autocomplete="off"> 至
+    <input class="ui-input" type="text" id="off_sale_at" name="off_sale_at" value="{{ default(form.off_sale_at.value, '') if isinstance(default(form.off_sale_at.value, ''), str) else form.off_sale_at.value.strftime('%Y-%m-%d')}}" autocomplete="off">
+    <p class="ui-form-explain">可选择设定自动上下架日期，商品列表中点击上架后将在指定日期上下架</p>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>销售门店 </label>
+    <input type="radio" name="all_shop" value="1" id="all-shop-y" {% if form.all_shop.value in ('1','')%} checked {% end %}>
+    <label for="all-shop-y">全部门店</label>
+    <input type="radio" name="all_shop" value="0" id="all-shop-n" {% if form.all_shop.value == '0' %} checked {% end %}>
+    <label for="all-shop-n">部分门店</label>
+</div>
+<div class="ui-form-item" id="all-shop-info" style="display: {{ 'none' if form.all_shop.value in ('1', '') else 'block' }}">
+    <label class="ui-label"> <span class="ui-form-required">*</span>选择门店</label>
+    <div style="max-height:300px; overflow-y: scroll;">
+        <table class="ui-table" style="width: auto; margin-bottom: 20px;">
+            <thead>
+            <tr>
+                <th>&nbsp;</th>
+                <th style="width: 200px">商户</th>
+                <th style="min-width: 200px; max-width:300px">门店</th>
+            </tr>
+            </thead>
+            <tbody id="shops">
+            {% for shop in supplier_shops %}
+            <tr>
+                <td><input type="checkbox" {{ 'checked' if str(shop.id) in form.shops.value or shop.id in form.shops.value else '' }} name="shops[]" value="{{shop.id}}"/></td>
+                <td>{{ shop.supplier_name }}</td>
+                <td>{{ shop.name }}</td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>主图</label>
+    <table style="text-align: center;">
+        <tr>
+            <td class="up-td">
+                <button class="ui-button ui-button-swhite" type="button" pic-size="720x400" >上传</button> <br/>
+                <label class="ui-form-explain">推荐尺寸：(720x400像素)</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="down-td">
+                <img id="img-preview-720x400" style="width: 360; height: 200px;"
+                     src="{{ 'http://img0.uhcdn.com/p/949/862/605/14e672fd_2014022811464333917_nw_max200.png' if '720x400' not in form.img_paths.value else img_url(form.img_paths.value['720x400'])  }}">
+                <input type="hidden" name="var_img_path_720x400" id="img-path-720x400" value="{{ '' if '720x400' not in form.img_paths.value else form.img_paths.value['720x400'] }}">
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label">商品详情小贴士</label>
+    <div class="ui-poptip">
+        <div class="ui-poptip-shadow">
+        <div class="ui-poptip-container">
+            <div class="ui-poptip-arrow ui-poptip-arrow-3">
+                <em></em>
+                <span></span>
+            </div>
+            <div class="ui-poptip-content">简洁明了的商品介绍 和 较少的详情图片(最多5张)，有助于加快商品详情在手机端的载入速度，提升用户体验</div>
+        </div>
+        </div>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="detail" class="ui-label"> <span class="ui-form-required">*</span>详情</label>
+    <textarea id="detail" name="detail" style="width: 100%" rows="40">
+        {{ form.detail.value }}
+    </textarea>
+</div>
+<div id="desc_error" style="color: red"></div>
+<div class="ui-form-item">
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="id" id='goods-id' value="{{ form.id.value}}">
+    <input type="button" class="ui-button ui-button-morange" value="确定" id="offer">
+    <input type="hidden" name="purchase_price" value="0.00">
+    <input type="hidden" id="error" value="{{ error }}">
+    <input type="hidden" id="action" value="{{ action }}">
+    <a class="ui-button ui-button-mwhite" href="{{ reverse_url('wx.goods.list') }}">取消</a>
+</div>
+</fieldset>
+</form>
+
+
+{% end %}
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+<style>
+    .up-td, .down-td {
+    border: 1px solid #D3D3D3;
+    }
+    .up-td {
+    padding: 5px 20px;
+    border-bottom: 0
+    }
+    .down-td {
+    border-top: 0
+    }
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'moment', 'calendar', 'autocomplete', 'kindeditor', 'widget', 'templatable', 'validator', 'autumn'],
+    function ($, moment, Calendar, AutoComplete, KindEditor, Widget, Templatable, Validator, autumn) {
+
+        var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+        new Calendar({trigger: '#expire_at', range: [moment().add('days', 1).format('YYYY-MM-DD'), null]});
+        var c1 = new Calendar({trigger: '#on_sale_at'});
+        var c2 = new Calendar({trigger: '#off_sale_at'});
+        c1.on('selectDate', function (date) {
+            c2.range([date, null]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([null, date]);
+        });
+
+        var action = $('#action').val();
+        if (action == 'edit') {
+        /*
+            $('input[name="type"]').attr('disabled', true);
+            $('input[name="generate_type"]').attr('disabled', true);
+            */
+            var form = $('#form');
+            form.attr('action', form.attr('action')+'?id='+$('#goods-id').val());
+        }
+
+        var goods_categories=[];
+        //初始化两级分类
+        var category_2 = $('#category_2');
+        $('#category_1').change(function(){
+            var value = $('#category_1 :checked').val();
+            $.each(goods_categories, function(index, item){
+                if (item.name == value) {
+                    category_2.empty();
+                    new TemplateWidget({
+                        template: '{{!#each this}}<option value="{{!id}}">{{!name}}</option>{{!/each}}',
+                        model: item.children,
+                        parentNode: '#category_2'
+                    }).render();
+                }
+            });
+        });
+        //查询所有的商品分类数据
+        $.post(
+            '{{ reverse_url("common.goods.categories") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(categories) {
+                goods_categories = categories;
+                new TemplateWidget({
+                    template: '{{!#each this}}<option value="{{!name}}">{{!name}}</option>{{!/each}}',
+                    model: categories,
+                    parentNode: '#category_1'
+                }).render();
+                var form_category = $('#form-category').val();
+                // 恢复之前的分类选择
+                if (form_category) {
+                    $.each(goods_categories, function(i, categoryA){
+                        var found = false;
+                        $.each(categoryA.children, function(j, categoryB){
+                            if (categoryB.id == form_category) {
+                                new TemplateWidget({
+                                    template: '{{!#each this}}<option value="{{!id}}">{{!name}}</option>{{!/each}}',
+                                    model: categoryA.children,
+                                    parentNode: '#category_2'
+                                }).render();
+                                $('#category_1 option[value="' + categoryA.name + '"]').attr('selected', true);
+                                $('#category_2 option[value="' + categoryB.id + '"]').attr('selected', true);
+                                found = true;
+                                return false;
+                            }
+                        });
+                        if (found) {
+                            return false;
+                        }
+                    });
+                }else{
+                    $('#category_1').change();
+                }
+            }
+        );
+
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            K.create('#detail',{
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                pluginsPath: '/static/img/',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('[pic-size]').click(function() {
+                var pic_size = $(this).attr('pic-size');
+                var editor = K.editor({
+                    allowFileManager : false,
+                    uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                    pluginsPath: '/static/img/',
+                    extraFileUploadParams: {
+                        '_xsrf': autumn.get_cookie('_xsrf'),
+                        'size': pic_size
+                    }
+                });
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-path-' + pic_size).val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview-' + pic_size).attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+
+        //前端校验阶段
+        var NewValidator = Validator.extend({
+            attrs: {
+                showMessage: function (message, element) {
+                    message = '<i class="ui-tiptext-icon iconfont">&#xF0155;</i> <span class="ui-form-explain-text">' + message + '</span>';
+                    this.getExplain(element)
+                        .addClass('ui-tiptext ui-tiptext-error')
+                        .html(message);
+                    this.getItem(element).addClass(this.get('itemErrorClass'));
+                }
+            }
+        });
+
+
+        var validator = new NewValidator({
+            element: '#form',
+            failSilently: true
+        });
+        validator.addItem({
+            element: 'input[name=type]',
+            required: true,
+            errormessageRequired: '请选择商品类型。'
+        });
+        validator.addItem({
+            element: 'input[name=generate_type]',
+            required: true,
+            errormessageRequired: '请选择券生成类型。'
+        });
+        validator.addItem({
+            element: '#face_value',
+            required: true,
+            rule: 'number'
+        });
+        validator.addItem({
+            element: '#sales_price',
+            required: true,
+            rule: 'number'
+        });
+        validator.addItem({
+            element: '#sms-name',
+            required: true,
+            rule: 'maxlength{max:50}'
+        });
+        validator.addItem({
+            element: '#short-name',
+            required: true,
+            rule: 'maxlength{max:50}'
+        });
+        validator.addItem({
+            element: '#img-path-720x400',
+            required: true,
+            errormessageRequired: '请选择图片。'
+        });
+        validator.addItem({
+            element: '#detail',
+            required: true,
+            errormessageRequired: '请填入商品详情。'
+        });
+        validator.addItem({
+            element: '#stock',
+            required: true,
+            rule: 'min{min:1}',
+            errormessageRequired: '库存至少为1。'
+        });
+        validator.addItem({
+            element: '#max_buy',
+            required: true,
+            rule: 'min{min:0}',
+            errormessageRequired: '请输入正确的限购件数。'
+        });
+
+        $('input[name="type"]').change(function(e){
+            validator.removeItem('#expire_at');
+            validator.removeItem('#postage');
+
+            if(e.target.value == 'E'){
+                $('#coupon-info').show(250);
+                $('#real-info').hide(250);
+                validator.addItem({
+                    element: '#expire_at',
+                    required: true,
+                    rule: 'date'
+                });
+                validator.addItem({
+                    element: 'input[name=generate_type]',
+                    required: true,
+                    errormessageRequired: '请选择券生成类型。'
+                });
+            }else{
+                validator.addItem({
+                    element: '#postage',
+                    required: true,
+                    rule: 'number'
+                });
+                $('#coupon-info').hide(250);
+                $('#real-info').show(250);
+            }
+        });
+        $('input[name="all_shop"]').change(function(e){
+            if(e.target.value == '1') {
+             $('#all-shop-info').hide(500);
+            }else{
+             $('#all-shop-info').show(500);
+            }
+        });
+        $('input[id^="sku-num-"]').change(function(e){
+            var ele = $(this);
+            var sku_id = ele.attr('data-sku');
+            $('#sku-'+sku_id).val(sku_id+'-'+ele.val());
+        });
+
+
+        autumn.word_count_monitor('[data-max-length]');
+
+        $('#offer').on('click', function(){
+            var iframe = $('iframe').contents().find('body');
+            if (iframe.find('img').size() > 5){
+                var error = $('#desc_error');
+                error.show();
+                error.text('详情内容图片不能超过5张').delay(3000).hide(0);
+                return false;
+            } else {
+                $("#detail").html(iframe.html());
+                $('#form').submit();
+            }
+        });
+    });
+</script>
+{% end %}

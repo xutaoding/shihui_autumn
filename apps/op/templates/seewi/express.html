@@ -1,0 +1,67 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '新增' if form.action.value == 'add' else '修改' }}快递公司{% end %}
+{% block menu %}
+{% module menu('express.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '新增' if form.action.value == 'add' else '修改' }}快递公司</h2>
+</div>
+
+<form action="{{ reverse_url('express.add') if form.action.value == 'add' else reverse_url('express.edit', form.id.value) }}" method="post" class="ui-form" id="form">
+
+    <div class="ui-form-item">
+        <label for="code" class="ui-label">
+            <span class="ui-form-required">*</span>编号</label>
+        <input id="code" name="code" value="{{form.code.value}}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="name" class="ui-label">
+            <span class="ui-form-required">*</span>名称</label>
+        <input id="name" name="name" value="{{ form.name.value }}" class="ui-input">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="mapping" class="ui-label">
+            <span class="ui-form-required">*</span>渠道对应关系</label>
+        <textarea id="mapping" name="mapping" cols="100" rows="10" style="width: 500px; height: 200px">{{ form.mapping.value }}</textarea>
+    </div>
+    <span style="margin-left: 180px">eg:JD:63 YHD:23 WB:21 TB:90&nbsp;&nbsp;注：用回车分割</span><br><br>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value = "保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator', '$'], function (Validator, $) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#code',
+            required: true,
+            errormessage: '编号不能为空'
+        });
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '快递公司名字不能为空'
+        });
+        validator.addItem({
+            element: '#mapping',
+            required: true,
+            errormessage: '渠道对应关系不能为空'
+        });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}

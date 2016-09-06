@@ -1,0 +1,41 @@
+{% extends "../layout.html" %}
+{% block title %}最新消息{% end %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <span class="glyphicon glyphicon-info-sign"></span> 最新消息 <a href="{{url_concat(reverse_url('member_index'), {'wx_id': current_user.wx_id})}}" class="btn btn-primary btn-xs pull-right" id="back">返回</a>
+    </div>
+</div>
+<div class="panel-group" id="accordion">
+    {% for i in range(len(msgs))%}
+    <div class="panel panel-info">
+        <div class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapse_{{i}}" class="list-group-item"  style="background: #f5f5f5">
+                <strong>{{ msgs[i].title }}</strong>
+            </a>
+        </div>
+        <div id="collapse_{{i}}" class="panel-collapse collapse {% if i== 0 %}in{%end%}">
+            <div class="panel-body">
+                {% raw msgs[i].content %}
+            </div>
+        </div>
+    </div>
+    {% end %}
+    {% module xsrf_form_html() %}
+    <input type="hidden" name="max_msg_id" value="{{max_id}}">
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    $(function() {
+        $.post(
+            '{{url_concat(reverse_url('member_msg'), {'wx_id': current_user.wx_id})}}',
+            {"_xsrf": $("input[name=_xsrf]").val(), "max_msg_id": $("input[name=max_msg_id]").val()},
+            function(){
+            }
+        );
+    });
+</script>
+{% end %}

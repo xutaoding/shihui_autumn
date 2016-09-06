@@ -1,0 +1,80 @@
+{% extends '../../layout.html' %}
+{% block title %}官网首页轮播{% end %}
+{% block menu %}
+{% module menu('wx.site.cover') %}
+{% end%}
+
+{% block styles %}
+    <style>
+        #tpl-list li{
+            width: 32%;
+            float: left;
+            height: 415px;
+        }
+        #tpl-list li .box {
+            margin: 0 5px;
+            padding: 20px 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+            background-color: white
+        }
+        #tpl-list li .current {
+            border: 3px solid #B9E2A0;
+        }
+    </style>
+{% end %}
+{% block content %}
+<div class="ui-tab" style="margin-top: 20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.cover') }}">封面设置</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">模板选择</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.slide') }}">首页幻灯片</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.column') }}">分类栏目</a>
+        </li>
+    </ul>
+</div>
+<form method="post" id="form" action="{{ reverse_url('wx.site.tpl') }}">
+    <div class="ui-tiptext-container ui-tiptext-container-success" style="margin-bottom: 20px">
+        <p class="ui-tiptext ui-tiptext-success">
+            小提示:<br>
+           1. 不同的模板适合的栏目数目不同，调整单双栏目数，可使首页更美观<br/>
+           2. 没有首页幻灯片的模板，可以设置首页背景图。系统默认首页幻灯片的“第一个图”为背景图
+        </p>
+    </div>
+    <ul class="fn-clear" id="tpl-list">
+        {% for tpl in templates %}
+            {% if cur_tpl and cur_tpl.value == str(tpl.id) %}
+            <li>
+                <div class="box current">
+                    <div style="height:330px; width:80%; margin-left: 10%"><img style="width:100%; height:100%" src="{{ tpl.pic }}"/> </div><br/>
+                    <div style="color: #B9E2A0;">{{tpl.name}} ( 已选择 )</div>
+                </div>
+            </li>
+            {% else %}
+            <li>
+                <div class="box">
+                    <div style="height:330px; width:80%; margin-left: 10%"><img style="width:100%; height:100%" src="{{ tpl.pic }}"/> </div><br/>
+                    <div>
+                        <input type="radio" name="id" id="tpl{{tpl.id}}" value="{{ tpl.id }}"/>
+                        <label for="tpl{{tpl.id}}">{{tpl.name}}</label>
+                    </div>
+                </div>
+            </li>
+            {% end %}
+        {% end %}
+    </ul>
+    {% module xsrf_form_html() %}
+    <div style="margin-top: 30px; text-align: center;">
+        <button type="submit" class="ui-button ui-button-morange">选择</button>
+    </div>
+</form>
+
+{% end %}
+

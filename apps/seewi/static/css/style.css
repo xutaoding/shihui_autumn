@@ -1,0 +1,166 @@
+
+/* 默认不显示下划线，保持页面简洁 */
+ins,a {
+    text-decoration:none;
+}
+
+/* 代码字体 */
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    font-size: 1em;
+}
+
+/* 清理浮动 */
+.fn-clear:after {
+    visibility:hidden;
+    display:block;
+    font-size:0;
+    content:" ";
+    clear:both;
+    height:0;
+}
+.fn-clear {
+    zoom:1; /* for IE6 IE7 */
+}
+
+/* 隐藏, 通常用来与 JS 配合 */
+.fn-hide {
+    display:none;
+}
+
+/* 设置内联, 减少浮动带来的bug */
+.fn-left,
+.fn-right {
+    display:inline;
+}
+.fn-left {
+    float:left;
+}
+.fn-right {
+    float:right;
+}
+
+/* 单行文字溢出时出现省略号，需设定宽度 */
+.fn-text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+body {
+    background-color: #f4f4f4;
+}
+
+ul {
+    list-style: none;
+}
+
+table {
+    width: 100%;
+}
+
+.box-container {
+    width: 1200px;
+    margin: 0 auto;
+}
+
+#tel {
+    text-align: right;
+    padding: 12px 20px 12px 0;
+}
+
+#nav {
+    text-align: right;
+}
+
+#nav ul {
+    margin: 0;
+    zoom: 1;
+}
+#nav ul:before, #nav ul:after {
+    content: "";
+    display: table;
+}
+
+#nav ul:after {
+    clear: both;
+}
+
+#nav li {
+    float: left;
+}
+
+#nav li a {
+    padding: 0 20px;
+    color: #808080;
+    height: 40px;
+    line-height: 40px;
+    display: inline-block;
+    _display: inline;
+    _zoom: 1;
+}
+
+#nav .active a {
+    background-color: #00677f;
+    color: #ffffff;
+}
+
+#tape {
+    height: 41px;
+    background: url(http://img0.uhcdn.com/o/933/760/427/2014042321252508075.jpg) repeat;
+}
+
+#footer {
+    border-top: solid #ff8d00 14px;
+    background: url(http://img0.uhcdn.com/o/396/164/807/2014042415060652839.jpg) repeat;
+    padding: 20px 0;
+}
+
+#footer td {
+    padding: 0 20px;
+}
+
+#leave_message {
+    font-size: 12px;
+}
+
+#leave_message .input {
+    width: 180px;
+    margin: 2px 0;
+    background-color: #dcdcdc;
+    border: 1px solid #8f8f8f;
+    padding: 5px;
+}
+
+#leave_message .submit {
+    background-color: #ff3b00;
+    border: 0;
+    color: #ffffff;
+    font-size: 14px;
+    padding: 5px;
+}
+
+#qq_msg {
+    position: fixed;
+    right: 28px;
+    top: 50%;
+    bottom: auto;
+    margin-top: -130px;
+}
+
+#qq_close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #808080;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+}
+

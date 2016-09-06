@@ -1,0 +1,95 @@
+{% extends "../layout.html" %}
+{% block title %}{{ name }}快递费{{ action }}{% end %}
+{% block menu %}
+{% module menu('express.list') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ name }}快递费{{ action }}</h2>
+</div>
+
+<form action="{{ reverse_url('freight.add', company_id) if action == u'新增' else reverse_url('freight.edit', company_id, freight_id) }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label class="ui-label">快递公司</label>
+        <p class="ui-form-text">{{ name }}</p>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>目的地</label>
+        <select id="province" name="province">
+            <option value="上海">S.上海</option>
+            <option value="北京">B.北京</option>
+            <option value="天津">T.天津</option>
+            <option value="河北">H.河北</option>
+            <option value="山西">S.山西</option>
+            <option value="重庆">C.重庆</option>
+            <option value="内蒙古自治区">N.内蒙古自治区</option>
+            <option value="辽宁">L.辽宁</option>
+            <option value="吉林">J.吉林</option>
+            <option value="黑龙江">H.黑龙江</option>
+            <option value="江苏">J.江苏</option>
+            <option value="浙江">Z.浙江</option>
+            <option value="安徽">A.安徽</option>
+            <option value="福建">F.福建</option>
+            <option value="江西">J.江西</option>
+            <option value="山东">S.山东</option>
+            <option value="河南">H.河南</option>
+            <option value="湖北">H.湖北</option>
+            <option value="湖南">H.湖南</option>
+            <option value="广东">G.广东</option>
+            <option value="广西壮族自治区">G.广西壮族自治区</option>
+            <option value="海南">H.海南</option>
+            <option value="四川">S.四川</option>
+            <option value="贵州">G.贵州</option>
+            <option value="云南">Y.云南</option>
+            <option value="西藏自治区">X.西藏自治区</option>
+            <option value="陕西">S.陕西</option>
+            <option value="甘肃">G.甘肃</option>
+            <option value="青海">Q.青海</option>
+            <option value="宁夏回族自治区">N.宁夏回族自治区</option>
+            <option value="新疆维吾尔自治区">X.新疆维吾尔自治区</option>
+            <option value="香港特别行政区">X.香港特别行政区</option>
+            <option value="澳门特别行政区">A.澳门特别行政区</option>
+            <option value="海外">H.海外</option>
+            <option value="其他">Q.其他</option>
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="price" class="ui-label">
+            <span class="ui-form-required">*</span>价格</label>
+        <input id="price" name="price" class="ui-input" {% if action != u'新增' %} value="{{ price }}" {% end %}>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value = "保存">
+    </div>
+</form>
+{% end %}
+
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'autocomplete'],
+            function ($, autumn, AutoComplete) {
+        if ("{{ action }}" == "修改") {
+            var province = "{% if action == u'修改' %}{{ province }}{% else %}''{% end %}";
+            $("#province").val(province);
+        }
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    submitOnEnter: false,
+                    dataSource: common_suppliers
+                }).render()
+            }
+        )
+    });
+</script>
+{% end %}

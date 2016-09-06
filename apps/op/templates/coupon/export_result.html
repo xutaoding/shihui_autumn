@@ -1,0 +1,46 @@
+{% extends "../layout.html" %}
+{% block title %}批量导出券{% end %}
+{% block menu %}
+{% module menu('coupon.export') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">导出结果</h2>
+    <form method="get" action="{{reverse_url('coupon.download')}}">
+        <input type="hidden" value="{{order_id}}" name="order_id">
+        <input type="submit" class="ui-button ui-button-sorange fn-right" value="下载EXCEL">
+    <form>
+</div>
+<div class="ui-tipbox ui-tipbox-white ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF046;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">商品: {{goods_name}}</h3>
+        <p class="ui-tipbox-explain">{{result}}</p>
+    </div>
+</div>
+<div class="ui-table-container">
+    {% if coupons %}
+        <table class="ui-table"><!-- 可以在class中加入ui-table-inbox或ui-table-noborder分别适应不同的情况 -->
+            <thead>
+                <tr>
+                    <th>券号</th>
+                    <th>券号</th>
+                    <th>券号</th>
+                </tr>
+            </thead><!-- 表头可选 -->
+            <tbody>
+            {% for group in [coupons[i:i+3] for i in range(0, len(coupons), 3)] %}
+            <tr>
+                {% for coupon in (group+['','',''])[:3] %}
+                    <td>{{coupon}}</td>
+                {% end %}
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    {% end %}
+</div>
+{% end %}

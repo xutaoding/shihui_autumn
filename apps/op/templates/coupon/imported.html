@@ -1,0 +1,46 @@
+{% extends "../layout.html" %}
+{% block title %}导入券{% end %}
+{% block menu %}
+{% module menu('coupon.imported') %}
+{% end%}
+
+{%block content%}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">导入券管理</h2>
+    <a type="button" class="ui-button ui-button-sblue fn-right" href="{{reverse_url('coupon.imported_jd')}}">京东导入券查询</a>
+</div>
+
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('coupon.imported') }}" >
+   <span>商品名</span>
+    <input type="text" name="goods" value="{{ form.goods.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th style="min-width: 300px">商品</th>
+            <th>券总量</th>
+            <th>已销售</th>
+            <!--th>已退款</th-->
+            <th>剩余</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+                {% for goods in page.rows %}
+        <tr>
+            <td>{{ goods.short_name}}</td>
+            <td>{{ goods.sales_count+goods.stock }}</td>
+            <td>{{ goods.sales_count}}</td>
+            <td>{{ goods.stock}}</td>
+            <td> <a href="{{reverse_url('coupon.import_coupon',goods.id)}}">导入</a> </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{%end%}
+

@@ -1,0 +1,46 @@
+{% extends '../../layout.html' %}
+{% block title %}消息管理{% end %}
+{% block menu %}
+{% module menu('wx.comment') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2>客户评论</h2>
+</div>
+
+    {% if comments.rows %}
+        <div>
+            <table class="ui-table ui-table-noborder" style="word-break: break-word">
+                <thead>
+                <tr>
+                    <th>用户</th>
+                    <th>等级</th>
+                    <th>评论</th>
+                    <th>时间</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for comment in comments.rows %}
+                <tr>
+                    <td>{{ comment.name if comment.name else ''}}({{ comment.mobile }})</td>
+                    <td>{{ {1: '一', 2: '二', 3: '三', 4: '四', 5: '五'}.get(comment.star) }}星级</td>
+                    <td>{{ comment.content }}</td>
+                    <td>{{ comment.created_at }}</td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw comments.links() %}
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title" style="padding-bottom:10px">暂时没有客户评论</h3>
+            </div>
+        </div>
+    {% end %}
+{% end %}

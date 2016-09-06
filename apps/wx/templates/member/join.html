@@ -1,0 +1,150 @@
+{% extends "../layout.html" %}
+{% block title %}会员中心{% end %}
+
+{% block style %}
+<style type="text/css">
+    label {
+        color: white;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<form role="form" method="post" action="{{reverse_url('member_join')}}">
+    <div class="form-group">
+        <label for="name_input">姓名</label>
+        <input type="text" id="name_input" name="name" class="form-control" >
+    </div>
+    <div class="">
+        <div class="radio-inline">
+          <label>
+                <input type="radio" name="gender" value="男" checked>
+                 男
+          </label>
+        </div>
+        <div class="radio-inline">
+            <label>
+                <input type="radio" name="gender" value="女">
+                女
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="mobile_input">手机号</label>
+        <input type="text" id="mobile_input" name="mobile" class="form-control">
+    </div>
+    <div class="form-group">
+        <label for="vcode">验证码</label>
+        <div class="input-group">
+            <input type="text" id="vcode" name="vcode" class="form-control">
+            <span class="input-group-btn">
+                <a class="btn btn-default" id="vcode-btn">获取短信验证码</a>
+            </span>
+        </div>
+        {% if error %}
+        <span class="help-block" style="color:red">{{ error }}</span>
+        {% end %}
+    </div>
+    <div class="form-group clearfix" style="margin-top: 20px;">
+        <input type="hidden" value="{{current_user.wx_id}}" name="wx_id">
+        <input type="submit" class="btn btn-primary pull-right" value="领取会员卡">
+    </div>
+
+    {% module xsrf_form_html() %}
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+$.fn.timedDisable = function(time) {
+    if (time == null) {
+        time = 10000;
+    }
+    var seconds = Math.ceil(time / 1000);
+    return $(this).each(function() {
+        $(this).attr('disabled', 'disabled');
+        var disabledElem = $(this);
+        var originalText = this.innerHTML;
+        disabledElem.text(' (' + seconds + ') ' + '后重新获取验证码');
+        var interval = setInterval(function() {
+            disabledElem.text(' (' + seconds + ') ' + '后重新获取验证码');
+            if (seconds === 0) {
+                disabledElem.removeAttr('disabled')
+                    .text(originalText);
+                clearInterval(interval);
+            }
+            seconds = seconds - 1;
+        }, 1000);
+    });
+};
+
+$('#vcode-btn').click(function(){
+    var mobile = $('#mobile_input').val();
+    ptn = /^1[0-9]{10}$/;
+    if (mobile.match(ptn)){
+        $.post(
+            '{{url_concat(reverse_url('member_vcode'), {'wx_id': current_user.wx_id})}}',
+            {"_xsrf": $("input[name=_xsrf]").val(), "mobile": mobile}
+        );
+        $('#vcode-btn').timedDisable(59000);
+    }
+    else{
+        alert("请输入正确手机号");
+    }
+});
+
+$('form').validate({
+    rules: {
+        name: {
+            minlength: 1,
+            maxlength: 15,
+            required: true
+        },
+        mobile: {
+            minlength: 11,
+            maxlength: 11,
+            required: true
+        },
+        vcode: {
+            minlength: 6,
+            maxlength: 6,
+            required: true
+        },
+    },
+    highlight: function(element) {
+        $(element).closest('.form-group').addClass('has-error');
+    },
+    unhighlight: function(element) {
+        $(element).closest('.form-group').removeClass('has-error');
+    },
+    errorElement: 'span',
+    errorClass: 'help-block',
+    errorPlacement: function(error, element) {
+        if(element.parent('.input-group').length) {
+            error.insertAfter(element.parent());
+        } else {
+            error.insertAfter(element);
+        }
+    },
+    messages: {
+       name: {
+            required: "请输入姓名",
+            minlength: "请输入正确姓名",
+            maxlength: "请输入正确姓名",
+       },
+       mobile: {
+            required: "请输入手机号",
+            minlength: "请输入11位手机号码",
+            maxlength: "请输入11位手机号码",
+       },
+       vcode: {
+            required: "请输入验证码",
+            minlength: "请输入6位验证码",
+            maxlength: "请输入6位验证码",
+       },
+
+    }
+});
+
+</script>
+{% end %}

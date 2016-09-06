@@ -1,0 +1,63 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '增加' if form.action.value == 'add' else '修改' }}货品{% end %}
+{% block menu %}
+{% module menu('real.show_sku') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '增加' if form.action.value == 'add' else '修改' }}货品</h2>
+</div>
+
+<form {% if form.action.value == 'add' %} action="{{ reverse_url('real.add_sku') }}" {% else %} action="{{ reverse_url('real.edit_sku') }}" {% end %} method="post" class="ui-form" id="form">
+
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>商户</label>
+        <label class="ui-form-text">视惠</label>
+        {% if form.action.value == 'edit' %} <input type="hidden" name="id" value="{{ id }}"> {% end %}
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label" for="name">
+            <span class="ui-form-required">*</span>货品名称</label>
+        <input id="name" name="name" type="text" class="ui-input ui-input-large" value="{{ form.name.value }}"/>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="price" class="ui-label">
+            <span class="ui-form-required">*</span>价格</label>
+        <input id="price" type="text" size="20" class="ui-input ui-input-large"
+               name="price" value="{{ form.price.value }}">
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+    <script>
+    seajs.use(['$', 'validator'],
+               function ($, Validator) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '货品名称不能为空'
+        });
+        validator.addItem({
+            element: '#price',
+            required: true,
+            errormessage: '请输入价格'
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}

@@ -1,0 +1,63 @@
+{% extends "../layout.html" %}
+{% block title %}代理商{% end %}
+{% block menu %}
+{% module menu('agent.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">代理商列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('agent.add') }}">添加代理商</a>
+</div>
+<div>
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>公司名</th>
+            <th>销售人员</th>
+            <th>合作方式</th>
+            <th>联系人</th>
+            <th>电话</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page.rows %}
+        <tr>
+            <th>{{ item.short_name }}</th>
+            <th>{{ item.sale }}</th>
+            <th>{{ {1: '预付', 2: '零售'}.get(item.type) }}</th>
+            <th>{{ item.contact }}</th>
+            <th>{{ item.mobile }}</th>
+            <th>
+                <a href="{{ reverse_url('agent.detail', item.id) }}">详情</a> /
+                <a href="{{ reverse_url('agent.edit', item.id) }}">编辑</a> /
+                <a href="{{ url_concat(reverse_url('agent.contract'), {'agent_id': item.id}) }}">合同</a> /
+                <span name="delete" data-id="{{ item.id }}" style="cursor: pointer">删除</span>
+            </th>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block scripts %}
+<script type="text/javascript">
+    seajs.use(['$', 'confirmbox'], function($, ConfirmBox){
+        $('span[name="delete"]').on('click', function(){
+            var agent_id = $(this).attr('data-id');
+            var xsrf = $('input[name="_xsrf"]').val();
+            ConfirmBox.confirm('确定要删除该代理商', '删除代理商', function(){
+                var action = "{{ reverse_url('agent.delete') }}";
+                $('<form></form>').attr('action', action).attr('method', 'post')
+                        .append($('<input type="hidden" name="agent_id" />').attr('value', agent_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', xsrf)).submit();
+            });
+        });
+
+    });
+</script>
+{% end %}

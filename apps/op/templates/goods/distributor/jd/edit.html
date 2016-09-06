@@ -1,0 +1,294 @@
+{% extends "../../../layout.html" %}
+{% block title %}京东修改商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">京东修改商品</h2>
+</div>
+
+<div class="ui-tab" style="margin-bottom: 20px">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">产品延期</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">券延期</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">重新上架</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">更新详情</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">更新主图</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">更新标题</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">更新商户</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="javascript:;">下架</a>
+        </li>
+    </ul>
+</div>
+<div class="panels">
+    <div class="panel">
+        <form action="{{ reverse_url('goods.jd.edit') }}" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>团购结束时间</label>
+                <input class="ui-input" type="text" name="sale_end_date" id="sale_end_date" value="{{ goods.off_sale_at }}">
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="teamExtension">
+                <input type="submit" class="ui-button ui-button-morange" value="产品延期">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="{{ reverse_url('goods.jd.edit') }}" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>券截止时间</label>
+                <input class="ui-input" type="text" name="expire_time" id="expire_time" value="{{ goods.expire_at }}">
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="couponExtension">
+                <input type="submit" class="ui-button ui-button-morange" value="券延期">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>团购开始时间</label>
+                <input class="ui-input" type="text" name="begin_time" id="begin_time" value="{{ default(now.strftime('%Y-%m-%d 23:58:58'),'') }}">
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>团购结束时间</label>
+                <input class="ui-input" type="text" name="end_time" id="end_time" value="{{ goods.off_sale_at }}">
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="teamRestart">
+                <input type="submit" class="ui-button ui-button-morange" value="重新上架">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>更新说明</label>
+                <input class="ui-input" data-max-length="100" name="notes" id="notes" style="width: 70%" type="text"
+                    value="">
+                <div>
+                    <span id="notes-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入100字。</span>
+                </div>
+            </div>
+            <div class="ui-form-item">
+                <label for="team_detail" class="ui-label"> <span class="ui-form-required">*</span>团购详情</label>
+                <textarea id="team_detail" name="team_detail" style="width: 100%" rows="50">
+                    <span style="font-size:12px;">{{goods.name}}</span>
+                    <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">温馨提示</span> </span></p>
+                    {{html_font_size_replace(goods.tips, 14, 12)}}
+                    <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">商品介绍</span> </span></p>
+                    {{ html_font_size_replace(jd_logo_url_replace(goods.detail), 14, 12) }}
+                    <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">商户介绍</span> </span></p>
+                    {{ html_font_size_replace(jd_logo_url_replace(goods.supplier_intro), 14, 12) }}
+                </textarea>
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="updateDetail">
+                <input type="submit" class="ui-button ui-button-morange" value="更新详情">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>团购主图</label>
+                <input type="text" name="img_url" style="width: 30%" id="img_url" class="ui-input" value="img">
+                <button class="ui-button ui-button-swhite" type="button" id="upload-img">选择图片</button>
+                <label class="ui-form-explain">推荐尺寸：(440x293)</label>
+                <div style="margin-top: 10px">
+                    <img src=" {{ img or 'http://img.uhcdn.com/images/autumn/default.png' }}" id="img-preview" width="440" height="293">
+                </div>
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="updateBImage">
+                <input type="submit" class="ui-button ui-button-morange" value="更新主图">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                <label class="ui-label"><span class="ui-form-required">*</span>团购产品标题</label>
+                <input class="ui-input" data-max-length="20" name="team_title" id="team_title" style="width: 70%" type="text"
+                    value="{{ goods.short_name }}">
+                <div>
+                    <span id="team_title-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入20字。</span>
+                </div>
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="updateTitle">
+                <input type="submit" class="ui-button ui-button-morange" value="更新标题">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                将目前最新的商户信息更新上去
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <textarea style="display:none" name="partners">
+                {% for shop in shops %}
+                    <Partner>
+                        {# 商家名称 最长40个字符 [必填] #}
+                        <Name>{{ shop.name }}</Name>
+                        {# 商家地址 最长80个字符 [必填] #}
+                        <Address>{{ shop.address }}</Address>
+                        {# 地图连接，填写地图的URL，必须以http开头。此字段可以为空。若链接过长超过100个字符请使用加密过的url短链接 此字段可以为空。 #}
+                        <Map/>
+                        {# 商家联系人 最长30个字符 此字段可以为空。 #}
+                        <Contact/>
+                        {# 商家电话。最长40个字符 [必填] #}
+                        <Tel>{{ shop.phone }}</Tel>
+                        {# 商家手机信息。最长12个字符，只能是数字。此字段可以为空。 #}
+                        <Mobile/>
+                        {# 交通信息，位置信息。最长400个字符。此字段可以为空。 #}
+                        <Location/>
+                    </Partner>
+                {% end %}
+            </textarea>
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="updateTeamPartner">
+                <input type="submit" class="ui-button ui-button-morange" value="更新商户">
+            </div>
+        </form>
+    </div>
+    <div class="panel">
+        <form action="#" method="post">
+            <div class="ui-form-item">
+                下架后可重新上架
+            </div>
+            <input type="hidden" name="vender_team_id" value="{{ product.goods_link_id }}">
+            <input type="hidden" name="jd_team_id" value="{{ product.distributor_goods_id }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="shop_id" value="{{ product.distributor_shop_id }}">
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="method" value="cancel">
+                <input type="submit" class="ui-button ui-button-morange" value="立即下架">
+            </div>
+        </form>
+    </div>
+</div>
+{% end %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+    <link href="http://assets.spmjs.org/alice/tab/1.0.0/tab.css" rel="stylesheet">
+    <style>
+        .panel {
+            display: none;
+        }
+    </style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'tabs', 'autumn', 'kindeditor', 'calendar'], function ($, Tabs, autumn, KindEditor, Calendar) {
+        new Tabs({
+        element: '.ui-tab',
+        triggers: '.ui-tab-item',
+        panels: '.panel',
+        triggerType: 'click',
+        activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+
+        var sale_end_date = $('#sale_end_date').val()
+        var expire_time = $('#expire_time').val()
+        new Calendar({trigger: '#begin_time', format: 'YYYY-MM-DD HH:mm:ss'});
+        new Calendar({trigger: '#end_time', format: 'YYYY-MM-DD HH:mm:ss'});
+        new Calendar({trigger: '#sale_end_date', range: [sale_end_date, null], format: 'YYYY-MM-DD HH:mm:ss'});
+        new Calendar({trigger: '#expire_time', range: [expire_time, null], format: 'YYYY-MM-DD HH:mm:ss'});
+
+         //富文本编辑器和上传图片
+        KindEditor.ready(function (K) {
+            var editor = K.editor({
+                allowFileManager: false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create('#team_detail', {
+                minWidth: '440px',
+                width: '440px',
+                height: '650px',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('#upload-img').click(function () {
+                editor.loadPlugin('image', function () {
+                    editor.plugin.imageDialog({
+                        showRemote: false,
+                        imageUrl: K('#groupon_bimg').val(),
+                        clickFn: function (url, title, width, height, border, align) {
+                            K('#img_url').val(url);
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+
+        autumn.word_count_monitor('[data-max-length]');
+    });
+</script>
+{% end %}

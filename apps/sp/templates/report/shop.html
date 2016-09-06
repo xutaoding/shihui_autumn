@@ -1,0 +1,214 @@
+{% extends '../layout.html' %}
+{% block title %}门店报表{% end %}
+{% block menu %}
+{% module menu('report.shop_report') %}
+{% end%}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">门店报表</h2>
+    </div>
+    <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('report.shop_report') }}">
+        <div style="margin-bottom: 10px;">
+        <span>
+            选择门店:
+        </span>
+            <input type="text" id="supplier_input" name="supplier_input" value="{{default(form.supplier_input.value,'')}}" style="width:200px;">
+            <input id="supplier_shop" name="supplier_shop" type="hidden" value="{{default(form.supplier_shop.value,'')}}">
+            <input id="supplier_id" name="supplier_id" type="hidden" value="{{supplier_id}}">
+            <input id="summary_type" name="summary_type" type="hidden" value="supplier_shop">
+            <span>日期</span>
+            <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value }}" placeholder="不选日期默认最近7天"/> -
+            <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value }}" placeholder="不选日期默认最近7天"/>
+            <button type="submit" class="ui-button ui-button-sorange" id="query">查询</button>
+        </div>
+    </form>
+
+    <div class="ui-grid-row" style="margin-bottom: 20px;">
+        <div class="ui-switchable-content ui-grid-21" >
+            <!--Graph-->
+            <div class="ui-box-container" style="height: 400px; width: 770px">
+                <div class="ui-box-content" id="chart" style="width:95%; height:350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th style="width: 80px">门店</th>
+                <th style="width: 50px; text-align:right;">已使用/已发货</th>
+                <th style="width: 80px; text-align:right;">消费金额</th>
+                <th style="width: 50px; text-align:right;">退款数量</th>
+                <th style="width: 80px; text-align:right;">退款金额</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if page%}
+            {% for i in page%}
+            <tr>
+                <td> {{ i.shop_name }} </td>
+                <td style="text-align:right">{{ i.used }}</td>
+                <td style="text-align:right">{{ i.used_amount }}</td>
+                <td style="text-align:right">{{ i.refund }}</td>
+                <td style="text-align:right">{{ i.refund_amount }}</td>
+            </tr>
+            {% end %}
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+{% module xsrf_form_html() %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'highcharts', 'autocomplete', 'calendar', 'moment', 'autumn'], function ($, highchart, AutoComplete, Calendar, Moment, autumn) {
+        // 日期选择器
+        var t1 = '2012-01-01';
+        var t2 = Moment().format('YYYY-MM-DD');
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, t2]});
+        var c2 = new Calendar({trigger: '#end-cal', range: [t1, t2]});
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, t2]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+        $('#supplier_input').change(function(){
+            if ($('#supplier_input').val() == ''){
+                $('#supplier_shop').val('');
+            }
+        })
+
+        // 自动补全
+        $.post(
+            '{{ reverse_url("common.supplier.shop") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf'), 'supplier_id': $('#supplier_id').val()},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#supplier_shop').val(data.id);
+                }).render();
+
+            }
+        );
+
+        Highcharts.setOptions({
+            lang: {
+                    shortMonths: [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "10" , "11" , "12"]
+            }
+        });
+
+        // 根据日期发送ajax请求，获得图表所需数据
+        function getData(start, end, summary_type, supplier_input, url){
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                        'start': start,
+                        'end': end,
+                        'summary_type': summary_type,
+                        'supplier_input': supplier_input,
+                        '_xsrf': autumn.get_cookie('_xsrf')
+                },
+                error: function() {
+                    alert('获取数据失败');
+                },
+                success: function(data){
+                    // 新建一个highchart
+                    $('#chart').highcharts({
+                        chart: {
+                            type: 'line',
+                            marginRight: 50,
+                            plotBorderWidth: 1,
+                            animation: false
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        title: {
+                            text: '门店销售趋势图'
+                        },
+                        tooltip: {
+                            valueDecimals: 2,
+                            valueSuffix: ' 元'
+                        },
+                        legend: {
+                           labelFormatter: function() {
+                              var total = 0;
+                              for(var i=this.yData.length; i--;) { total += this.yData[i]; };
+                              return this.name + '-总共: ' + Number((total).toFixed(2)) +' 元';
+                           }
+                        },
+                        xAxis: {
+                            title: {
+                                text: '日期'
+                            },
+                            type: 'datetime',
+                            dateTimeLabelFormats: {
+                                day: '%b月%e日',
+                                week: '%b月%e日',
+                                month: '%y年%b月'
+                            },
+                            minTickInterval: 24*3600*1000 // 设置最小显示的日期间隔为一天
+                        },
+                        yAxis: {
+                            title: {
+                                text: '金额 (元)'
+                            }
+                        }
+                    });
+                    var chart = $('#chart').highcharts();
+                    chart.showLoading();
+
+                    // 移除已有的数据
+                    var i_limit=chart["series"]["length"];
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        //总是移除第一个
+                        chart.series[0].remove(true);
+                    }
+                    var time = data[0].data[0][0];
+                    var time_part = time.split("-");
+                    // 添加新数据
+                    var i_limit=data.length;
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        chart.addSeries({
+                            name: data[i].name,
+                            data: data[i].data,
+                            pointStart: (new Date(time_part[0],parseInt(time_part[1])-1,time_part[2])).getTime(),
+                            pointInterval: 24 * 3600 * 1000
+                        },false);
+                    }
+                    chart.redraw();
+                    chart.hideLoading();
+                }
+            });
+
+        }
+        // 第一次载入时获取一下数据
+        getData(
+            $('#start-cal').val(),
+            $('#end-cal').val(),
+            $('#summary_type').val(),
+            $('#supplier_input').val(),
+            '/report/get-sales-data');
+    });
+</script>
+{% end %}
+

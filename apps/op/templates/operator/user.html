@@ -1,0 +1,168 @@
+{% extends "../layout.html" %}
+{% block title %}操作员添加{% end %}
+{% block menu %}
+{% module menu('operator.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear" xmlns="http://www.w3.org/1999/html">
+    <h2 class="fn-left">{{ '增加' if form.action.value == 'add' else '修改' }}操作员</h2>
+</div>
+<form {% if form.action.value == 'edit' %} action="{{ reverse_url('operator.edit_user') }}" {% else %} action="{{ reverse_url('operator.add_user') }}" {% end %} method="post" class="ui-form" id="form">
+    <div class="ui-form-item" style="margin-bottom: 20px">
+        <label class="ui-label" >
+            <span class="ui-form-required">*</span>角色
+        </label>
+            <div class="roles">
+                <ul>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="developer_mgr" value="developer_mgr" {% if 'developer_mgr' in form.roles.value.split(',') %} checked="True" {% end %}><label for="developer_mgr"> 研发经理 </label></div>
+                        <div class="emp">
+                            <input type="checkbox" name="roles" id="developer" value="developer" {% if 'developer' in form.roles.value.split(',') %} checked="True" {% end %}><label for="developer"> 研发 </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="operator_mgr" value="operator_mgr" {% if 'operator_mgr' in form.roles.value.split(',') %} checked="True" {% end %}><label for="operator_mgr"> 运营经理 </label></div>
+                        <div class="emp">
+                            <input type="checkbox" name="roles" id="operator" value="operator" {% if 'operator' in form.roles.value.split(',') %} checked="True" {% end %}> <label for="operator">运营 </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="sales_mgr" value="sales_mgr" {% if  'sales_mgr' in form.roles.value.split(',')%} checked="True" {% end %}><label for="sales_mgr"> 商务经理 </label></div>
+                        <div class="emp">
+                            <input type="checkbox" name="roles" id="sales" value="sales" {% if  'sales' in form.roles.value.split(',') %} checked="True" {% end %}><label for="sales"> 商务 </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="service_mgr" value="service_mgr" {% if  'service_mgr' in form.roles.value.split(',')%} checked="True" {% end %}><label for="service_mgr"> 客服经理</label> </div>
+                        <div class="emp">
+                            <input type="checkbox" name="roles" id="service" value="service" {% if  'service' in form.roles.value.split(',')%} checked="True" {% end %}><label for="service"> 客服 </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="finance_mgr" value="finance_mgr" {% if  'finance_mgr' in form.roles.value.split(',')%} checked="True" {% end %}><label for="finance_mgr"> 财务经理 </label></div>
+                        <div class="emp">
+                            <input type="checkbox" name="roles" id="finance" value="finance" {% if  'finance' in form.roles.value.split(',')%} checked="True" {% end %}><label for="finance"> 财务 </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="storage" value="storage" {% if  'storage' in form.roles.value.split(',')%} checked="True" {% end %}><label for="storage"> 仓库 </label> </div>
+                    </li>
+                    <li>
+                        <div> <input type="checkbox" name="roles" id="admin" value="admin" {% if  'admin' in form.roles.value.split(',')%} checked="True" {% end %}><label for="admin"> 行政 </label> </div>
+                    </li>
+                </ul>
+            </div>
+        <div id="error">
+        </div>
+        <div style="position: relative;left: -470px;top: 45px;color: red;">如果是经理权限，请把相应普通权限选上。</div>
+        <div style="position: relative;left: -470px;top: 45px;color: red;">如：职位为运营经理，则勾选"运营经理"及"运营"</div>
+    </div>
+    <div class="ui-form-item">
+        <label for="login_name" class="ui-label">
+            <span class="ui-form-required">*</span>用户名</label>
+        {% if form.action.value == 'add' %}
+             <input id="login_name" name="login_name" type="text" class="ui-input ui-input-large" value="{{ form.login_name.value }}" autocomplete="off"/>
+             {% if form.login_name.error %}
+                    <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                            <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                            {{ form.login_name.error }}
+                    </p>
+             {% end %}
+         {% else %}
+            <label class="ui-form-text">{{ form.login_name.value }}</label>
+        {% end %}
+    </div>
+    <div class="ui-form-item">
+        <label for="user_name" class="ui-label"> 姓名</label>
+        <input id="user_name" type="text" class="ui-input ui-input-large" name="name"
+               value="{{ form.name.value }}" autocomplete="off"/>
+    </div>
+    <div class="ui-form-item">
+        <label for="password" class="ui-label">
+            <span class="ui-form-required">*</span>密码</label>
+            {% if form.action.value == 'add' %}
+                <input id="password" name="password" type="password" class="ui-input ui-input-large" autocomplete="off"/>
+            {% else %}
+                <input id="password_edit" name="password" value="******"type="password" class="ui-input ui-input-large" autocomplete="off"/>
+            {% end %}
+    </div>
+
+    <div class="ui-form-item">
+        <label for="email" class="ui-label">
+            <span class="ui-form-required">*</span>email</label>
+            <input id="email" type="text" size="30" class="ui-input ui-input-large"
+                 name="email" value="{{ form.email.value }}" autocomplete="off">
+            {% if form.email.error %}
+                <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                        {{ form.email.error }}
+                </p>
+            {% end %}
+
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input id="action" value="{{ form.action.value }}" name="action" type="hidden"/>
+        <input value="{{ form.id.value }}" name="id" type="hidden"/>
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block styles %}
+<style>
+    .roles {
+        margin-top: 10px;;
+    }
+    .roles li{
+        float: left;
+        margin: 5px 10px;
+    }
+    .roles .emp {
+        padding-left: 20px;
+    }
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'validator'],
+            function ($, Validator) {
+
+                var validator = new Validator({
+                    element: '#form'
+                });
+                validator.addItem({
+                    element: '[name=roles]',
+                    required: true,
+                    errormessage: '请选择角色'
+                });
+                if ($('#action').val() == 'add') {
+                    validator.addItem({
+                        element: '#login_name',
+                        required: true,
+                        errormessage: '请输入用户名'
+                    });
+                }
+                validator.addItem({
+                    element: '#password,#password_edit',
+                    required: true,
+                    errormessage: '密码不能为空'
+                });
+                validator.addItem({
+                    element: '#user_name',
+                    required: true,
+                    errormessage: '请输入姓名'
+                });
+                validator.addItem({
+                    element: '#email',
+                    required: true,
+                    errormessage: '请输入邮箱'
+                });
+
+                if ($('#error').val()) {
+                    validator.execute();
+                }
+            });
+</script>
+{% end %}

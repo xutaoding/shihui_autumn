@@ -1,0 +1,23 @@
+{% extends "../layout.html" %}
+{% block title %}适用门店{% end %}
+
+{% block content %}
+    <div style="margin-top:30px;">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>适用门店</strong></div>
+            {% for shop in shops %}
+            <div class="panel-body" style="border-bottom: 1px solid #ddd">
+                <span ></span>{{shop.name}}<br/>
+                {% if shop.latitude != '0' and shop.longitude != '0' %}
+                <a href="http://api.map.baidu.com/marker?location={{shop.latitude}},{{shop.longitude}}&title={{shop.name}}&content={{shop.address}}&output=html&src=视惠信息">
+                    <span class="glyphicon glyphicon-map-marker" style="margin-right:3px"></span>{{default(shop.address, '')}}<br/>
+                </a>
+                {%else%}
+                    <span class="glyphicon glyphicon-map-marker" style="margin-right:3px"></span>{{default(shop.address, '')}}<br/>
+                {%end%}
+                <a href="tel:{{shop.phone}}"><span class="glyphicon glyphicon-phone-alt" style="margin-right:3px"></span>{{default(shop.phone, '')}}</a>
+            </div>
+            {% end %}
+        </div>
+    </div>
+{% end %}

@@ -1,0 +1,104 @@
+{% extends '../../layout.html' %}
+
+{% block title %}群发消息{% end %}
+{% block menu %}
+    {% module menu('wx.send_all') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">群发消息</h2>
+</div>
+
+{% if error %}
+<div class="ui-tipbox ui-tipbox-white ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xf00b4;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">不能群发消息</h3>
+        <p class="ui-tipbox-explain">只有认证的服务号才能群发消息</p>
+    </div>
+</div>
+{% else %}
+    <form class="ui-form" action="{{ reverse_url('wx.send_all') }}" method="post" id="form">
+        <div class="ui-form-item">
+            <label class="ui-label">消息类型</label>
+            <select name="msg-type">
+                <option value="0">图文消息</option>
+                <option value="1">图文组消息</option>
+            </select>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">消息内容</label>
+            <select name="msg-id">
+                {% for msg in app_msg %}
+                    <option value="{{ msg.id }}">{{ msg.title }}</option>
+                {% end %}
+            </select>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">发送组</label>
+            <select name="group-id">
+                {% for gp in group %}
+                    <option value="{{ gp.id }}">{{ gp.name }}</option>
+                {% end %}
+            </select>
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="button" class="ui-button ui-button-morange" value="发送消息" id="offer">
+        </div>
+    </form>
+    <div id="success"></div>
+{% end %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$'], function($){
+        $('select[name="msg-type"]').change(function(){
+            var msg_type = $(this).val();
+            $.get(
+                    "{{ reverse_url('wx.send_all.msg.ajax') }}",
+                    {'msg_type': msg_type},
+                    function(data){
+                        var html = '';
+                        for (var i = 0; i < data.length; i++){
+                            html += '<option value="'+ data[i]['id'] +'">' + data[i]['name'] + '</option>';
+                        }
+
+                        var obj = $('select[name="msg-id"]');
+                        obj.children().remove();
+                        obj.html(html);
+                    }
+            )
+        });
+
+        $('#offer').on('click', function(){
+            var msg_type = $('select[name="msg-type"]').val();
+            var msg_id = $('select[name="msg-id"]').val();
+            var group_id = $('select[name="group-id"]').val();
+            if (!$('select[name="msg-id"]').val()) {
+                alert('请选择图文信息。如果没有选项，请先添加');
+                return false;
+            }
+            $.post(
+                    "{{ reverse_url('wx.send_all') }}",
+                    {'_xsrf': $('input[name="_xsrf"]').val(), 'msg-type': msg_type, 'msg-id': msg_id, 'group-id': group_id},
+                    function(data) {
+                        if (data.ok) {
+                            var html = '<div class="ui-tiptext-container ui-tiptext-container-success">' +
+                                       '<p class="ui-tiptext ui-tiptext-success">' +
+                                       '<i class="ui-tiptext-icon iconfont" title="成功">&#xf0156;</i>消息发送成功'
+                                       '</p></div>'
+                            $('#success').html(html);
+                        } else {
+                            alert(data['errmsg'])
+                        }
+                    }
+            )
+        });
+    });
+</script>
+{% end %}

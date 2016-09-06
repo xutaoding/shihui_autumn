@@ -1,0 +1,301 @@
+{% extends '../../layout.html' %}
+{% block title %}官网首页轮播{% end %}
+{% block menu %}
+{% module menu('wx.site.cover') %}
+{% end%}
+{% block styles %}
+<style>
+    .ui-tiptext-icon {
+        color: #b5de70;
+        font-size: 18px;
+        display: none;
+    }
+    #icon-list .iconfont,
+    td .iconfont{
+        font-size: 32px;
+    }
+    table .fa {
+        font-size: 200%;
+    }
+    #icon-list {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    #icon-list li {
+        float: left;
+        width: 70px;
+        height: 80px;
+        text-align: center;
+    }
+    #icon-list li a {
+        padding: 10px 10px;
+    }
+    #icon-list li a:hover {
+        color: #1d9d74;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="ui-tab" style="margin-top: 20px;">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.cover') }}">封面设置</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.tpl') }}">模板选择</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.site.slide') }}">首页幻灯片</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">分类栏目</a>
+        </li>
+    </ul>
+</div>
+<table class="ui-table ui-table-noborder" style="margin-top: 20px;">
+    <thead>
+    <tr>
+        <th style="width: 70px">标题</th>
+        <th>显示顺序</th>
+        <th style="width: 60px">图标</th>
+        <th style="text-align: center;">图片（宽200高200）</th>
+        <th>链接到图文消息</th>
+        <th>显示</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for column in columns %}
+    <tr>
+        <td><input type="text" id="name-{{column.id}}" value="{{column.name}}" style="width:70px"/></td>
+        <td><input type="text" id="display-order-{{column.id}}" size="5" value="{{column.display_order}}"/></td>
+        <td>
+            <i class="iconfont" id="fa-{{column.id}}">{% raw column.icon %}</i>
+            <input type="hidden" id="icon-{{column.id}}" value="{{ column.icon }}"/><br/>
+            <a href="javascript:" icon-column-id="{{column.id}}">更换图标</a>
+        </td>
+        <td>
+            <input type="hidden" id="pic-{{column.id}}" value="{{column.pic}}">
+            <div style="text-align: center;">
+            <img style="width: 100px; height:100px;" src="{{img_url(column.pic)}}" id="img-preview-{{column.id}}">
+            </div>
+            <div style="text-align: center;">
+                <a href="javascript:" pic-column-id="{{column.id}}">更换图片</a>
+            </div>
+        </td>
+        {#<td>
+            <select id="app-msg-{{column.id}}">
+                {% for app_msg in app_msgs %}
+                <option value="{{app_msg.id}}" {{ 'selected' if app_msg.id==column.app_msg_id else '' }} >{{app_msg.title}}</option>
+                {% end %}
+            </select>
+        </td>#}
+        <td>
+            <select id="link-type-{{column.id}}" app-id="{{ column.val }}">
+                {% for link in links %}
+                <option value="{{link['link_type']}}"{% if column.link_type == link['link_type'] %} selected {% end %}>{{link['name']}}</option>
+                {% end %}
+            </select>
+            {% for link in links %}
+            <input type="hidden" value="{{link['val']}}" name="{{link['name']}}">
+            {% end %}
+        </td>
+        <td><input type="checkbox" id="is-show-{{column.id}}" {{ 'checked' if column.is_show=='1' else ''}} ></td>
+        <td> <input type="button" class="ui-button ui-button-sorange" action="edit" save-column-id="{{column.id}}" value="保存">
+            <i class="ui-tiptext-icon iconfont" title="成功" id="tip-{{column.id}}">&#xf0156;</i>
+        </td>
+    </tr>
+    {% end %}
+    {% for i in range(9-len(columns)) %}
+    <tr>
+        <td><input type="text" id="name-add{{i}}" style="width:70px"/></td>
+        <td><input type="text" id="display-order-add{{i}}" size="5"/></td>
+        <td>
+            <i class="iconfont" id="fa-add{{i}}">&#xf0116;</i>
+            <input type="hidden" id="icon-add{{i}}" value="&amp;#xf0116;"/><br/>
+            <a href="javascript:" icon-column-id="add{{i}}">更换图标</a>
+        </td>
+        <td>
+            <input type="hidden" id="pic-add{{i}}" value="">
+            <div style="text-align: center;">
+                <img style="width: 100px; height:100px;" src="http://img.uhcdn.com/images/autumn/default_180x100.png" id="img-preview-add{{i}}">
+            </div>
+            <div style="text-align: center;">
+                <a href="javascript:" pic-column-id="add{{i}}">添加图片</a>
+            </div>
+        </td>
+        {#<td>
+            <select id="app-msg-add{{i}}">
+                {% for app_msg in app_msgs %}
+                <option value="{{app_msg.id}}">{{app_msg.title}}</option>
+                {% end %}
+            </select>
+        </td>#}
+        <td>
+            <select id="link-type-add{{i}}">
+                {% for link in links %}
+                <option value="{{link['link_type']}}">{{link['name']}}</option>
+                {% end %}
+            </select>
+            {% for link in links %}
+                <input type="hidden" value="{{link['val']}}" name="{{link['name']}}">
+            {% end %}
+
+        </td>
+        <td><input type="checkbox" id="is-show-add{{i}}" checked></td>
+        <td>
+            <input type="button" class="ui-button ui-button-sorange" action="add" save-column-id="add{{i}}" value="保存">
+            <i class="ui-tiptext-icon iconfont" title="成功" id="tip-add{{i}}">&#xf0156;</i>
+        </td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+{% module xsrf_form_html() %}
+<div style="display: none">
+
+    <div id="icon-list">
+        <ul class="fn-clear">
+            {% for icon_name, icon_code in [('填色','&#xf0001;'),('合并','&#xf0002;'),('封闭','&#xf0003;'),('节点','&#xf0004;'),('大小','&#xf0005;'),('水瓶座','&#xf000a;'),('双鱼座','&#xf000b;'),('摩羯座','&#xf000c;'),('处女座','&#xf000d;'),('狮子座','&#xf000e;'),('巨蟹座','&#xf000f;'),('天蝎座','&#xf0010;'),('射手座','&#xf0011;'),('天秤座','&#xf0012;'),('双子座','&#xf0013;'),('金牛座','&#xf0014;'),('牡羊座','&#xf0015;'),('云上传','&#xf0020;'),('新','&#xf0021;'),('编辑','&#xf0022;'),('上传','&#xf0023;'),('上传','&#xf0024;'),('列表','&#xf0025;'),('发送','&#xf0026;'),('充值','&#xf0029;'),('乐器','&#xf002a;'),('冰箱','&#xf002b;'),('咖啡','&#xf002c;'),('药品','&#xf002d;'),('消费者保障','&#xf0030;'),('新手上路','&#xf0031;'),('付款方式','&#xf0032;'),('淘宝特色','&#xf0033;'),('其他','&#xf0034;'),('缴费','&#xf0035;'),('音乐','&#xf0036;'),('电子书','&#xf0037;'),('理财','&#xf0038;'),('外卖','&#xf0039;'),('电影票','&#xf003a;'),('彩票','&#xf003b;'),('保险','&#xf003c;'),('旅行','&#xf003d;'),('网游','&#xf003e;'),('话费','&#xf003f;'),('全部','&#xf0040;'),('U站','&#xf0041;'),('文章','&#xf0042;'),('店铺','&#xf0043;'),('图片','&#xf0044;'),('宝贝','&#xf0045;'),('品牌','&#xf0046;'),('折纸','&#xf0047;'),('女人','&#xf0048;'),('糖葫芦','&#xf0049;'),('寿司','&#xf004a;'),('热狗','&#xf004b;'),('冷饮','&#xf004c;'),('甜甜圈','&#xf004d;'),('杯子','&#xf004e;'),('间隔符号','&#xf004f;'),('汉堡','&#xf0050;'),('扬声器','&#xf0051;'),('口红','&#xf0052;'),('泳镜','&#xf0053;'),('电熨斗','&#xf0054;'),('硬盘','&#xf0055;'),('卷纸','&#xf0056;'),('电话机','&#xf0057;'),('棒球','&#xf0058;'),('收音机','&#xf0059;'),('帐篷','&#xf005a;'),('耳环','&#xf005b;'),('旅行袋','&#xf005c;'),('电风扇','&#xf005d;'),('取款机','&#xf005e;'),('星光','&#xf005f;'),('标签','&#xf0060;'),('闪烁','&#xf0061;'),('气泡','&#xf0062;'),('日历','&#xf0063;'),('音乐','&#xf0064;'),('洗衣机','&#xf0065;'),('对话框','&#xf0066;'),('空调','&#xf0067;'),('节日','&#xf0068;'),('可爱','&#xf0069;'),('计时器','&#xf006a;'),('医药箱','&#xf006b;'),('危险物品','&#xf006c;'),('项链','&#xf006d;'),('钱袋','&#xf006e;'),('登山鞋','&#xf006f;'),('平板电脑','&#xf0070;'),('冰箱','&#xf0071;'),('加湿器','&#xf0072;'),('煎锅','&#xf0073;'),('婴儿车','&#xf0074;'),('T恤','&#xf0075;'),('奶粉','&#xf0076;'),('婴儿床','&#xf0077;'),('MP3','&#xf0078;'),('导航仪','&#xf0079;'),('床','&#xf007a;'),('轮胎','&#xf007b;'),('自行车','&#xf007c;'),('投影仪','&#xf007d;'),('跑步机','&#xf007e;'),('书桌','&#xf007f;'),('铝锅','&#xf0080;'),('高尔夫杆','&#xf0081;'),('音箱','&#xf0082;'),('内衣','&#xf0083;'),('帽子','&#xf0084;'),('酒','&#xf0085;'),('运动鞋','&#xf0086;'),('清洁剂','&#xf0087;'),('雨伞','&#xf0088;'),('饮料','&#xf0089;'),('剪刀','&#xf008a;'),('裙子','&#xf008b;'),('卫生棉','&#xf008c;'),('礼物','&#xf008d;'),('尿不湿','&#xf008e;'),('碗具','&#xf008f;'),('人物','&#xf0090;'),('显示器','&#xf0091;'),('照相机','&#xf0092;'),('皮鞋','&#xf0093;'),('食物','&#xf0094;'),('PMP','&#xf0095;'),('单反相机','&#xf0096;'),('连衣裙','&#xf0097;'),('护肤品','&#xf0098;'),('电视机','&#xf0099;'),('高跟鞋','&#xf009a;'),('吊带','&#xf009b;'),('女包','&#xf009c;'),('运动','&#xf009d;'),('裤子','&#xf009e;'),('沙发','&#xf009f;'),('奶瓶','&#xf00a0;'),('图书','&#xf00a1;'),('手机','&#xf00a2;'),('戒指','&#xf00a3;'),('电池','&#xf00a4;'),('手表','&#xf00a5;'),('电饭锅','&#xf00a6;'),('笔记本','&#xf00a7;'),('打印机','&#xf00a8;'),('西装','&#xf00a9;'),('游戏','&#xf00aa;'),('几何图形','&#xf00ab;'),('植物','&#xf00ac;'),('动物','&#xf00ad;'),('对话','&#xf00ae;'),('推荐','&#xf00af;'),('认证用户','&#xf00b0;'),('彩带','&#xf00b1;'),('正确','&#xf00b2;'),('错误','&#xf00b3;'),('禁止','&#xf00b4;'),('提醒','&#xf00b5;'),('提示','&#xf00b6;'),('警告','&#xf00b7;'),('帮助','&#xf00b8;'),('网络','&#xf00b9;'),('创意','&#xf00ba;'),('账户','&#xf00bb;'),('剪切','&#xf00bc;'),('文件','&#xf00bd;'),('编辑文件','&#xf00be;'),('等待文件','&#xf00bf;'),('删除文件','&#xf00c0;'),('剪切文件','&#xf00c1;'),('复制文件','&#xf00c2;'),('搜索文件','&#xf00c3;'),('等待','&#xf00c4;'),('文件夹','&#xf00c5;'),('新增文件夹','&#xf00c6;'),('删除文件夹','&#xf00c7;'),('未打卡的文件夹','&#xf00c8;'),('锁定','&#xf00c9;'),('资料库','&#xf00ca;'),('字体','&#xf00cb;'),('网站主','&#xf00cc;'),('饼图','&#xf00cd;'),('竖状图','&#xf00ce;'),('曲线图','&#xf00cf;'),('折线图','&#xf00d0;'),('API接入','&#xf00d1;'),('定向','&#xf00d2;'),('精确定向','&#xf00d3;'),('广告主','&#xf00d4;'),('设计师','&#xf00d5;'),('男商家','&#xf00d6;'),('女商家','&#xf00d7;'),('添加商家','&#xf00d8;'),('兴趣定向','&#xf00d9;'),('竞价','&#xf00da;'),('指针','&#xf00db;'),('激活','&#xf00dc;'),('插件','&#xf00dd;'),('图标','&#xf00de;'),('计划','&#xf00df;'),('添加计划','&#xf00e0;'),('目录','&#xf00e1;'),('广告位','&#xf00e2;'),('添加广告位','&#xf00e3;'),('商家群','&#xf00e4;'),('手机店招','&#xf00e5;'),('店招','&#xf00e6;'),('图文店招','&#xf00e7;'),('调节','&#xf00e8;'),('可见','&#xf00e9;'),('不可见','&#xf00ea;'),('飙升榜','&#xf00eb;'),('管理员','&#xf00ec;'),('金币','&#xf00ed;'),('金币转出','&#xf00ee;'),('金币提现','&#xf00ef;'),('金币转入','&#xf00f0;'),('计费','&#xf00f1;'),('页面推广','&#xf00f2;'),('推广广告位','&#xf00f3;'),('广告主活动推广','&#xf00f4;'),('用研','&#xf00f5;'),('新手学堂','&#xf00f6;'),('上传素材','&#xf00f7;'),('通投','&#xf00f8;'),('渠道效果','&#xf00f9;'),('渠道管理','&#xf00fa;'),('推广渠道','&#xf00fb;'),('推广单元格','&#xf00fc;'),('细分','&#xf00fd;'),('系统推送','&#xf00fe;'),('奖牌','&#xf00ff;'),('淘宝客推广','&#xf0100;'),('账户明细','&#xf0101;'),('密匙','&#xf0102;'),('支付宝','&#xf0103;'),('自助推广','&#xf0104;'),('管理','&#xf0105;'),('计划报表','&#xf0106;'),('默认出价','&#xf0107;'),('起步价','&#xf0108;'),('竞价资源位','&#xf0109;'),('定价资源位','&#xf010a;'),('账户报表','&#xf010b;'),('全网竞价报表','&#xf010c;'),('网站设置','&#xf010d;'),('跟踪目标设置','&#xf010e;'),('网站管理','&#xf010f;'),('跟踪目标管理','&#xf0110;'),('排序','&#xf0111;'),('向左','&#xf0112;'),('向上','&#xf0113;'),('向右','&#xf0114;'),('节日','&#xf0115;'),('可爱的','&#xf0116;'),('标签','&#xf0117;'),('闪烁','&#xf0118;'),('多素材','&#xf0119;'),('云下载','&#xf011a;'),('微笑','&#xf011b;'),('吃惊','&#xf011c;'),('呆','&#xf011d;'),('耍酷','&#xf011e;'),('魔鬼','&#xf011f;'),('尴尬','&#xf0120;'),('亲','&#xf0121;'),('怒','&#xf0122;'),('眨眼','&#xf0123;'),('生气','&#xf0124;'),('骂','&#xf0125;'),('鄙视','&#xf0126;'),('卖萌','&#xf0127;'),('惊呆','&#xf0128;'),('晕','&#xf0129;'),('facebook','&#xf012a;'),('首页','&#xf012b;'),('搜索','&#xf012c;'),('用户','&#xf012d;'),('黑名单','&#xf012e;'),('分享','&#xf012f;'),('文本','&#xf0130;'),('保存','&#xf0131;'),('对话','&#xf0132;'),('表情','&#xf0133;'),('物流','&#xf0134;'),('店铺','&#xf0135;'),('名片','&#xf0136;'),('图片','&#xf0137;'),('邮件','&#xf0138;'),('销量','&#xf0139;'),('撤销','&#xf013a;'),('重做','&#xf013b;'),('赞扬','&#xf013c;'),('批评','&#xf013d;'),('设置','&#xf013e;'),('删除','&#xf013f;'),('旺旺','&#xf0140;'),('其它','&#xf0141;'),('信息','&#xf0142;'),('帮助','&#xf0143;'),('收藏','&#xf0144;'),('喜爱','&#xf0145;'),('小助手','&#xf0146;'),('语音','&#xf0147;'),('购物车','&#xf0148;'),('耳机','&#xf0149;'),('位置','&#xf014a;'),('好友','&#xf014b;'),('查找用户','&#xf014c;'),('添加用户','&#xf014d;'),('哭脸','&#xf014e;'),('编辑','&#xf014f;'),('人民币','&#xf0150;'),('照相机','&#xf0151;'),('标签','&#xf0152;'),('减','&#xf0153;'),('加','&#xf0154;'),('错误','&#xf0155;'),('正确','&#xf0156;'),('女人','&#xf0157;'),('文本输入','&#xf0158;'),('小缩略图','&#xf0159;'),('随机用户','&#xf015a;'),('附件','&#xf015b;'),('刷新','&#xf015c;'),('单图排列','&#xf015d;'),('大列表','&#xf015e;'),('大缩略图列表','&#xf015f;'),('瀑布流','&#xf0160;'),('列表','&#xf0161;'),('视频','&#xf0162;'),('下载','&#xf0163;'),('过滤','&#xf0164;'),('发送邮件','&#xf0165;'),('提醒设置','&#xf0166;'),('诊断','&#xf0167;'),('编辑模板','&#xf0168;'),('导入创意','&#xf0169;'),('粘贴','&#xf016a;'),('开始','&#xf016b;'),('完成','&#xf016c;'),('向右','&#xf016d;'),('向左','&#xf016e;'),('向上','&#xf016f;'),('向下','&#xf0170;'),('淘宝','&#xf0171;'),('聚划算','&#xf0172;'),('天猫','&#xf0173;'),('应用','&#xf0174;'),('加','&#xf0175;'),('减','&#xf0176;'),('降价','&#xf0177;'),('购物车满','&#xf0178;'),('购物车空','&#xf0179;'),('应用中心','&#xf017a;'),('更新','&#xf017b;'),('退出','&#xf017c;'),('皇冠','&#xf017d;'),('暂停','&#xf017e;'),('居左','&#xf017f;'),('居中','&#xf0180;'),('居右','&#xf0181;'),('横排','&#xf0182;'),('竖排','&#xf0183;'),('左缩进','&#xf0184;'),('右缩进','&#xf0185;'),('垂直缩放','&#xf0186;'),('水平缩放','&#xf0187;'),('斜体','&#xf0188;'),('最上部','&#xf0189;'),('最下部','&#xf018a;'),('锁定','&#xf018b;'),('禁止','&#xf018c;'),('设置','&#xf018d;'),('录音','&#xf018e;'),('进入','&#xf018f;'),('半分','&#xf0190;'),('转弯','&#xf0191;'),('高速','&#xf0192;'),('淘','&#xf0193;'),('打开信息','&#xf0194;'),('解锁','&#xf0195;'),('退格','&#xf0196;'),('应用中心','&#xf0197;'),('图文详情','&#xf0198;'),('文本输入','&#xf0199;'),('微距','&#xf019a;'),('远景','&#xf019b;'),('高清摄像','&#xf019c;'),('人像','&#xf019d;'),('风景','&#xf019e;'),('夜景','&#xf019f;'),('全景','&#xf01a0;'),('自拍模式','&#xf01a1;'),('左上','&#xf01a2;'),('向上','&#xf01a3;'),('右上','&#xf01a4;'),('左下','&#xf01a5;'),('向下','&#xf01a6;'),('右下','&#xf01a7;'),('向左','&#xf01a8;'),('向右','&#xf01a9;'),('防晒','&#xf01aa;'),('化妆水','&#xf01ab;'),('乳液','&#xf01ac;'),('微波炉','&#xf01ad;'),('链接','&#xf01ae;'),('新浪微博','&#xf01af;'),('腾讯微博','&#xf01b0;'),('环','&#xf01b1;'),('合并单元','&#xf01b2;'),('缩回','&#xf01b3;'),('缩小','&#xf01b4;'),('放大','&#xf01b5;'),('移动','&#xf01b6;'),('全屏','&#xf01b7;'),('缩小','&#xf01b8;'),('放大','&#xf01b9;'),('新建窗口','&#xf01ba;'),('新窗口打开','&#xf01bb;'),('订阅','&#xf01bc;'),('信号','&#xf01bd;'),('订单','&#xf01be;'),('充电','&#xf01bf;'),('提升','&#xf01c0;'),('下降','&#xf01c1;'),('html','&#xf01c2;'),('css','&#xf01c3;'),('通知','&#xf01c4;'),('定位','&#xf01c5;'),('代码文件','&#xf01c6;'),('qq','&#xf01c7;'),('豆瓣','&#xf01c8;'),('安卓','&#xf01c9;'),('github','&#xf01ca;'),('播放','&#xf01cb;'),('播放','&#xf01cc;'),('客厅','&#xf01cd;'),('卧室','&#xf01ce;'),('屏风','&#xf01cf;'),('茶壶','&#xf01d0;'),('树苗','&#xf01d1;'),('玩具','&#xf01d2;'),('树','&#xf01d3;'),('婴儿','&#xf01d4;'),('蝌蚪','&#xf01d5;'),('爬行的婴儿','&#xf01d6;'),('玩耍的孩子','&#xf01d7;'),('苹果','&#xf01d8;'),('连衣裙','&#xf01d9;'),('木马','&#xf01da;'),('童装','&#xf01db;'),('药品','&#xf01dc;'),('抱枕','&#xf01dd;'),('新生儿','&#xf01de;'),('淋浴','&#xf01df;'),('花盆','&#xf01e0;'),('椅子','&#xf01e1;'),('灯饰','&#xf01e2;'),('树','&#xf01e3;'),('月亮','&#xf01e4;'),('窗帘','&#xf01e5;'),('收纳','&#xf01e6;'),('油烟机','&#xf01e7;'),('孕妇装','&#xf01e8;'),('地图','&#xf01e9;'),('地图','&#xf01ea;'),('对话','&#xf01eb;'),('选择','&#xf01ec;'),('裁剪','&#xf01ed;'),('html5','&#xf01ee;'),('电话','&#xf01ef;'),('出租','&#xf01f0;'),('铁路','&#xf01f1;'),('公交','&#xf01f2;'),('行人','&#xf01f3;'),('皇冠','&#xf01f4;'),('购物','&#xf01f5;'),('券','&#xf01f6;'),('店铺','&#xf01f7;'),('金币','&#xf01f8;'),('点击','&#xf01f9;'),('下拉','&#xf01fa;'),('打扮','&#xf01fb;'),('蝴蝶结','&#xf01fc;'),('直通车','&#xf01fd;'),('钻石','&#xf01fe;'),('微软','&#xf01ff;'),('苹果','&#xf0200;'),('转推','&#xf0201;'),('飞机','&#xf0202;'),('大巴','&#xf0203;'),('关机','&#xf0204;'),('晴','&#xf0205;'),('多云','&#xf0206;'),('云','&#xf0207;'),('雾气','&#xf0208;'),('雨','&#xf0209;'),('小雨','&#xf020a;'),('雷电','&#xf020b;'),('风','&#xf020c;'),('浓云','&#xf020d;'),('晚上','&#xf020e;'),('乌云','&#xf020f;'),('烈日','&#xf0210;'),('etao','&#xf0211;'),('一','&#xf0213;'),('惠','&#xf0222;'),('@','&#xf023e;'),('沙尘','&#xf0271;'),('冻雨','&#xf0272;'),('浮尘','&#xf0273;'),('雨夹雪','&#xf0274;'),('大雪','&#xf0275;'),('中雪','&#xf0276;'),('小雪','&#xf0277;'),('大雨','&#xf0278;'),('优质','&#xf0279;'),('行业','&#xf027a;'),('潜力','&#xf027b;'),('新建模块','&#xf027c;'),('红包','&#xf027d;'),('电影票','&#xf027e;'),('脚印','&#xf027f;'),('金额','&#xf0280;'),('清除','&#xf028b;'),('趋势下降','&#xf028c;'),('曲线上升','&#xf028d;'),('价格曲线','&#xf028e;'),('宜','&#xf028f;'),('收藏','&#xf0290;'),('更多','&#xf0291;'),('返回','&#xf0292;'),('关键词','&#xf0293;'),('宝贝','&#xf0294;'),('定向','&#xf0295;'),('日期','&#xf0296;'),('排序','&#xf0297;'),('推广中','&#xf0298;'),('暂停','&#xf0299;'),('删除','&#xf029a;'),('修改出价','&#xf029b;'),('充值','&#xf029c;'),('首页','&#xf029d;'),('计划列表','&#xf029e;'),('发现','&#xf029f;'),('指示','&#xf02a0;'),('出错','&#xf02a3;')] %}
+            <li>
+                <a href="javascript:" fa="{{ icon_code }}">
+                    <i class="iconfont">{% raw icon_code %}</i>
+                </a>
+                <div>{{ icon_name }}</div>
+            </li>
+            {% end %}
+        </ul>
+
+    </div>
+</div>
+
+<input type="hidden" id="app-msg" value='<select name="app-msg"> {% for app_msg in app_msgs %} <option value="{{app_msg.id}}">{{app_msg.title}}</option> {% end %} </select>'>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'kindeditor', 'dialog'], function ($, autumn, ConfirmBox, KindEditor, Dialog) {
+        var icon_id= '0';
+        var icon_dialog = new Dialog({
+            content: $('#icon-list'),
+            width: '800px'
+        });
+        $('[icon-column-id]').click(function(){
+            var ele = $(this);
+            icon_id= ele.attr('icon-column-id');
+            icon_dialog.show();
+        });
+        $('#icon-list a').click(function() {
+            var fa = $(this).attr('fa');
+            $('#fa-'+icon_id).html(fa);
+            $('#icon-'+icon_id).val(fa);
+            icon_dialog.hide();
+        });
+        $('select[id^="link-type"]').each(function(){
+            if ($(this).val() == 0) {
+                var app_id = $(this).attr('app-id');
+                $(this).parent().append($('#app-msg').val());
+                $(this).parent().find('select[name="app-msg"]').find('option[value="' + app_id + '"]').attr('selected', true);
+            }
+        });
+
+        $('select[id^="link-type"]').change(function(){
+            $(this).parent().find('select[name="app-msg"]').remove();
+            var link_type = $(this).val();
+            if (link_type == 0){
+                $(this).parent().append($('#app-msg').val());
+            }
+        });
+        $('[save-column-id]').click(function(){
+            var ele = $(this);
+            var column_id = ele.attr('save-column-id');
+            var action = ele.attr('action');
+            var name = $('#name-'+column_id).val();
+            var display_order = $('#display-order-'+column_id).val();
+            var icon = $('#icon-'+column_id).val();
+            var pic = $('#pic-'+column_id).val();
+            var link_type = $('#link-type-' + column_id);
+            var link_type_val = link_type.val();
+            if (link_type_val == 0) {
+                var val = link_type.closest('td').find('[name="app-msg"]').val();
+            } else  {
+                var selected_link = $('#link-type-' + column_id + ' option:selected').text()
+                var val = link_type.closest('td').find('input[name='+selected_link+']').val();
+            }
+            //var app_msg_id=$('#app-msg-' + column_id).val();
+            var is_show = Number(Boolean($('#is-show-'+column_id).attr('checked')));
+            if (!name){
+                alert('请输入标题');return;
+            }
+            if (!display_order || !Number(display_order)){
+                alert('请输入数字顺序');return;
+            }
+            if (!icon) {
+                alert('请选择图标');return;
+            }
+            if (!pic){
+                alert('请上传图片');return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url:'{{ reverse_url("wx.site.column.update") }}',
+                cache: false,
+                data: {
+                    '_xsrf': autumn.get_cookie('_xsrf'),
+                    'id': column_id,
+                    'action': action,
+                    'name': name,
+                    'display_order': display_order,
+                    'icon': icon,
+                    'pic': pic,
+                    'link_type': link_type_val,
+                    'val': val,
+                    'is_show': is_show
+                },
+                error: function() {
+                    alert('请求发生错误，请刷新页面后重试');
+                },
+                success: function(data) {
+                    $('#tip-'+column_id).show().delay(3000).fadeOut(1);
+                    if (action == 'add') {
+                        ele.attr('action', 'edit');
+                    }
+                }
+            });
+
+
+
+        });
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf'),
+                    'source': 'max180'
+                }
+            });
+            K.create(); // 偷懒的方式让它自动加载css
+            K('[pic-column-id]').click(function() {
+                var column_id = $(this).attr('pic-column-id');
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#pic-'+column_id).val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview-'+column_id).attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+    });
+</script>
+{% end %}

@@ -1,0 +1,147 @@
+{% extends '../../layout.html' %}
+{% block title %}申请提现{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">申请提现</h2>
+</div>
+{% if pending_withdraw_bill %}
+<div class="ui-tipbox ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF0142;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">您有一笔待审批的提现申请</h3>
+        <p class="ui-tipbox-explain">请耐心等待审批结果</p>
+    </div>
+</div>
+{% elif withdraw_accounts %}
+<form class="ui-form" name="" method="post" action="{{ reverse_url('finance.withdraw.apply') }}" id="form">
+    <div class="content">
+        <div class="ui-form-item">
+            <label class="ui-label">
+                <span class="ui-form-required">*</span>收款账户</label>
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th> </th>
+                    <th>开户名</th>
+                    <th>银行名称</th>
+                    <th>所在城市</th>
+                    <th>支行名称</th>
+                    <th>银行卡号</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% set x = 1 %}
+                {% for withdraw_account in withdraw_accounts %}
+                <tr>
+                    <td><input type="radio" name="withdraw_account_id" value="{{withdraw_account.id}}"  {% if x == 1%} checked {% end %} {% set x=2 %}></td>
+                    <td>{{ withdraw_account.user_name }}</td>
+                    <td>{{ withdraw_account.bank_name }}</td>
+                    <td>{{ withdraw_account.bank_city }}</td>
+                    <td>{{ withdraw_account.sub_bank_name }}</td>
+                    <td>{{ withdraw_account.card_number }}</td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="ui-form-item">
+            <label class="ui-label">截止日期:</label>
+            <input id="end-cal" type="text" name="end_date" value="{{end_date}}" style="margin-top:5px;" readonly/>
+            <div class="ui-form-explain">截止至凌晨0点。</div>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">待提现金额:</label>
+            <label class="ui-form-text" id="amount_label"></label><br/>
+            <label class="ui-label">本次可提现金额:</label>
+            <label class="ui-form-text" id="amount_max"></label>
+            {% if error_info %}
+            <label class="ui-form-explain" style="color:red">{{error_info}}</label>
+            {% end %}
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="submit" class="ui-button ui-button-morange" id='apply_button' value="提交申请" style="display:none">
+            <a class="ui-button ui-button-mwhite" href="{{ reverse_url('finance.withdraw') }}">返回</a>
+        </div>
+    </div>
+</form>
+{% else %}
+<div class="ui-tipbox ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF0142;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">对不起，您还没有提供提现账户</h3>
+        <p class="ui-tipbox-explain">请与我们的销售人员联系。</p>
+    </div>
+</div>
+{% end %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'autumn'], function ($, AutoComplete, Calendar, Moment, autumn) {
+        // 日期选择器
+        //var t2 = Moment().format('YYYY-MM-DD');
+        //var c2 = new Calendar({trigger: '#end-cal', range: [null, t2]});
+
+        // 日期改变时，查询不同的提款金额
+//        c2.on('selectDate', function(date){
+//            queryAmount(date.format('YYYY-MM-DD'));
+//        });
+
+        // 第一次请求
+        {% if not pending_withdraw_bill and withdraw_accounts %}
+        end_date = $('#end-cal').val();
+        queryAmount(end_date);
+        {% end %}
+
+        function queryAmount(end_date){
+            $.ajax({
+                url: '{{reverse_url('finance.withdraw.query')}}',
+                type: 'POST',
+                dataType: "json",
+                data: {
+                        'end_date': end_date,
+                        '_xsrf': autumn.get_cookie('_xsrf'),
+                },
+                success: function(data){
+                    if (data.error){
+                        alert(data.error);
+                    }
+                    else{
+                        $('#apply_button').hide();
+                        if (data.amount > 0){
+                            $('#amount_label').html('￥'+data.amount+'<span style="margin-left:10px;"><a href="/withdraw/preview?end_date=' + data.end_date + '"  target="_blank">查看资金明细</a></span>');
+                            if (data.max_amount){
+                                $('#amount_max').html('￥'+data.max_amount+'<span style="margin-left:10px; color:red">'+data.remark+'</span>');
+                            }
+                            if (data.amount > 10){
+                                $('#apply_button').show();
+                            }
+                        }
+                        else{
+                            $('#amount_label').text('￥0.00');
+                        }
+                    }
+                },
+            });
+
+        }
+    });
+</script>
+{% end %}

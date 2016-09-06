@@ -1,0 +1,46 @@
+{% extends '../layout.html' %}
+{% block title %}微商城{% end %}
+
+{% block style %}
+<style type="text/css">
+    .origin_price {
+        float: left;
+        margin: 0;
+        color: #999;
+        text-decoration: line-through;
+    }
+    .sales_price {
+        float: right;
+        color: #9d261d;
+        font-size: 24px;
+    }
+    .clear {
+        clear: both;
+    }
+    a:hover {text-decoration:none;}
+</style>
+{% end %}
+
+{% block content %}
+<div class="row">
+    {% for goods in goods_list.rows %}
+    <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+            <a href="{{ url_concat(reverse_url('mall.goods_detail', goods.id), {'wx_id': current_user.wx_id}) }}">
+                {% set img = json.loads(goods.img_paths)['720x400']%}
+                <img data-src="holder.js/360x200" alt="360x200" src="{{ img_url(img) }}" style="width: 360px; height: 200px;">
+                <div class="caption">
+                    <h3>{{ goods.short_name}}</h3>
+                </div>
+                <div>
+                    <p class="origin_price">原价：¥{{ goods.face_value }}</p>
+                    <p class="sales_price"><small>¥</small>{{ goods.sales_price }}</p>
+                    <div class="clear"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    {% end %}
+</div>
+{% raw goods_list.boot_links() %}
+{% end %}

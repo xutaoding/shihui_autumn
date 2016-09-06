@@ -1,0 +1,164 @@
+{% extends "../layout.html" %}
+{% block title %}商品销售渠道报表{% end %}
+{% block menu %}
+{% module menu('finance.channel_goods_report') %}
+{% end%}
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">商品销售报表</h2>
+    </div>
+    <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('finance.channel_goods_report') }}" id="form">
+    <div style="margin-bottom: 10px;">
+    <span>
+        选择商户:
+    </span>
+    <input type="text" id="supplier_input" name="supplier_name" value="{{default(form.supplier_name.value,'')}}" style="width:200px;">
+    <input id="supplier_id" name="supplier" type="hidden" value="{{default(form.supplier.value,'')}}">
+    <span>汇总类型:</span>
+        <input type="radio" id="summary_type_0" name="summary_type" value="goods_type" {{ 'checked' if not form.summary_type.value or form.summary_type.value=='goods_type' else '' }} > <label for="summary_type_0">大类</label>
+        <input type="radio" id="summary_type_1" name="summary_type" value="distr_shop" {{ 'checked' if form.summary_type.value=='distr_shop' else '' }} > <label for="summary_type_1">渠道</label>
+    </div>
+    <div style="margin-top: 10px;">
+        <span>日期</span>
+        <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value }}" placeholder="不选日期默认最近7天"/> -
+        <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value }}" placeholder="不选日期默认最近7天"/>
+        <input type="hidden" name="action">
+        <button type="button" id="show" class="ui-button ui-button-sorange">查询</button>
+        <button type="button" id="download" class="ui-button ui-button-sblue">下载</button>
+    </div>
+    </form>
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    {% if not form.summary_type.value or form.summary_type.value=='goods_type'  %}
+                    <th style="width: 30px">大类</th>
+                    {% else %}
+                    <th>渠道</th>
+                    {% end %}
+                    <th style="width: 150px">商品</th>
+                    <th>销售数量</th>
+                    <th>销售金额</th>
+                    <th>成本</th>
+                    <th>利润</th>
+                    <th>已使用/已发货</th>
+                    <th>消费金额</th>
+                    <th>未消费退款数量</th>
+                    <th>未消费退款金额</th>
+                    <th>已消费退款数量</th>
+                    <th>已消费退款金额</th>
+                    <th>刷单数量</th>
+                    <th>刷单金额</th>
+                    <th>刷单利润</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if page%}
+                {% for i in page.rows%}
+                <tr>
+                    {% if not form.summary_type.value or form.summary_type.value=='goods_type'  %}
+                    <td> {{ i.category_name }} </td>
+                    {% else %}
+                    <td> {{i.distr_shop_name}} </td>
+                    {% end %}
+                    <td><a href="{{reverse_url('goods.show_detail', i.goods_id)}}" target="_blank">{{i.goods_name}}</a></td>
+                    <td align="right"><a target="_blank" href="order?short_name={{i.goods_name}}&start_date={{form.start_date.value}}&end_date={{form.end_date.value}}{%if i.dsid %}&dsid={{i.dsid}}{% end %}">{{ i.sales_count }}</a></td>
+                    <td align="right">{{ i.sales_amount }}</td>
+                    <td align="right">{{ i.cost }}</td>
+                    <td align="right">{{ i.profit  }}</td>
+                    <td align="right">{{ i.used }}</td>
+                    <td align="right"><a target="_blank" href="coupon?short_name={{i.goods_name}}&start_used_at={{form.start_date.value}}&end_used_at={{form.end_date.value}}">{{ i.used_amount }}</a></td>
+                    <td align="right">{{ i.refund }}</td>
+                    <td align="right"><a target="_blank" href="coupon?short_name={{i.goods_name}}&start_refund_at={{form.start_date.value}}&end_refund_at={{form.end_date.value}}">{{ i.refund_amount }}</a></td>
+                    <td align="right">{{ i.vrefund }}</td>
+                    <td align="right"><a target="_blank" href="coupon?short_name={{i.goods_name}}&start_refund_at={{form.start_date.value}}&end_refund_at={{form.end_date.value}}">{{ i.vrefund_amount }}</a></td>
+                    <td align="right">{{ i.cheat }}</td>
+                    <td align="right"><a target="_blank" href="coupon?short_name={{i.goods_name}}&start_cheat_at={{form.start_date.value}}&end_cheat_at={{form.end_date.value}}">{{ i.cheat_amount }}</a></td>
+                    <td align="right">{{ i.cheat_profit }}</td>
+                </tr>
+                {% end %}
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+{% raw page.links() %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'autumn'], function ($, AutoComplete, Calendar, Moment, autumn) {
+        // 日期选择器
+        var t1 = '2012-01-01 00:00:00';
+        var t2 = Moment().format('YYYY-MM-DD 23:59:59');
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, null], format: 'YYYY-MM-DD 00:00:00'})
+        var c2 = new Calendar({trigger: '#end-cal', range: [null, null], format: 'YYYY-MM-DD 23:59:59'})
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, t2]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+        // 自动补全
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#error-text,#error-icon').hide();
+                    $('#supplier_id').val(data.id);
+                    getSupplierGoods(data.id);
+                }).render();
+
+            }
+        );
+
+        // 下载按钮
+        $("#download").click(function(){
+            $('input[name=action]').val('download');
+            $('#form').submit();
+        });
+
+        $("#show").click(function(){
+            $('input[name=action]').val('show');
+            $('#form').submit();
+        });
+
+        // 获取商户商品请求
+        function getSupplierGoods(supplier_id){
+            $.post(
+                '/common/supplier/goods',
+                {'_xsrf': autumn.get_cookie('_xsrf'), 'supplier_id': supplier_id},
+                function(data){
+                    if (data.error){
+                        $('#error-text').text(data.error);
+                        $('#error-text,#error-icon').show();
+                    }
+                    else{
+                        var goods = data.goods;
+                        var selection = '商品:<select id="goods_id" name="goods_id">';
+                        for (var i=0;i<goods.length;i++)
+                        {
+                             selection = selection + '<option value="' + goods[i].id + '">' + goods[i].name +'</option>'
+                        }
+                        selection = selection + "</select>";
+                        $('#goods').html(selection);
+                    }
+                }
+            );
+
+        }
+    });
+</script>
+{% end %}

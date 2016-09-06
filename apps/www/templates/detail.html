@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% block content %}
+		<div class="container" style="padding: 28px 0;">
+			<div id="product-detail">
+				<h3 class="title">{{ goods.short_name }}</h3>
+				<div>
+					<div class="img">
+						<img src="{{ goods.img_path }}">
+					</div>
+					<div class="info">
+						<h4 class="long-title">{{ goods.name }}</h4>
+						<div class="info-price">
+							<p class="sales-price"><small>¥</small>{{ goods.sales_price }}</p>
+							<div class="origin-price-info">
+								<span style="text-decoration: line-through;">原价：¥{{ goods.face_value }}</span> &nbsp;&nbsp;
+								<span>折扣：{{ round(goods.sales_price / goods.face_value, 2) }}折</span>
+							</div>
+						</div>
+						<div class="go-shopping">
+                            {% if not shop_info %}
+                            <div>暂时无法购买</div>
+                            {% else %}
+                            <a href="{{ shop_info['url'] }}">去{{ shop_info['name'] }}购买</a>
+                            {% end %}
+                        </div>
+						<div class="clear"></div>
+					</div>
+					<div class="clear"></div>
+				</div>
+				<div class="section-title">适用门店</div>
+				<div class="section">
+					<table cellpadding="0" cellspacing="0" class="shop-table">
+                    {% for supplier_shop in supplier_shop_list %}
+					<tr>
+						<td>{{ supplier_shop.supplier_name }}</td>
+						<td>{{ supplier_shop.name }}</td>
+						<td> 
+							<p>{{ supplier_shop.phone }}</p>
+							<p>
+								{{ supplier_shop.address }}
+							</p>
+						</td>
+					</tr>
+                    {% end %}
+					</table>
+				</div>
+				<div class="section-title">温馨提醒</div>
+				<div class="section"> {% raw goods.tips %} </div>
+
+				<div class="section-title">商品详情</div>
+				<div class="section"> {% raw goods.detail %} </div>
+
+                <div class="section-title">商户介绍</div>
+                <div class="section"> {% raw goods.supplier_intro %} </div>
+			</div>
+		</div>
+{% end %}

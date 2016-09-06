@@ -1,0 +1,83 @@
+{% extends "../layout.html" %}
+{% block title %}增加广告费{% end %}
+{% block menu %}
+{% module menu('supplier.show_ads_fee') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">增加广告费</h2>
+</div>
+<form action="{{ reverse_url('supplier.add_ads_fee') }}" method="post" class="ui-form">
+    <div class="ui-form-item {% if form.supplier.error %} ui-form-item-error {% end %}">
+        <label for="supplier" class="ui-label">
+            <span class="ui-form-required">*</span>商户</label>
+        <input id="supplier" type="text" size="20" class="ui-input ui-input-large"
+            value="{{ form.supplier.value }}" name="supplier">
+        {% if form.supplier.error %}
+                    <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                        没有该商户，请修改
+                    </p>
+        {% end %}
+    </div>
+
+    <div class="ui-form-item {% if form.fee.error %} ui-form-item-error {% end %}">
+        <label for="fee" class="ui-label">
+            <span class="ui-form-required">*</span>广告费</label>
+        <input id="fee" type="text" size="20" class="ui-input ui-input-large"
+             name="fee" value="{{ form.fee.value }}">
+    </div>
+
+     <div class="ui-form-item {% if form.received_at.error %} ui-form-item-error {% end %}">
+        <label for="received_at" class="ui-label">
+            <span class="ui-form-required">*</span>收取时间</label>
+        <input id="received_at" type="text" class="ui-input ui-input-large" name="received_at"
+               value="{{ form.received_at.value }}"/>
+    </div>
+
+    <div class="ui-form-item {% if form.received_at.error %} ui-form-item-error {% end %}">
+        <label for="received_type" class="ui-label">广告类型</label>
+        <select name="received_type" id="received_type">
+            <option value="ONLINE_FEE" {% if form.received_type.value == 'ONLINE_FEE' %} selected {% end %} >上线费</option>
+            <option value="ADS_FEE" {% if form.received_type.value == 'ADS_FEE' %} selected {% end %} >广告费</option>
+            <option value="OPERATE_FEE" {% if form.received_type.value == 'OPERATE_FEE' %} selected {% end %}  >代运营费</option>
+        </select>
+    </div>
+
+    <div class="ui-form-item {% if form.remark.error %} ui-form-item-error {% end %}">
+        <label for="remark" class="ui-label">备注</label>
+        <textarea id="remark" name="remark" class="ui-input ui-input-large">{{ form.remark.value }}</textarea>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+    <script>
+        seajs.use(['$', 'calendar', 'moment', 'autocomplete', 'autumn'],
+                function ($, Calendar, moment, AutoComplete, autumn) {
+            new Calendar({trigger: '#received_at', range: ['2012-01-01', moment().format('YYYY-MM-DD')]});
+            $.post(
+                '{{ reverse_url("common.autocomplete.supplier") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf')},
+                function(common_suppliers) {
+                    new AutoComplete({
+                        trigger: '#supplier',
+                        filter: 'stringMatch',
+                        selectFirst: true,
+                        submitOnEnter: false,
+                        dataSource: common_suppliers
+                    }).render()
+                }
+            )
+        });
+    </script>
+{% end %}

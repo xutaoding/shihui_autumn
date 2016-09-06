@@ -1,0 +1,56 @@
+{% extends "../layout.html" %}
+{% block title %}{{ name }}公司快递费{% end %}
+{% block menu %}
+{% module menu('express.list') %}
+{% end %}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ name }}公司快递费列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('freight.add', company_id) }}">添加快递费</a>
+</div>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>省份</th>
+            <th>运费</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in freight %}
+        <tr>
+            <th>{{ item.province }}</th>
+            <th>{{ item.price }}</th>
+            <th>
+                <a href="{{ reverse_url('freight.edit', company_id, item.id) }}">修改</a> /
+                <span style="cursor: pointer" data-id="{{ item.id }}" eid="{{ company_id }}">删除</span>
+            </th>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+
+</div>
+{% end %}
+
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn'],
+            function ($, ConfirmBox, autumn) {
+                $("span[data-id]").click(function () {
+                    var freight_id = $(this).attr('data-id');
+                    var company_id = $(this).attr('eid');
+                    ConfirmBox.confirm('是否删除该发布信息', '确认删除', function () {
+                        var action = "{{ reverse_url('freight.delete', company_id) }}";
+                        $("<form></form>").attr('action', action).attr('method', 'post')
+                                .append($("<input type='hidden' name='id' />").attr('value', freight_id))
+                                .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                        return false;
+                    });
+                });
+            });
+
+</script>
+{% end %}

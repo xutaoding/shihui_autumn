@@ -1,0 +1,101 @@
+{% extends "../layout.html" %}
+{% block title %}外部资金列表{% end %}
+{% block menu %}
+{% module menu('finance.external_money_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">外部资金</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('finance.add_external_money') }}">添加外部资金</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('finance.external_money_list') }}">
+    <span>商户名</span>
+    <input id="supplier_input" type="text"/>
+    <input id="supplier_id" name="supplier" type="hidden">
+    <span>资金走向</span>
+    <select name="source">
+        <option value="">全部</option>
+        <option value="0"
+        {% if form.source.value == '0' %} selected {% end %} >我们给商户</option>
+        <option value="1"
+        {% if form.source.value == '1' %} selected {% end %} >商户给我们</option>
+        <option value="2"
+        {% if form.source.value == '2' %} selected {% end %} >广告费</option>
+        <option value="3"
+        {% if form.source.value == '3' %} selected {% end %} >微信</option>
+    </select>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>商户</th>
+            <th>类型</th>
+            <th>金额</th>
+            <th>已结算金额</th>
+            <th>有效期</th>
+            <th>创建人</th>
+            <th>创建日期</th>
+            <th>结算备注</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for external in page.rows %}
+        <tr>
+            <td>{{ external.short_name }}</td>
+            <td>{{ {0:'我们给商户',1:'商户给我们', 2:'广告费', 3:'微信'}.get(external.source,'') }}
+                ({{ money_type.get(external.source, 0).get(external.flag, 0) }})
+            </td>
+            <td>{{ external.amount }}</td>
+            <td>{{ external.used_amount }}</td>
+            <td>{{ external.expire_at }}</td>
+            <td>{{ external.created_by }}</td>
+            <td>{{ external.created_at }}</td>
+            <td>{{ external.settle_remark if external.settle_remark else ''}}</td>
+            <td>{{ default(external.remark) }}</td>
+            <td>
+                <span style="cursor: pointer;" data-id="{{external.id}}">删除</span>
+            </td>
+
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autocomplete', 'autumn'], function ($, ConfirmBox, AutoComplete, autumn) {
+        $("span[data-id]").click(function () {
+            var id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该记录', '确认删除', function () {
+                var action = "{{ reverse_url('finance.delete_external_money') }}";
+                $("<form></form>").attr('action', action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+        $.post(
+                '{{ reverse_url("common.autocomplete.supplier") }}',
+                {'_xsrf': autumn.get_cookie('_xsrf')},
+                function (common_suppliers) {
+                    new AutoComplete({
+                        trigger: '#supplier_input',
+                        filter: 'stringMatch',
+                        selectFirst: true,
+                        dataSource: common_suppliers
+                    }).on('itemSelected',function (data, item) {
+                                $('#supplier_id').val(data.id);
+                            }).render()
+                }
+        )
+    });
+</script>
+{% end %}

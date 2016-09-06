@@ -1,0 +1,53 @@
+{% extends '../../layout.html' %}
+{% block title %}消息管理{% end %}
+{% block menu %}
+{% module menu('wx.msg.show') %}
+{% end%}
+
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">消息管理</h2>
+</div>
+
+    {% if page.rows %}
+        <div class="ui-content ui-grid-row">
+            <div class="ui-grid-3"></div>
+            <div class="ui-grid-18">
+                <table class="ui-table ui-table-noborder" style="border-left: solid 1px #ccc; border-right: solid 1px #ccc; word-break: break-word">
+                    <tbody>
+                    {% for msg in page.rows %}
+                        <tr style="border-top: solid 1px #ccc">
+                            <td>
+                                <p>
+                                    <span class="fn-left"><a href="/member/show?id={{msg.mid}}">用户:{{default(msg.wx_name, msg.mid)}}</a></span>
+                                    <span class="fn-right">{{msg.created_at.strftime('%Y年%m月%d日 %H时%M分%S秒')}}</span>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: solid 1px #ccc">
+                            <td>
+                                <p>
+                                    <span>{{msg.content}}</span>
+                                </p>
+                            </td>
+                        </tr>
+                    {% end %}
+                    </tbody>
+                </table>
+
+                {% raw page.links()%}
+            </div>
+            <div class="ui-grid-2"></div>
+        </div>
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title" style="padding-bottom:10px">暂时没有消息</h3>
+            </div>
+        </div>
+    {% end %}
+{% end %}

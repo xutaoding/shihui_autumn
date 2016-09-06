@@ -1,0 +1,131 @@
+{% extends '../layout.html' %}
+{% block title %}{{ '新增' if form.action.value == 'add' else '修改' }}账号{% end %}
+{% block menu %}
+    {% module menu('accounts.show') %}
+{% end%}
+
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '新增' if form.action.value == 'add' else '修改' }}账号</h2>
+</div>
+<form {% if form.action.value == 'edit' %} action="{{ reverse_url('accounts.edit', user.id) }}" {% else %} action="{{ reverse_url('accounts.add') }}" {% end %} method="post" class="ui-form" id="form">
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>角色</label>
+        <input type="radio" name="role" value="clerk" {% if role == 'clerk' %} checked="True" {% end %}>收款店员
+        <input type="radio" name="role" value="finance" {% if role == 'finance' %} checked="True" {% end %}>财务
+        <input type="radio" name="role" value="manager,finance,clerk" {% if 'manager' in role.split(',') %} checked="True" {% end %}>管理员
+    </div>
+
+    <div class="ui-form-item {% if form.login_name.error %} ui-form-item-error {% end %}">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>用户名</label>
+        {% if form.action.value == 'add' %}
+            <input id="login_name" type="text" size="20" class="ui-input ui-input-large"
+                 name="login_name" value="{{ form.login_name.value }}">
+            {% if form.login_name.error %}
+                <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                        <i class="ui-tiptext-icon iconfont" title="出错">&#xF0155;</i>
+                        {{ form.login_name.error }}
+                </p>
+            {% end %}
+        {% else %}
+            <label class="ui-form-text">{{ form.login_name.value }}</label>
+        {% end %}
+    </div>
+
+    {% if form.action.value == 'add' %}
+    <div class="ui-form-item">
+        <input id="type" value="{{ form.action.value }}" type="hidden"/>
+        <label for="password" class="ui-label">
+            <span class="ui-form-required">*</span>密码</label>
+        <input id="password" name="password" type="password" class="ui-input ui-input-large"/>
+    </div>
+    {% end %}
+
+    <div class="ui-form-item">
+        <label for="name" class="ui-label"><span class="ui-form-required">*</span>姓名</label>
+        <input id="name" type="text" class="ui-input ui-input-large" name="name"
+               value="{{ form.name.value }}"/>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="shop_id" class="ui-label">
+            <span class="ui-form-required">*</span>门店</label>
+        <select name='shop_id' id='shop_id'{% if form.action.value == 'edit'%} disabled {% end %}>
+            {% if user.separate_account == '0' %}
+            <option value='0'>--全部门店--</option>
+            {% end %}
+            {% for shop in shop_list %}
+            <option value='{{ shop.id }}' {% if form.action.value == 'edit' and user.shop_id == shop.id %} selected {% end %}>{{ shop.name }}</option>
+            {% end %}
+        </select>
+        {% if form.action.value == 'edit' %}
+            <input type="hidden" name="shop_id" value="{{user.shop_id}}">
+        {% end %}
+        <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                <i class="ui-tiptext-icon iconfont" title="出错">&#xf00b7;</i>
+                所属门店一经添加，不能修改
+        </p>
+        <label class="ui-form-explain"></label>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+    <script>
+    seajs.use(['$', 'validator'], function ($, Validator) {
+
+        Validator.addRule('username', /^[a-zA-Z0-9]+$/, '用户名只能使用数字和字母');
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=role]',
+            required: true,
+            errormessage: '请选择角色'
+        });
+        if ($('#type').val() == 'add') {
+            validator.addItem({
+                element: '#login_name',
+                required: true,
+                rule: 'username',
+            });
+            validator.addItem({
+                element: '#name',
+                required: true,
+                errormessage: '请输入姓名'
+            });
+            validator.addItem({
+                element: '#password',
+                required: true,
+                errormessage: '密码不能为空'
+            });
+        }
+        validator.addItem({
+            element: '#name',
+            required: true,
+            errormessage: '请输入名字'
+        });
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+        $('#all_shop').click(function(){
+            $('input[name="shop"]').attr("checked",true);
+            $('#supplier_shop').hide();
+        });
+        $('#part_shop').click(function(){
+            $('input[name="shop"]').attr("checked",false);
+            $('#supplier_shop').show();
+        });
+
+    });
+</script>
+{% end %}

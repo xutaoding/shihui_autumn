@@ -1,0 +1,13 @@
+<div id="supplier_select_box" style="padding: 50px;">
+    <form class="ui-form" method="{{ method }}" action="{{ action if action.startswith('/') else reverse_url(action)}}" >
+        <label for="supplier_select_name">商户</label>
+        <input id="supplier_select_name" name="supplier_name" type="text"/>
+        <input type="hidden" name="supplier_id" id="supplier_select_id">
+        {% if goods_id %}
+            <input type="hidden" name="goods_id" id="goods_id" value="{{ goods_id }}">
+            {% module xsrf_form_html() %}
+        {% end %}
+        <button type="submit" class="ui-button ui-button-sorange">下一步</button>
+    </form>
+</div>
+

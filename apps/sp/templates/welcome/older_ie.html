@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title> 一百券商户后台</title>
+    <link rel="shortcut icon" href="{{ static_url('img/favicon.ico') }}" type="image/x-icon">
+    <style type="text/css">
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            color: #ffffff;
+        }
+        img {
+            border: 0;
+        }
+        .top {
+            height: 300px;
+            background: #373e4a;
+            text-align: center;
+        }
+        .bottom {
+            /*background: #292E38;*/
+            color: #292E38;
+        }
+        .txt {
+            padding-top: 100px;
+            font-size: 28px;
+        }
+        .notice {
+            font-size: 16px;
+            color: #c5c5c5;
+        }
+        .browsers {
+            width: 420px;
+            margin: 0 auto;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="top">
+    <div class="txt">
+        <p>您使用的浏览器版本太低，请升级浏览器后继续访问</p>
+        <p class="notice">若您使用的是双核浏览器，请切换至【高速/极速】模式</p>
+    </div>
+</div>
+
+<div class="bottom">
+    <table class="browsers">
+        <tr>
+            <td colspan="3"><p>我们推荐使用以下浏览器</p></td>
+        </tr>
+        <tr>
+            <td>
+                <a href="http://www.microsoft.com/zh-cn/download/internet-explorer-8-details.aspx">
+                    <img src="http://i.microsoft.com/global/ImageStore/PublishingImages/logos/56x56/ie_symbol_clr_56x56.png">
+                </a>
+            </td>
+            <td>
+                <a href="http://se.360.cn/">
+                    <img src="http://w.qhimg.com/images/v2/360se/2012/04/09/ico03.jpg">
+                </a>
+            </td>
+            <td>
+                <a href="http://down.tech.sina.com.cn/page/40975.html">
+                    <img src="http://download.easyicon.net/png/1140083/64/">
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="http://www.microsoft.com/zh-cn/download/internet-explorer-8-details.aspx">IE8</a></td>
+            <td><a href="http://se.360.cn/">360浏览器</a></td>
+            <td><a href="http://down.tech.sina.com.cn/page/40975.html">谷歌浏览器</a></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
+

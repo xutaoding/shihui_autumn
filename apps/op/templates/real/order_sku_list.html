@@ -1,0 +1,239 @@
+{% extends "../layout.html" %}
+{% block title %}订单货品出库{% end %}
+{% block menu %}
+{% module menu('real.order_sku_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">订单货品出库</h2>
+</div>
+        <div>
+            <h3>有{{len(stock_batches)}}个待审批出货单
+                {% if stock_batches %}
+                <a href="{{reverse_url('real.stock_batch_list')}}">查看详情</a>
+                {% end %}
+            </h3>
+
+        </div>
+{% if order_items %}
+<form action="{{ reverse_url('real.order_sku_list') }}" method="post" class="ui-form" id="apply_stock_out_form">
+    <div class="content">
+        <table class="ui-table ui-table-noborder" id="order_sku">
+            <thead>
+            <tr>
+                <th>外部订单号</th>
+                <th>商品</th>
+                <th>货品</th>
+                <th>货品价格</th>
+                <th>待出库数量</th>
+                <th>选择</th>
+            </tr>
+            </thead>
+            <tbody id="order_sku_data">
+            {% for order_id, items in order_items.iteritems() %}
+            {% for i, item in enumerate(items) %}
+            <tr>
+                {% if i == 0 %}
+                <td rowspan="{{ len(items) }}">{{ item.wb_order_no }}</td>
+                {% end %}
+
+                <td data-order-id="{{item.order_id}}" data-item-id="{{item.item_id}}">{{ item.goods_name }}</td>
+                <td>{{ item.sku_name }}</td>
+                <td>{{ item.sku_price }}</td>
+                <td data-sku-num-order-id="{{item.order_id}}" data-item-id="{{item.item_id}}"
+                    data-order-id="{{item.order_id}}" data-sku-id="{{item.sku_id}}"
+                    class="item_num">
+                    {{ item.sku_out_num }}
+                </td>
+
+                {% if i == 0 %}
+                <td rowspan="{{ len(items) }}">
+                    <input id="check_{{item.order_id}}" data-order-id="{{item.order_id}}" type="checkbox" checked/>
+                </td>
+                {% end %}
+            </tr>
+            {% end %}
+            {% end %}
+            </tbody>
+        </table>
+        <div class="ui-title fn-clear">
+            <h3 class="fn-left">合计</h3>
+        </div>
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>货品</th>
+                <th>货品价格</th>
+                <th>待出库数量</th>
+                <th>实际库存</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sku in out_skus %}
+            <tr id="sku_{{sku.id}}">
+                <td>{{ sku.name }}</td>
+                <td>{{ sku.price }}</td>
+                <td class="sku_result" id="sku_out_num_{{sku.id}}" data-sku-name="{{sku.name}}" data-sku-price={{sku.price}} data-sku-id="{{ sku.id }}">0</td>
+                <td id="sku_remain_{{sku.id}}"> {{ sku.stock }}</td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        {% module xsrf_form_html() %}
+        <button id="apply_stock_out" type="button" class="ui-button ">申请出库</button>
+    </div>
+    <input type="hidden" name="item_result" id="item_result" value="">
+    <input type="hidden" name="sku_result" id="sku_result" value="">
+    <input type="hidden" id="out_applied" value="">
+
+</form>
+{% end %}
+{% end %}
+
+{% block styles %}
+<style type="text/css">
+    .stock_alert {
+        color: red;
+    }
+
+    .stock_disable {
+        color: darkgray;
+    }
+
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$'], function ($) {
+        var sku_out = true;
+
+        function check_sku_out() {
+            var sku_out_len = $('.sku_result').length;
+
+            $('.sku_result').each(function (index, ele) {
+                        if (index == 0) {
+                            zero_sku_out_incr = 0;
+                        }
+                        ele = $(ele);
+                        var out_num = $.trim(ele.text())
+                        // 如果货品有出货数量才记录
+                        if (out_num == '0') {
+                            zero_sku_out_incr += 1;
+                        }
+                        if (index == sku_out_len - 1) {
+                            sku_out = !(zero_sku_out_incr == sku_out_len);
+                        }
+                    }
+            )
+        }
+
+        function recount() {
+            var sku_req = {};
+            $('.item_num').each(function (index, ele) {
+                ele = $(ele);
+                var sku_id = ele.attr('data-sku-id');
+                if (!(sku_id in sku_req)) {
+                    sku_req[sku_id] = 0;
+                }
+                if (!ele.hasClass('stock_disable')) {
+                    sku_req[sku_id] += Number(ele.text())
+                }
+            });
+            for (var sku_id in sku_req) {
+                $('#sku_out_num_' + sku_id).text(sku_req[sku_id]);
+                var sku_remain = Number($('#sku_remain_' + sku_id).text());
+
+                if (sku_req[sku_id] > sku_remain) {
+                    $('[data-sku-id="' + sku_id + '"]').addClass("stock_alert");
+                } else {
+                    $('[data-sku-id="' + sku_id + '"]').removeClass("stock_alert");
+                }
+            }
+            check_sku_out();
+        }
+
+        function adjust_button_status() {
+            if ($('.stock_alert').size() > 0 || !sku_out) {
+                $('#apply_stock_out').addClass('ui-button-mdisable').removeClass('ui-button-morange');
+                $('#apply_stock_out').attr('disabled',true);
+            }
+            else {
+                $('#apply_stock_out').removeClass('ui-button-mdisable').addClass('ui-button-morange');
+                $('#apply_stock_out').attr('disabled',false);
+            }
+        }
+
+        recount();
+        adjust_button_status();
+
+        $('input:checkbox').click(function () {
+            var ele = $(this);
+            var order_id = ele.attr('data-order-id');
+            if (ele.attr('checked')) {
+                $('[data-sku-num-order-id="' + order_id + '"]').removeClass('stock_disable');
+            } else {
+                $('[data-sku-num-order-id="' + order_id + '"]').addClass('stock_disable');
+            }
+            recount();
+            adjust_button_status();
+        });
+
+        var item_result = [];
+        var item_dict = {'order_item_id': ''};
+        var sku_result = [];
+        var sku_dict = {};
+
+        $("#apply_stock_out").click(function () {
+            if ($('.stock_alert').size() == 0 && !$('#apply_stock_out').hasClass('ui-button-mdisable')) {
+                $('.item_num').each(function (index, ele) {
+                    ele = $(ele);
+                    order_id = ele.attr('data-order-id')
+                    if (ele.hasClass('stock_disable')) {
+                        return
+                    }
+                    if ($("#check_"+order_id).attr('checked')){
+                        var data_dict = {};
+                        //创建新的子项出库信息
+                        if (ele.attr('data-item-id') != item_dict.order_item_id) {
+//                            if (item_dict.item_id != '') {
+//                                item_result.push(item_dict)
+//                            }
+                            item_dict = {}
+                            item_dict.order_id = order_id
+                            item_dict.order_item_id = ele.attr('data-item-id')
+                            item_dict.data = []
+                        }
+                        data_dict.sku_id = ele.attr('data-sku-id')
+                        data_dict.out_num = $.trim(ele.text())
+                        item_dict.data.push(data_dict)
+                        item_result.push(item_dict)
+                    }
+                });
+
+                $('.sku_result').each(function (index, ele) {
+                    ele = $(ele);
+                    sku_dict = {}
+                    sku_dict.sku_id = ele.attr('data-sku-id')
+                    sku_dict.sku_name = ele.attr('data-sku-name')
+                    sku_dict.sku_price = ele.attr('data-sku-price')
+                    var out_num = $.trim(ele.text())
+                    // 如果货品有出货数量才记录
+                    if(out_num != 0){
+                        sku_dict.out_num = out_num
+                        sku_result.push(sku_dict)
+                    }
+                });
+
+            }
+            $('#item_result').val(JSON.stringify(item_result))
+            $('#sku_result').val(JSON.stringify(sku_result))
+            $('#apply_stock_out_form').submit();
+        });
+
+
+    });
+</script>
+{% end %}

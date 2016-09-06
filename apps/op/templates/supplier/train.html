@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>一百券电子券业务受理流程指导</title>
+    <link media="all" href="http://arale.uhcdn.com/alice/one/1.2.2/one.css" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ static_url('img/favicon.ico') }}" type="image/x-icon">
+    <style type="text/css">
+        body {
+            color: #4E4E4E;
+            font: 12px/1.5 tahoma, arial, \5b8b\4f53, sans-serif;
+        }
+
+        #page {
+            width: 768px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        h1 {
+            font-size: 28px;
+            text-align: center;
+        }
+
+        h2 {
+            margin: 20px 0 5px;
+        }
+
+        h3 {
+            margin: 8px 0 3px;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 5px 15px;
+            text-align: center;
+        }
+
+        dt {
+            font-weight: 700;
+        }
+
+        dd {
+            margin: 0;
+        }
+
+        ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            padding-left: 20px;
+            list-style: none;
+        }
+
+        li span {
+            float: left;
+            margin-left: -20px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="page">
+    <h1>一百券电子券业务受理流程指导</h1>
+
+    <h2>一、消费认证步骤</h2>
+
+    <h3>1. 电话认证</h3>
+
+    <p>拨打400-686-5151 听到语音提示后按“9”号键电子券验证，输入电子券编号即可，按“#”结束（按*重新输入）<br/>
+        <strong>确认电话是否可以验证：</strong> 商户可自行拨打400-686-5151 按9号键，随意输入号码，如提示券号不存在说明该号码已绑定，如提示：“商户不存在”则该号码未绑定，可及时联系客服进行绑定。
+    </p>
+    <table border="1" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th width="300px">门店</th>
+            <th width="300px">已绑定电话</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for shop in shops %}
+        <tr>
+            <td>{{ shop.name }}</td>
+            <td>{{ default(shop.verify_phones) }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+    <h3>2. 电脑验证</h3>
+    <p>登陆域名地址：{{ supplier.domain_name }}.{{options.supplier_domain}} 首次登录默认密码为123456</p>
+    <table border="1" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th width="300px">分店帐号</th>
+            <th width="300px">门店</th>
+
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.login_name }}</td>
+            <td>{{ default(user.shop_name, '所有门店') }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+
+    <p style="color:red">简单操作：点击券管理→点击验证券→选择门店→输入10位数券号</p>
+    {#
+    <h3>3. 微信验证</h3>
+
+    <p>1. 请使用微信扫描右侧二维码，加『一百券商家助手』为好友</p>
+
+    <p>2. 向『一百券商家助手』发出您的身份识别码，绑定账号</p>
+    <div style="margin-top:-50px;float: right;">
+        <img src="http://a.dev.uhcdn.com/images/m/wx_qrcode_uhuila.jpg"/>
+    </div>
+    <table border="1" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th width="300px">身份识别码</th>
+            <th width="300px">门店（分店帐号)</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for item in human %}
+        {% if item.shop_id != 0 %}
+        <tr>
+                <td></td>
+                <td>{{ item.shop_name }}</td>
+        </tr>
+        {% end %}
+        {% end %}
+        </tbody>
+    </table>
+    <p>
+        绑定账号后，打开『一百券商家助手』，发送消费者提供的10位券号，如：1234567890，『一百券商家助手』将返回验证是否成功的信息。
+    </p>
+    #}
+    <h2>二、短信通知内容（短信模板）</h2>
+
+    <p><strong>购买成功短信：</strong>（格式：商品名称 + 券号 + 有效期截至日期）【一百券】
+        *******100元现金券**店通用！凭本券可到*****当做100元现金使用！（商品名称）券号：325*****52 有效期：20**-**-** 如有疑问请致电：400-686-5151</p>
+
+    <h2>三、纸质“一百券”卡片使用</h2>
+
+    <p>为方便商户能够收集券号并做好对账，我司制作了“一百券”小卡片做记录，主要是用来记录客户的券编号。</p>
+
+    <h2>FAQ</h2>
+    <dl>
+        <dt>Q: 如何区别哪些是视惠电子消费券？</dt>
+        <dd>A: 凡经视惠平台支持的电子消费券，短信首均以【一百券】开头。</dd>
+    </dl>
+    <dl>
+        <dt>Q: 如恰巧三种验证方式都失败怎么办？</dt>
+        <dd>A: 如遇此情况，为避免客户长时间等待而引起客户不满，可由客户致电100券客服，核对相关信息后由客服进行网上验证。</dd>
+    </dl>
+    <dl>
+        <dt>Q: 当客户已收到验证成功的短信提示，而服务员没有收到短信提示的时候该如何处理？</dt>
+        <dd>A:
+            首先第一时间联系400-686-5151服务热线确认电子券是否验证成功。如客服热线无法接通（21:00以后）可向客户查询手机验证成功短信，确认是否是该店该时段验证，如确实验证成功，可让客户现行离开，避免客户抱怨投诉。
+        </dd>
+    </dl>
+
+    <h2>财务操作说明</h2>
+    <ul>
+        <li><span>1）</span>
+            财务可根据商户实际需求确认对账时间，进行对账。<br/>
+            点击报表→总销售报表→选定起止时间→核对
+        </li>
+        <li><span>2）</span>
+            财务可根据商户自身确定提现，并可查询明细。<br/>
+            点击财务管理→账户提现→申请提现<br/>
+            点击财务管理→账户明细→选择起止时间→核对<br/>
+        </li>
+    </ul>
+    <p><img src="http://img.uhcdn.com/images/act/print2.png"/></p>
+</div>
+</body>

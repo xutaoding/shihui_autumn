@@ -1,0 +1,343 @@
+{% extends "../layout.html" %}
+{% block title %}订单详情{% end %}
+{% block menu %}
+{% module menu('order.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">基本信息</h2>
+</div>
+<table class="ui-table ui-table-noborder">
+    <tr>
+        <td>订 单 号：
+            {{ order.order_no }}
+        </td>
+        <td>成交时间：{{ order.created_at }}</td>
+        <td>付款时间：{{ order.paid_at}}</td>
+    </tr>
+    <tr>
+        <td>
+            订单来源：
+            {{ order.name }}&nbsp;
+        </td>
+        <td>
+            外部订单号：
+            {{ default(order.distri_order_no) }}&nbsp;
+        </td>
+        {% if type=='E' %}
+        <td>
+            <a href=" {{url_concat('/coupon',{'order':order.order_no})}} ">
+                查看电子券
+            </a>
+            {%if order.mobile %} (手机号：{{ order.mobile}}) {% end %}
+        </td>
+        {% end%}
+    </tr>
+</table>
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商品信息</h2>
+</div>
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <td colspan="6" style="background-color:#edfed0;color: #000000">商品总金额：{{ order.payment}} {% if type=='R' %},购买数量：{{ len(real_items)}}{% end %} </td>
+    </tr>
+    <tr>
+        <th style="width:20%">商品名称</th>
+        <th>类型</th>
+        <th>单价</th>
+        {% if type=='R' %}
+        <th>状态</th>
+        <th>操作</th>
+        {% else %}
+        <th>数量</th>
+        <th>有效期</th>
+        {% end%}
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in real_items %}
+    <tr>
+        <td>
+            <a href="{{ reverse_url('goods.show_detail',item.goods_id) }}">
+                {{ item.short_name }}
+            </a>
+            【销售专员：{{item.sales_name}}】
+        </td>
+        <td>
+            {{ {'R':'实物', 'E':'电子券'}.get(item.type, '') }}
+        </td>
+        <td>{{ item.sales_price }}</td>
+
+        {% if type=='R' %}
+        <td>
+            {{ {1:'已付款',4:'待打包',2:'已发货',6:'已冻结',
+            5:'已上传',7:'退货中',3:'已退款'}.get(item.status, '') }}
+            <span style="color:rgb(255, 143, 0)">
+               {% if item.refund_value>0 %}
+                退款金额:{{ item.refund_value}}
+               {% end%}
+            </span>
+        </td>
+        <td>
+            {% if item.type =='R' and item.status != 7 and item.status !=3 %}
+            {% if item.status ==1 or (item.status==4 and shipping_info and
+            not shipping_info.express_number and item.sp_id != 5) %}
+            <a href="#" class="refund_item" real_item_id="{{ item.real_id }}" item_type="refund"
+               goods_name="{{ item.short_name }}" refund_price="{{ item.sales_price}}">退款</a>
+            {% else %}
+            <a href="#" class="return_item" real_item_id="{{ item.real_id }}" item_type="return"
+               goods_name="{{ item.short_name }}" refund_price="{{ item.sales_price}}" >申请退货</a>
+            {% end %}
+            {% end %}
+        </td>
+        {% else %}
+        <td>
+            {{ item.num }}
+        </td>
+        <td>
+            {{ item.expire_at if item.expire_at else '' }}
+        </td>
+        {%end%}
+
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+{% if shipping_info %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">收货人信息</h2>
+    <button id="edit_shipping_info" type="button" class="ui-button ui-button-sblue fn-left">修改收货信息</button>
+</div>
+<table class="ui-table ui-table-noborder">
+    <tr>
+        <td>收货人： {{shipping_info.receiver}}</td>
+    </tr>
+    <tr>
+        <td>地址：{{shipping_info.address}}
+        </td>
+    </tr>
+    <tr>
+        <td>联系电话： {{shipping_info.phone}} {{ '/' if shipping_info.tel else '' }} {{default(shipping_info.tel)}}
+        </td>
+    </tr>
+    <tr>
+        <td>
+            快递公司：{{default(shipping_info.name)}} | 运单号：{{default(shipping_info.express_number)}}
+        </td>
+    </tr>
+    <tr>
+        <td>发货时间：{{ default(real_items[0].used_at) }}</td>
+    </tr>
+</table>
+<div class="ui-dialog-content" data-role="content"
+     style="display:none;background-color: rgb(255, 255, 255); height: 100%; zoom: 1; background-position: initial initial; background-repeat: initial initial;">
+    <form id="edit_form" action="{{ reverse_url('order.express_edit') }}" method="post">
+        <div class="ui-dialog-title" data-role="title">收货信息</div>
+        <div class="ui-dialog-container">
+            <div class="ui-dialog-message" data-role="message">
+                <div class="ui-form-item">
+                    <label class="ui-label" for="company_id"> 快递公司</label>
+                    <select name="company_id" id="company_id">
+                        <option value="">--请选择--</option>
+                        {% for company in ex_company%}
+                        <option value="{{ company.id }}" {% if shipping_info.express_company_id==company.id %}selected{%end%}>{{ company.name }}</option>
+                        {% end %}
+                    </select>
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label"> 快递单号</label>
+                    <input type="text" name="express_number" value="{{shipping_info.express_number}}">
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label" for="goods_name">收货地址</label>
+                    <input type="text" name="address" value="{{shipping_info.address}}">
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label" for="goods_name">电话</label>
+                    <input type="text" name="phone" value="{{shipping_info.phone}}">
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label" for="goods_name">客服备注</label>
+                    <textarea name="service_remark" rows="5px" cols="40px"></textarea>
+                </div>
+                <div class="ui-dialog-operation" data-role="foot">
+                    {% module xsrf_form_html() %}
+                    <input type="hidden" name="shipping_id" value="{{real_items[0].shipping_info_id if type =='R' else ''}}">
+                    <input type="hidden" name="order_id" value="{{ order.order_id }}">
+                    <button class="ui-button ui-button-lorange" type="submit" id="edit_confirm">确认</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% end %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">操作信息</h2>
+</div>
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>操作时间</th>
+        <th>操作人</th>
+        <th>信息</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for journal in journals %}
+    <tr>
+        <td> {{ journal.created_at }}</td>
+        <td> {{ journal.created_by }}</td>
+        <td> {{ journal.message }}</td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+<div class="ui-dialog-content" data-role="content"
+     style="display:none;background-color: rgb(255, 255, 255); height: 100%; zoom: 1; background-position: initial initial; background-repeat: initial initial;">
+    <form id="refund_form" action="{{ reverse_url('real.order_refund') }}" method="post">
+        <div class="ui-dialog-title" data-role="title">申请退款/退货</div>
+        <div class="ui-dialog-container">
+            <div class="ui-dialog-message" data-role="message">
+                <div class="ui-form-item">
+                    <label class="ui-label" for="goods_name">
+                        <span class="ui-form-required">*</span>退货商品</label>
+                    <span id="goods_name" style="line-height: 30px;"></span>
+                </div>
+                <div class='ui-form-item' id="refund_type_display" style="display: none">
+                    <label class="ui-label">
+                        <span class="ui-form-required">*</span>退款方式</label>
+                    <input type="radio" name="refund_type" value="0" id="refund_type_0" checked><label
+                        for="refund_type_0">按数量退款</label>
+                    <input type="radio" name="refund_type" value="1" id="refund_type_1"><label
+                        for="refund_type_1">部分退款</label>
+                </div>
+
+                <div id="return_by_num_display" style="display: block">
+                    <div class="ui-form-item" id="refund_price_display">
+                        <label class="ui-label" for="refund_price">
+                            <span class="ui-form-required">*</span>退货金额</label>
+                        <span id="refund_price"></span>
+                    </div>
+                </div>
+                <div id="refund_part_display" style="display: none">
+                    <div class="ui-form-item">
+                        <label class="ui-label" for="refund_part_price">
+                            <span class="ui-form-required">*</span>部分退货金额</label>
+                        <input type="text" name="refund_part_price" id="refund_part_price">元
+
+                        <p class="ui-form-explain">(最多可退款<span id="text_return_amount"></span>元)</p>
+                        <span id="part_price_note"></span>
+                    </div>
+                </div>
+                <div class="ui-form-item">
+                    <label class="ui-label" for="return_remark">
+                        <span class="ui-form-required">*</span>退货原因</label>
+                    <textarea name="return_remark" id="return_remark" rows="5" cols="45"></textarea>
+                    <span id="remark_note"></span>
+                </div>
+                <div class="ui-dialog-operation" data-role="foot">
+                    <button class="ui-button ui-button-lorange" type="submit" id="confirm_refund">确认提交</button>
+                </div>
+            </div>
+
+        </div>
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="real_item_id" id="real_item_id"/>
+        <input type="hidden" name="return_amount" id="return_amount"/>
+    </form>
+</div>
+{% end %}
+{% block styles %}
+<style>
+    .ui-dialog-operation {
+        text-align: center;
+    }
+
+    .ui-button-sblue {
+        margin-left: 10px;
+    }
+</style>
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/dialog/1.2.2/dialog.css">
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'moment', 'dialog', 'autumn'],
+            function ($, Calendar, moment, Dialog, autumn) {
+                new Dialog({
+                    trigger: '.refund_item',
+                    content: $('#refund_form')
+                }).before('show', function () {
+                            var goods_name = this.activeTrigger.attr('goods_name');
+                            var refund_price = this.activeTrigger.attr('refund_price')
+                            $("#goods_name").text(goods_name)
+                            $("#refund_price").text(refund_price)
+                            $("#return_amount").val(refund_price)
+                            $("#real_item_id").val(this.activeTrigger.attr('real_item_id'))
+                            initVal()
+                        });
+
+                new Dialog({
+                    trigger: '.return_item',
+                    content: $('#refund_form')
+                }).before('show', function () {
+                            var goods_name = this.activeTrigger.attr('goods_name');
+                            var refund_price = this.activeTrigger.attr('refund_price')
+                            $("#goods_name").text(goods_name)
+                            $("#refund_price").text(refund_price)
+                            $("#text_return_amount").text(refund_price)
+                            $("#return_amount").val(refund_price)
+                            $("#real_item_id").val(this.activeTrigger.attr('real_item_id'))
+                            $("#refund_part_display").css('display', 'none')
+                            $("#refund_type_display").css('display', 'block')
+                            $("#refund_price_display").css('display', 'block')
+                            initVal()
+                        });
+
+                //按数量退款
+                $("#refund_type_0").click(function () {
+                    $("#refund_part_display").css('display', 'none')
+                    $("#refund_price_display").css('display', 'block')
+                    $("#remark_note").html('')
+                })
+                //部分退款
+                $("#refund_type_1").click(function () {
+                    $("#refund_part_display").css('display', 'block')
+                    $("#refund_price_display").css('display', 'none')
+                    $("#remark_note").html('')
+                })
+                //退款、退货
+                $("#confirm_refund").click(function () {
+                    var return_remark = $("#return_remark").val();
+                    var part_price = $("#refund_part_price").val()
+                    if ($("#refund_type_1").attr("checked") && (part_price == '' || Number(part_price) < 0 || Number(part_price) > Number($("#return_amount").val()))) {
+                        $("#part_price_note").html("请输入正确的部分金额！").css('color', 'red').css('display', 'block')
+                        return false
+                    }
+                    if (return_remark == '') {
+                        $("#remark_note").html("请输入退货、退款原因！").css('color', 'red').css('display', 'block')
+                        return false
+                    }
+                    return true;
+                })
+
+                new Dialog({
+                    trigger: '#edit_shipping_info',
+                    content: $('#edit_form')
+                })
+                function initVal() {
+                    $("#remark_note").html('')
+                    $("#part_price_note").html('')
+                    $("#refund_type_0").attr('checked', true)
+                    $("#refund_part_display").css('display', 'none')
+                    $("#refund_price_display").css('display', 'block')
+                }
+
+            })
+
+</script>
+{% end %}

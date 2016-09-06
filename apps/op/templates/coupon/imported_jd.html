@@ -1,0 +1,44 @@
+{% extends "../layout.html" %}
+{% block title %}导入券{% end %}
+{% block menu %}
+{% module menu('coupon.imported') %}
+{% end%}
+
+{%block content%}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">京东导入券查询</h2>
+</div>
+
+<form class="ui-form record-search-form" name="" method="post" action="{{reverse_url('coupon.imported_jd')}}" >
+    <span>订单号</span>
+    <input type="text" name="jd_order_id" value=""/>
+    <span>券号</span>
+    <input type="text" name="jd_coupon_no" value=""/>
+    {% module xsrf_form_html() %}
+    <button type="submit" class="ui-button ui-button-sorange">查询</button>
+</form>
+
+<div class="content">
+    {% if coupons %}
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>券号</th>
+            <th>密码</th>
+            <th>状态</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for c in coupons %}
+        <tr>
+            <td>{{ c['coupon_sn'] }}</td>
+            <td>{{ default(c['coupon_pwd'], '') }}</td>
+            <td>{{ {'0': '未验证', '10': '已验证', '20': '已过期', '30': '已退款'}.get(c['status'], '0') }}</td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+    {% end %}
+</div>
+{%end%}
+

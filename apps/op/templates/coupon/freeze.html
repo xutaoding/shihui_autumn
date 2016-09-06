@@ -1,0 +1,112 @@
+{% extends "../layout.html" %}
+{% block title %}券冻结{% end %}
+{% block menu %}
+{% module menu('coupon.freeze') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">批量冻结</h2>
+</div>
+
+<div class="ui-tab fn-clear" id="tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a style="cursor:pointer">券号批量冻结</a>
+        </li>
+        <li class="ui-tab-item">
+            <a style="cursor:pointer">订单批量冻结</a>
+        </li>
+    </ul>
+    <div class="ui-switchable-content">
+        <div class="hidden">
+            <div>
+                <form action="{{reverse_url('coupon.freeze')}}" method="post" enctype="multipart/form-data" class="form">
+                    <textarea name="text" id="text1" class="text" >
+
+                    </textarea>
+                    {% module xsrf_form_html() %}
+                    <input type="hidden" name="input" value="coupon">
+                    <button type="button" class="ui-button ui-button-morange fn-right to-submit">券号批量冻结</button>
+                </form>
+            </div>
+            <div style="color: red; font-size: 14px">
+                券号格式：10位纯数字
+            </div>
+        </div>
+        <div class="hidden">
+            <div>
+                <form action="{{reverse_url('coupon.freeze')}}" method="post" enctype="multipart/form-data" class="form">
+                    <textarea name="text" id="text2" class="text" >
+
+                    </textarea>
+                    {% module xsrf_form_html() %}
+                    <input type="hidden" name="input" value="order">
+                    <button type="button" class="ui-button ui-button-morange fn-right to-submit">订单批量冻结</button>
+                </form>
+            </div>
+            <div style="color: red; font-size: 14px">
+                订单号格式：8位纯数字
+            </div>
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block styles %}
+<style>
+    #tab {
+        position: relative;
+        width: 750px;
+        padding-top: 10px;
+    }
+
+    .ui-tab ul {
+        margin-left: 170px;
+    }
+
+    #tab .ui-switchable-content {
+        position: relative;
+        height: 310px;
+        padding: 10px;
+        margin-left: 170px;
+        border: 1px solid #E5E5E5;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .text {
+        height: 280px;
+        width: 350px;
+        resize: none;
+    }
+
+    .ui-tab-item-current a, .ui-tab-item-current a:hover{
+            background: #F6F6F6;
+    }
+</style>
+{% end %}
+{% block scripts %}
+<script>
+        seajs.use(['$','tabs','confirmbox'], function ($, Tabs, ConfirmBox) {
+            tabs = new Tabs({
+                element: '#tab',
+                triggers: '.ui-tab-items li',
+                triggerType: 'click',
+                panels: '.ui-switchable-content>.hidden',
+                activeTriggerClass: 'ui-tab-item-current'
+            });
+
+            $('.to-submit').click(function(){
+                var tar = $(this);
+                ConfirmBox.confirm('"批量"冻结？', '确认', function(){
+                    tar.parents('form').submit()
+                });
+            })
+
+
+        });
+</script>
+{% end %}

@@ -1,0 +1,88 @@
+{% extends "../../layout.html" %}
+{% block title %}商品详情{% end %}
+{% block menu %}
+{% module menu('wx.mall.cover') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商品详情</h2>
+    <input type="hidden" value="{{goods.id}}" id="goods_id">
+    <a href="{{reverse_url('wx.goods.list')}}" class="ui-button ui-button-sblue fn-right">返回商品列表</a>
+</div>
+
+<div class="ui-grid-row">
+    <div class="ui-grid-12">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">券类型：</dt>
+            <dd class="ui-dlist-det"> {{ {'R':'实物', 'E':'电子券'}.get(goods.type, '') }} </dd>
+            {% if goods.type == 'E' %}
+            <dt class="ui-dlist-tit">券有效期：</dt>
+            <dd class="ui-dlist-det">{{ goods.expire_at }}&nbsp;</dd>
+            {% else %}
+            <dt class="ui-dlist-tit">运费：</dt>
+            <dd class="ui-dlist-det">{{ default(goods.postage, '0.00')}}元&nbsp;</dd>
+            {% end %}
+            {% if goods.on_sale_at %}
+            <dt class="ui-dlist-tit">自动上架日期：</dt>
+            <dd class="ui-dlist-det">{{ goods.on_sale_at}}&nbsp;</dd>
+            {% end %}
+            {% if goods.off_sale_at %}
+            <dt class="ui-dlist-tit">自动下架日期：</dt>
+            <dd class="ui-dlist-det">{{ goods.off_sale_at}}&nbsp;</dd>
+            {% end %}
+            <dt class="ui-dlist-tit">分类：</dt>
+            <dd class="ui-dlist-det">{{ goods.category }} &nbsp;</dd>
+            <dt class="ui-dlist-tit">商品标题：</dt>
+            <dd class="ui-dlist-det">{{ goods.short_name }} &nbsp;</dd>
+            <dt class="ui-dlist-tit">短信标题：</dt>
+            <dd class="ui-dlist-det">{{ goods.sms_name }} &nbsp;</dd>
+        </dl>
+    </div>
+    <div class="ui-grid-12">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">原价：</dt>
+            <dd class="ui-dlist-det">{{ goods.face_value }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">销售价：</dt>
+            <dd class="ui-dlist-det">{{ goods.sales_price }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">库存：</dt>
+            <dd class="ui-dlist-det">{{ goods.stock}}件</dd>
+            <dt class="ui-dlist-tit">限购：</dt>
+            <dd class="ui-dlist-det">{% if goods.max_buy == 0 %}不限{%else%}{{ goods.max_buy }}件{%end%}</dd>
+            <dt class="ui-dlist-tit">销量：</dt>
+            <dd class="ui-dlist-det">{{ goods.sales_count}}件</dd>
+            <dt class="ui-dlist-tit">创建时间：</dt>
+            <dd class="ui-dlist-det">{{ goods.created_at }}&nbsp;</dd>
+            <dt class="ui-dlist-tit">创建人：</dt>
+            <dd class="ui-dlist-det">{{ goods.created_by }}&nbsp;</dd>
+        </dl>
+    </div>
+</div>
+
+<dl class="ui-dlist">
+    <dt class="ui-dlist-tit">销售门店：</dt>
+    <dd class="ui-dlist-det">
+        <table class="ui-table">
+            {% for shop in shops %}
+            <tr>
+                <td>{{ shop.supplier_name }} - {{ shop.name }}</td>
+                <td>地址：{{ default(shop.address) }} <br> 电话：{{ default(shop.phone) }}
+                </td>
+                <td>交通：{{ default(shop.traffic_info) }}</td>
+            </tr>
+            {% end %}
+            &nbsp;
+        </table>
+    </dd>
+    <dt class="ui-dlist-tit">图片：</dt>
+    <dd class="ui-dlist-det" style="margin-top: 10px; margin-bottom: 10px;">
+        <img style="width: 360; height: 200px;"
+             src="{{ img_url(img[u'720x400'])  }}">
+    </dd>
+    <dt class="ui-dlist-tit">商品展示：</dt>
+    <dd class="ui-dlist-det">
+        {% raw goods.detail %}&nbsp;
+    </dd>
+
+</dl>
+
+{% end%}

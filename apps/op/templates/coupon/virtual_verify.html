@@ -1,0 +1,187 @@
+{% extends "../layout.html" %}
+{% block title %}标记刷单{% end %}
+{% block menu %}
+{% module menu('coupon.virtual_verify') %}
+{% end%}
+
+{% block content %}
+    <div class="ui-title fn-clear">
+        <h2 class="fn-left">刷单</h2>
+    </div>
+    <div class="ui-tiptext-container ui-tiptext-container-message">
+        <p class="ui-tiptext ui-tiptext-message">
+            <i class="ui-tiptext-icon iconfont" title="提示">&#xF046;</i>
+            选择【运营标记刷单】，则不向商户收取任何费用
+        </p>
+        <p class="ui-tiptext ui-tiptext-follow">
+            选择【协助商户刷单】，则向商户收取对应手续费率的费用。
+        </p>
+    </div>
+
+    <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('coupon.virtual_verify') }}">
+        <div>
+            <span>手机号</span>
+            <input type="text" name="mobile" value="{{ form.mobile.value }}"/>
+            <span>一百券订单号</span>
+            <input type="text" name="order" value="{{ form.order.value }}"/>
+            <span>选择日期</span>
+            <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value }}"/> -
+            <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value }}"/>
+            <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+        </div>
+    </form>
+
+    <div class="content">
+        <table class="ui-table ui-table-noborder" id="table">
+            <thead>
+            <tr>
+                <th style="width:110px;">券号</th>
+                <th style="width:70px;">订单号</th>
+                <th style="word-wrap:break-word;">商品信息</th>
+                <th style="width:50px;">单价</th>
+                <th style="width:100px;">手机</th>
+                <th style="width:80px;">创建时间</th>
+                <th style="width:100px;">状态</th>
+                <th style="width:50px; text-align:center;">结果</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for coupon in items %}
+            <tr>
+                <td style="width:80px">
+                    <a href="{{ reverse_url('coupon.show_detail', coupon.id) }}">{{ coupon.coupon_sn }} </a>
+                    {% if coupon.dcoupon %}
+                    <br/>分{{ coupon.dcoupon }}
+                    {% end %}
+                    {% if coupon.spcoupon %}
+                    <br/>供{{ coupon.spcoupon }}
+                    {% end %}
+                </td>
+                <td style="width:70px"><a href="{{ reverse_url('order.show_detail', coupon.order_id)}}">{{ coupon.order_no }}</a> </td>
+                <td style="word-wrap: break-word;"><a href="{{ reverse_url('goods.show_detail', coupon.gid) }}">{{ coupon.goods_name }}</a></td>
+                <td style="width:50px">{{ coupon.sales_price }}</td>
+                <td style="width:100px">{{ coupon.mobile }}</td>
+                <td style="width:80px">{{ coupon.created_at.strftime('%Y-%m-%d') }}</td>
+                <td style="width:50px">
+                    {{ {'1':'未消费', '2':'已消费', '3':'已退款', '6':'已冻结'}.get(str(coupon.status), '未知') }}
+                    {% if  coupon.status == 1 and coupon.expire_at < now %}
+                    | <span style="color: #FF5243">已过期 </span>
+                    {% end %}
+                </td>
+                <td style="width:80px">
+                    <a href="javascript:" class="virtual_verify" id="{{coupon.coupon_sn}}" > </a>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+        <div class="fn-right" style="height: 20px; margin-top:10px; font-size:small" >
+            <input type="radio" name="type" value="supplier" id="sup-check">
+            <label for="sup-check">协助商户刷单</label>
+            <label id="ratio" hidden="hidden">,手续费
+                <input type="text" name="rate" size="6" id="sup-input">
+                <span style="color:red; margin-right:5px">%</span>
+            </label>
+            <input type="radio" name="type" value="operator" id="op-check">
+            <label for="op-check">运营标记刷单</label>
+
+            {% module xsrf_form_html() %}
+            <button type="button" class="ui-button ui-button-sorange" id="verify_all">执行刷单</button>
+        </div>
+        <div class="fn-clear"></div>
+    </div>
+
+{% end %}
+
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+    <script>
+            seajs.use(['$','calendar','confirmbox','autumn'], function ($,Calendar,ConfirmBox,autumn) {
+                var t1 = '2012-01-01 00:00:00';
+                var c1 = new Calendar({trigger: '#start-cal', range: [t1, null], format: 'YYYY-MM-DD 00:00:00'})
+                var c2 = new Calendar({trigger: '#end-cal', range: [null, null], format: 'YYYY-MM-DD 23:59:59'})
+
+                c1.on('selectDate', function (date) {
+                    c2.range([date, null]);
+                });
+
+                c2.on('selectDate', function (date) {
+                    c1.range([t1, date]);
+                });
+
+                // redio 控制
+                $('#sup-check').click(function(){
+                    $('#ratio').show();
+                });
+                $('#op-check').click(function(){
+                    $('#ratio').hide();
+                });
+
+                // 批量刷单
+                $('#verify_all').click(function(){
+                    if (! $('input[type="radio"]').is(':checked')){
+                        alert('请选择刷单类型');
+                        return;
+                    }
+                    else {
+                        var regex = /^\d+(\.\d+)?$/;
+                        var is_op = 1
+                        if ($('#sup-check').is(':checked')){
+                            var rate = $('#sup-input').val();
+                            if (!regex.test(rate) || rate == '' || rate < 0 || rate > 100){
+                                alert('请输入正确的手续费');
+                                return;
+                            }
+                            else{
+                                is_op = 0
+                            }
+                        }
+                        ConfirmBox.confirm('"批量"执行虚拟验证', '确认', function(){
+                            var coupon_no = document.getElementById("table").rows.length;
+                            // 虚拟验证每一行，除表头
+                            var rows = $("#table tr:gt(0)");
+                            rows.each(function(index) {
+                                var tar = $("td:last-child >a", this);
+                                var coupon_sn= tar.attr("id");
+                                // 如果有coupon，就发送验证请求
+                                if (coupon_sn){
+                                    verify_post(tar.parent(), coupon_sn, is_op, rate);
+                                }
+                            });
+                            return false;
+                        });
+                    }
+                });
+
+                function verify_post(tar, coupon_sn, is_op, rate){
+                    $.ajax({
+                        url: '/coupon/virtual-verify',
+                        type: 'POST',
+                        cache: false,
+                        data: {
+                            '_xsrf': autumn.get_cookie('_xsrf'),
+                            'coupon_sn': coupon_sn,
+                            'is_op': is_op,
+                            'rate': rate,
+                        },
+                        error: function() {
+                            tar.empty()
+                            tar.html('<p class="ui-tiptext ui-tiptext-warning"><i class="ui-tiptext-icon iconfont" title="警告">&#xF047;</i>请求失败</p>');
+                        },
+                        success: function(data) {
+                            if(!data.ok) {
+                                tar.empty()
+                                tar.html('<p class="ui-tiptext ui-tiptext-error"><i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>验证失败</p>');
+                            }else {
+                                tar.empty()
+                                tar.html('<p class="ui-tiptext ui-tiptext-success"><i class="ui-tiptext-icon iconfont" title="成功">&#xF049;</i>验证成功</p>');
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+{% end %}

@@ -1,0 +1,43 @@
+{% extends '../../layout.html' %}
+{% block title %}提现明细{% end %}
+{% block menu %}
+{% module menu('finance.withdraw.apply') %}
+{% end%}
+
+{% block content %}
+<div style="width: 400px; margin: 0 auto;">
+    <div class="widget">
+        {% set u = current_user%}
+        <div class="widget-header" style="border-radius: 10px 10px 0 0">
+            <h3>{{u.bank_head}}</h3>
+        </div>
+        <div class="widget-content" style="border-radius: 0 0 10px 10px;">
+            <div class="text-center" style="margin: 40px 0;"> <h2>{{current_user.bank_account}}</h2> </div>
+            <div class="clearfix">
+                <div class="pull-left">{{u.bank_holder}}</div>
+                <div class="pull-right"> {{u.bank_city}} {{u.bank_branch}} </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="widget">
+    <div class="widget-content">
+        <div style="width: 400px; margin: 0 auto;">
+            <form class="form-inline">
+                <div class="clearfix">
+                    <div class="pull-left">
+                        <span>可提金额</span>
+                        <span style="font-size: 48px; font-weight: 400">
+                            <span style="font-size: 24px; vertical-align: super;">￥</span>
+                            27216
+                        </span>
+                    </div>
+                    <div class="pull-right" style="padding-top: 25px;">
+                        <button type="submit" class="btn btn-s-md btn-success">申请提现</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% end %}

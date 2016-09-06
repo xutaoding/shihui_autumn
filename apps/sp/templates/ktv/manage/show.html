@@ -1,0 +1,61 @@
+{% extends '../../layout.html' %}
+{% block title %}KTV淘宝产品管理{% end %}
+{% block menu %}
+    {% module menu('ktv.show') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">KTV淘宝产品管理</h2>
+</div>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>门店</th>
+            <th>产品名称</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for shop in shops %}
+            {% for i, product in enumerate(products) %}
+            <tr>
+                {% if i == 0 %}
+                <td rowspan="{{ len(products) }}">{{ shop.name }}</td>
+                {% end %}
+                <td>{{ product.name }}</td>
+                <td>
+                    {% if (str(shop.id) + str(product.id)) in d.keys() %}
+                    <a href="http://upload.taobao.com/auction/publish/edit.htm?itemNumId={{ d[str(shop.id) + str(product.id)][1] }}&auto=false" target="_blank">去淘宝编辑</a>/
+                    <a href="http://item.taobao.com/item.htm?id={{ d[str(shop.id) + str(product.id)][1] }}" target="_blank">查看</a>/
+                    <span style="cursor:pointer" data-id="{{ d[str(shop.id) + str(product.id)][1] }}">删除</span>
+                    {% else %}
+                    <a href="{{ url_concat(reverse_url('ktv.publish'), {'shop_id': shop.id, 'product_id': product.id, 'product_name': product.name}) }}" target="_blank">发布</a>
+                    {% end %}
+                </td>
+            </tr>
+            {% end %}
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['confirmbox', 'autumn', '$'], function (ConfirmBox, autumn, $) {
+        $("span[data-id]").click(function(){
+            var taobao_id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除,继而重新发布？', '确认删除', function(){
+                var action = "{{ reverse_url('ktv.delete') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='distributor_goods_id' />").attr('value', taobao_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

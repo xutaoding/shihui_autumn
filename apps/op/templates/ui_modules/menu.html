@@ -1,0 +1,12 @@
+{% for menu in menu_data %}
+    <li class="ui-nav-item {{ 'ui-nav-item-current' if any([item['endpoint'] == menu_key for item in menu['items']]) else '' }}">
+        <a href="{{ reverse_url(menu['endpoint']) if menu['endpoint'] else '#' }}">{{ menu['title'] }}</a>
+        <ul class="ui-nav-submain">
+            {% for item in menu['items'] %}
+                <li class="ui-nav-subitem {{ 'ui-nav-subitem-current' if item['endpoint'] == menu_key else '' }}">
+                    <a href="{{ reverse_url(item['endpoint']) if item['endpoint'] else '#' }}">{{ item['title'] }}</a>
+                </li>
+            {% end %}
+        </ul>
+    </li>
+{% end %}

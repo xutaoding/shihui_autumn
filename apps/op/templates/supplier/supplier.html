@@ -1,0 +1,156 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改'  }}商户{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}商户</h2>
+</div>
+<form action="{{ reverse_url('supplier.' + form.action.value) }}" method="post" class="ui-form" id="form">
+    <div class="ui-form-item ">
+        <label for="supplier_name" class="ui-label">
+            <span class="ui-form-required">*</span>商户名称</label>
+        <input id="supplier_name" type="text" style="width: 400px;" class="ui-input ui-input-large" value="{{ form.name.value }}"
+               name="name">
+
+        <div class="ui-form-explain"></div>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="supplier_short_name" class="ui-label">
+            <span class="ui-form-required">*</span>商户短名称</label>
+        <input id="supplier_short_name" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ form.short_name.value }}"
+               name="short_name">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        <label for="supplier_domain_name" class="ui-label">
+            <span class="ui-form-required">*</span>域名</label>
+        <input id="supplier_domain_name" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ form.domain_name.value }}"
+               name="domain_name">
+        .{{options.supplier_domain}} (只能是字母、数字、下划线，且长度限定在3-20位内)
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        <label for="supplier_contact" class="ui-label">
+            <span class="ui-form-required">*</span>联系方式</label>
+        </label>
+        <input type="text" name="contact" id="supplier_contact" class="ui-input" style="width: 30%" value="{{ form.contact.value }}">
+        格式如: 张三(12312341234)
+    </div>
+    <div class="ui-form-item">
+        <label for="code" class="ui-label">协议编号</label>
+        </label>
+        <input type="text" name="code" id="code" class="ui-input" value="{{ default(form.code.value) }}">
+        与商户签订的合同编号
+    </div>
+    <div class="ui-form-item">
+        <label for="supplier_sales_id" class="ui-label">
+            <span class="ui-form-required">*</span>销售专员</label>
+        <select name="sales_id" size="1" id="supplier_sales_id">
+            {% for operator in operators %}
+            <option value="{{operator.id}}"
+            {% if form.sales_id.value == operator.id %} selected="selected" {% end %}>
+            {{operator.name}}
+            </option>
+            {% end %}
+        </select>
+        意味着此商户所产生的利润将记入到该销售人员上，请认真确认此项。若无实际的受益人，请选择【管理员】。
+    </div>
+
+    <div class="ui-form-item">
+        <label for="agent" class="ui-label">代理商</label>
+        <select id="agent" name="agent_id">
+            <option value="0">无代理商</option>
+            {% for agent in agents %}
+            <option value="{{ agent.id }}" {% if form.agent_id.value == agent.id %} selected {% end %}>{{ agent.short_name }}</option>
+            {% end %}
+        </select>
+    </div>
+    <div class="ui-form-item">
+        <label for="separate_account" class="ui-label">
+            <span class="ui-form-required">*</span>门店资金独立结算</label>
+        <input id="separate_account" type="checkbox" value="1"
+        {% if form.separate_account.value=='1' %} checked="True" {% end %} name="separate_account"
+        {% if form.action.value=='edit' %} disabled {% end %} >
+        勾选此选项意味着 所有门店的资金由各门店自行管理。（请事先与销售人员确认此商户的门店是否独立结算）
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label">商户属性</label>
+        <div>
+            <input type="checkbox" name="properties[]" value="coupon" id="prop-coupon" {{ 'checked' if 'coupon' in form.properties.value else '' }}>
+            <label for="prop-coupon">销售电子券</label>
+        </div>
+        <div>
+            <input type="checkbox" name="properties[]" value="real" id="prop-real" {{ 'checked' if 'real' in form.properties.value else '' }}>
+            <label for="prop-real">销售实物</label>
+        </div>
+        <div>
+            <input type="checkbox" name="properties[]" value="ktv" id="prop-ktv" {{ 'checked' if 'ktv' in form.properties.value else '' }}>
+            <label for="prop-ktv">销售KTV商品</label>
+        </div>
+        <div>
+            <input type="checkbox" name="properties[]" value="crm" id="prop-crm" {{ 'checked' if 'crm' in form.properties.value else '' }}>
+            <label for="prop-crm">CRM</label>
+        </div>
+        <div>
+            <input type="checkbox" name="properties[]" value="weixin" id="prop-weixin" {{ 'checked' if 'weixin' in form.properties.value else '' }}>
+            <label for="prop-weixin">微信</label>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange"
+               value="{{ '添加' if form.action.value == 'add' else '保存修改' }}">
+    </div>
+
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" id="error" name="error" value="{{error}}">
+</form>
+{% if error %}
+<div class="ui-tiptext-container ui-tiptext-container-error">
+    <p class="ui-tiptext ui-tiptext-error">
+        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+        {{ error }}
+    </p>
+</div>
+{% end %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator', '$'], function (Validator, $) {
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=name]',
+            required: true
+        })
+        .addItem({
+            element: '[name=short_name]',
+            required: true
+        })
+        .addItem({
+            element: '[name=domain_name]',
+            required: true
+        })
+        .addItem({
+            element: '[name="contact"]',
+            required: true
+        });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}
+

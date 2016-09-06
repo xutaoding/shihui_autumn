@@ -1,0 +1,457 @@
+{% extends '../../layout.html' %}
+{% block title %}KTV价格策略{{ '新增' if form.action.value == 'add' else '修改' }}{% end %}
+{% block menu %}
+    {% module menu('ktv.price.show') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">KTV价格策略{{ '新增' if form.action.value == 'add' else '修改' }}</h2>
+</div>
+<form action="{{ reverse_url('ktv.price.add') if form.action.value == 'add' else reverse_url('ktv.price.edit', cid) }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label for="product" class="ui-label">套餐产品</label>
+        <select id="product" name="product">
+            {% for product in products %}
+            <option data-id="{{ product.duration }}" value="{{ product.id }}" {% if form.product.value == product.id %} selected {% end %}>{{ product.name }}</option>
+            {% end %}
+        </select>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="price" class="ui-label">包厢价格</label>
+        <input class="ui-input" type="text" id="price" name="price" value="{{ form.price.value }}">
+        <p class="ui-form-text">元/每<span id="per"></span>小时</p>
+        <input type="hidden" name="duration" id="duration">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="start_time" class="ui-label">可预订日期</label>
+        <input class="ui-input" type="text" id="start_time"> 到
+        <input class="ui-input" type="text" id="end_time">
+        <button type="button" class="ui-button ui-button-sblue" id="add">添加</button>
+        <div class="ui-poptip-content" id="preview">未添加，请选择日期范围，并点击添加。一次可【添加多个】日期范围。</div>
+        <input type="hidden" name="days" id="days" value="{{ form.days.value }}">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="" class="ui-label">可预订时段</label>
+        <div class="switch_time_range no-select" data-offset="0">&lt;</div>
+        <div style="width:600px; overflow:hidden; position:relative; border:6px solid #eee; padding:4px; float:left;margin-left:5px; margin-right: 5px">
+            <div style="position: relative; height: 30px; left: 0px;" id="timeRangeBox">
+                {% for i, j in enumerate(range(8, 25)) %}
+                <div class="hour no-select" style="left:{{ i * 45 }}px; z-index:{{ 100 - j }}" data-hour="{{ '0' if j < 10 else ''}}{{ j }}:00" data-index="0" id="hour-{{j}}">{{ '0' if j < 10 else ''}}{{ j }}:00</div>
+                {% end %}
+                {% for i, k in enumerate(range(1, 8)) %}
+                <div class="hour no-select" style = "left:{{ i * 45 + 765}}px; z-index:{{ 50 - k }}" data-hour="0{{ k }}:00" data-index="0" id="hour-{{k}}">0{{ k }}:00</div>
+                {% end %}
+            </div>
+        </div>
+        <div class="switch_time_range no-select" data-offset="-480px">&gt;</div>
+        <div style="clear: left"></div>
+        <div class="ui-poptip-content" style="" id="previewTime"></div>
+        <input type="hidden" name="times" id="times" value="{{ form.times.value }}">
+    </div>
+
+    <div class="ui-form-item">
+        <label for="" class="ui-label">适用包厢</label>
+        <input type="radio" name="box" value="MINI" {% if form.box.value == 'MINI' %} checked {% end %}>&nbsp迷你包&nbsp
+        <input type="radio" name="box" value="SMALL" {% if form.box.value == 'SMALL' %} checked {% end %}>&nbsp小包&nbsp
+        <input type="radio" name="box" value="MIDDLE" {% if form.box.value == 'MIDDLE' %} checked {% end %}>&nbsp中包&nbsp
+        <input type="radio" name="box" value="LARGE" {% if form.box.value == 'LARGE' %} checked {% end %}>&nbsp大包&nbsp
+        <input type="radio" name="box" value="DELUXE" {% if form.box.value == 'DELUXE' %} checked {% end %}>&nbsp豪华包&nbsp
+    </div>
+
+    <div class="ui-form-item">
+        <label for="" class="ui-label">适用包厢数量</label>
+        <table class="ui-table ui-table-noborder">
+            <thead>
+                <tr>
+                    <th>门店</th>
+                    <th>包厢数量（个）</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shop in shops %}
+                <tr>
+                    <td>{{ shop.name }}</td>
+                    <td><input type="text" name="shop-{{ shop.id }}" class="shop" {% if form.action.value == 'edit' %} value="{{ shop.room_count if shop.room_count else 0 }}" {% end %}></td>
+                </tr>
+                {% end %}
+                <tr>
+                    <td colspan="2">
+                        统一设置： <input type="text" id="all">
+                        <span style="color:#888; font-size:12px;">留空/数量为0 表示本策略不包含该门店</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" name="count">
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="hidden" value="{{ form.action.value }}" id="action" name="action">
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block styles %}
+    <style type="text/css">
+        .hour {
+            background-color: #eaf6fd;
+            width: 40px;
+            height: 28px;
+            line-height: 28px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: normal;
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 1px solid #b4d3eb;
+            position: absolute;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .hour-selected {
+            background-color: #0fbc4a;
+            color: #ffffff;
+        }
+        .delDay {
+            border: 1px solid #eee;
+            padding:0 5px;
+            cursor:pointer;
+            margin-left:5px;
+        }
+        .switch_time_range {
+            border-style: solid;
+            border: 4px solid #eee;
+            width: 20px;
+            height: 42px;
+            float: left;
+            font-size: 16px;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+    <script>
+        seajs.use(['$', 'calendar', 'validator'], function ($, Calendar, Validator) {
+            var selectedHours = [];
+            var selectedDays = [];
+
+            if ($('#action').val() == 'edit') {
+                var hours = $('#times').val().split(',');
+                for (var i = 0; i < hours.length; i++){
+                    selectedHours.push(Number(hours[i]));
+                }
+                resetHourInput();
+                initHours();
+
+                function initHours() {
+                    var duration = Number($('#product option:selected').attr('data-id'));
+                    for(var i = 0; i < selectedHours.length; i++){
+                        var str = 'hour-' + selectedHours[i];
+                        var ele = $('#' + str);
+                        var hour = Number(ele.attr("data-hour").substring(0, 2));
+                        ele.addClass("hour-selected");
+                        var start = hour < 10 ? "0" + hour : hour;
+                        var end = hour+duration;
+                        end = end >= 24 ? end - 24 : end;
+                        end = end < 10 ? "0" + end : end;
+                        ele.text(start + ":00 - " + end + ":00");
+                        ele.animate({width: (duration * 45 - 4) + "px"}, 80);
+                    }
+                }
+
+                var daysList = $('#days').val().split(';');
+                for(var i = 0; i < daysList.length; i++){
+                    var day = daysList[i].split('--');
+                    initDays(day[0], day[1]);
+                }
+                function initDays(startTime, endTime){
+                    var sa = startTime.split("-");
+                    var ea = endTime.split("-");
+                    var startDay = new Date(sa[0], Number(sa[1])-1, sa[2]);
+                    var endDay = new Date(ea[0], Number(ea[1])-1, ea[2]);
+
+                    if(selectedDays.length == 0){
+                        $('#preview').empty();
+                    }
+                    var text = dateToHan(startDay) + " - " + dateToHan(endDay);
+
+                    selectedDays.push([startDay, endDay]);
+                    dayInput();
+                    var newStartDay = new Date(endDay);
+                    newStartDay.setDate(endDay.getDate() + 1);
+                    var newStart = newStartDay.getFullYear() + "-" + (newStartDay.getMonth()+1) + "-" + newStartDay.getDate();
+                    $('#start_time').val(newStart);
+                    $('#end_time').val('');
+
+                    $('#preview').append($("<div>", {style:"margin-bottom:4px;"})
+                                 .append($("<span>",{text: text}))
+                                 .append($("<span>",{text:"x", "class":"delDay", "data-start":startTime,"data-end":endTime, click:delDayClick}))
+                    );
+                }
+            }
+
+            var c1 = new Calendar({trigger: '#start_time', style: {'z-index': 999}});
+            var c2 = new Calendar({trigger: '#end_time', style: {'z-index': 999}});
+
+            c1.on('selectDate', function (date) {
+                c2.range([date, null]);
+            });
+
+            var validator = new Validator({
+                element: '#form'
+            });
+            validator.addItem({
+                element: '#price',
+                required: true,
+                errormessage: '请输入价格'
+            });
+            validator.addItem({
+                element: '[name=days]',
+                required: true,
+                errormessage: '至少选择一个日期'
+            });
+            validator.addItem({
+                element: '[name=times]',
+                required: true,
+                errormessage: '至少选择一个时间段'
+            });
+            validator.addItem({
+                element: '[name=box]',
+                required: true,
+                errormessage: '请选择包厢类型'
+            });
+            validator.addItem({
+                element: '[name=count]',
+                required: true,
+                errormessage: '至少有一个门店的数量不为0'
+            });
+            if ($('#error').val()) {
+                validator.execute();
+            }
+//            检查门店数量至少有一个不为0
+            var shops = $('.shop');
+            //初始一边count的值
+            shops.keyup(function(){
+                count_shop();
+            });
+            var count_shop = function(){
+                var count = 0;
+                shops.each(function(){
+                    var current = $(this);
+                    if (current.val().match(/^[0-9]*[1-9][0-9]*$/) == current.val()) {
+                            count++;
+                    }
+                });
+                if (count)
+                    $('[name=count]').val(count);
+                else
+                    $('[name=count]').val('');
+            }
+            
+            count_shop();
+
+            var newStartDay = new Date();
+            $('#start_time').val(newStartDay.getFullYear() + "-" + (newStartDay.getMonth()+1) + "-" + newStartDay.getDate());
+
+            var duration = $('#product option:selected').attr('data-id');
+            $('#per').text(duration);
+            $('#duration').val(duration);
+
+            $('#add').click(function(){
+                var start_time = $('#start_time').val();
+                var end_time = $('#end_time').val();
+                addDate(start_time, end_time);
+            });
+
+            $(".switch_time_range").click(function(){
+                $("#timeRangeBox").animate({left: $(this).attr("data-offset")},100);
+            });
+
+            function addDate(startTime, endTime){
+                if(!startTime || !endTime){
+                    alert("请选择日期");return;
+                }
+                var sa = startTime.split("-");
+                var ea = endTime.split("-");
+                var startDay = new Date(sa[0], Number(sa[1])-1, sa[2]);
+                var endDay = new Date(ea[0], Number(ea[1])-1, ea[2]);
+                if(startDay.getTime() > endDay.getTime()){
+                    alert("结束日期不可小于开始日期");return;
+                }
+                var today = new Date();
+                today = new Date(today.getFullYear() , today.getMonth() , today.getDate());
+                if(endDay < today) {
+                    alert("结束日期必须大于等于今天");return;
+                }
+
+                if(selectedDays.length == 0){
+                    $('#preview').empty();
+                }
+                var text = dateToHan(startDay) + " - " + dateToHan(endDay);
+                //检查冲突
+                var startDayTime = startDay.getTime();
+                var endDayTime = endDay.getTime();
+
+                $.each(selectedDays, function(index, entry){
+                    if (startDayTime <= entry[1].getTime() && endDayTime >=entry[0].getTime()){
+                        alert("与 " + dateToHan(entry[0]) + " - " + dateToHan(entry[1]) + " 日期范围重合，请重新选择");
+                        return false;
+                    }
+                });
+
+                selectedDays.push([startDay, endDay]);
+                dayInput();
+                var newStartDay = new Date(endDay);
+                newStartDay.setDate(endDay.getDate() + 1);
+                var newStart = newStartDay.getFullYear() + "-" + (newStartDay.getMonth()+1) + "-" + newStartDay.getDate();
+                $('#start_time').val(newStart);
+                $('#end_time').val('');
+
+                $('#preview').append($("<div>", {style:"margin-bottom:4px;"})
+                             .append($("<span>",{text: text}))
+                             .append($("<span>",{text:"x", "class":"delDay", "data-start":startTime,"data-end":endTime, click:delDayClick}))
+                );
+            }
+            function dayInput() {
+                var day = [];
+                $.each(selectedDays, function(index, entry){
+                    day.push(entry[0].getFullYear() + "-" + fill2(entry[0].getMonth()+1) + "-" + fill2(entry[0].getDate()) + "--"
+                             + entry[1].getFullYear() + "-" + fill2(entry[1].getMonth()+1) + "-" + fill2(entry[1].getDate()));
+                });
+                $('#days').val(day.join(";"));
+            }
+            function delDayClick() {
+                var ele = $(this);
+                var sa = ele.attr("data-start").split("-");
+                var ea = ele.attr("data-end").split("-");
+                var startTime = new Date(sa[0], Number(sa[1])-1, sa[2]).getTime();
+                var endTime = new Date(ea[0], Number(ea[1])-1, ea[2]).getTime();
+                var index = -1;
+                for(var i = 0 ; i < selectedDays.length; i ++){
+                    var entry = selectedDays[i];
+                    if(startTime == entry[0].getTime() && endTime == entry[1].getTime()){
+                        index = i;
+                        break;
+                    }
+                }
+                if (index >= 0) {
+                    selectedDays.splice(index, 1);
+                    ele.unbind("click");
+                    ele.parent().remove();
+                    if(selectedDays.length==0) {
+                        $("#preview").text("未添加，请选择日期范围，并点击添加。一次可【添加多个】日期范围");
+                    }
+                }
+                dayInput();
+            }
+
+            function dateToHan(date) {
+                return date.getFullYear()+"年" + fill2(date.getMonth()+1) + "月" + fill2(date.getDate()) + "日";
+            }
+            function fill2(n){
+                if (n < 10) return "0" + n;
+                return "" + n;
+            }
+
+            function choiceTime(ele) {
+                var hour = Number(ele.attr("data-hour").substring(0, 2));
+                var index = Number(ele.attr("data-index"));
+
+                var i = $.inArray(hour, selectedHours);
+                if(i >= 0) {
+                    selectedHours.splice(i, 1);
+                    ele.removeClass("hour-selected");
+                    ele.animate({width: '40px'}, 80);
+                    ele.text(ele.attr("data-hour"));
+                } else{
+                    var duration = Number($('#product option:selected').attr('data-id'));
+                    if (hour < 8 && hour + duration > 8) {
+                        return;
+                    }
+                    for(var j = duration - 1; j >= 0; j--){
+                        var h = hour + j >= 24 ? hour + j - 24 : hour + j;
+                        var k = $.inArray(h, selectedHours);
+                        if (k >= 0) {
+                            return;
+                        }
+                    }
+                    selectedHours.push(hour);
+                    ele.addClass("hour-selected");
+                    var start = hour < 10 ? "0" + hour : hour;
+                    var end = hour+duration;
+                    end = end >= 24 ? end - 24 : end;
+                    end = end < 10 ? "0" + end : end;
+                    ele.text(start + ":00 - " + end + ":00");
+                    ele.animate({width: (duration * 45 - 4) + "px"}, 80);
+                }
+                resetHourInput();
+            }
+
+            function resetHourInput() {
+                selectedHours.sort(function(a,b){return a-b});
+                $("#times").val('');
+                $("#times").val(selectedHours.join(","));
+                var hourPreview = $("#previewTime");
+                var duration = Number($('#product option:selected').attr('data-id'));
+
+                if(selectedHours.length == 0){
+                    $('#previewTime').text("未选择时间段，请点击以上所列时间。【可多选】");
+                }else{
+                    $('#previewTime').empty();
+                    $.each(selectedHours, function(index, hour){
+                        var end = hour + duration;
+                        end = end >= 24? end -24 : end;
+                        hourPreview.append(
+                            $("<span>",{text: fill2(hour) + ":00 - " + fill2(end) + ":00", style:"padding-right:40px;"})
+                        );
+                        if(((index + 1)%4) == 0){
+                            hourPreview.append($("<br>"));
+                        }
+                    });
+                }
+            }
+
+            function resetTime(){
+                selectedHours = [];
+                $(".hour").each(function () {
+                    var ele = $(this);
+                    ele.removeClass("hour-selected");
+                    ele.text(ele.attr("data-hour"));
+                    ele.animate({width: "40px"}, 100);
+                });
+                $("#previewTime").text('');
+            }
+
+            $("#product").change(function(){
+                $('#per').text($('#product option:selected').attr('data-id'));
+                $('#preview').text('未添加，请选择日期范围，并点击添加。一次可【添加多个】日期范围。');
+                resetTime();
+            });
+
+            $(".hour").click(function(){
+                var ele = $(this);
+                choiceTime(ele);
+            });
+
+            //设置统一的门店数量
+            $("#all").keyup(function () {
+                $("input[name^=shop]").val($(this).val());
+            });
+        });
+    </script>
+{% end %}

@@ -1,0 +1,53 @@
+{% extends "../layout.html" %}
+{% block title %}分销商详情{% end %}
+{% block menu %}
+    {% module menu('agent.list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ info.name }}（ {{ info.short_name }} ）</h2>
+</div>
+
+<dl class="ui-dlist">
+    <dt class="ui-dlist-tit">名称：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.name }}
+    </dd>
+    <dt class="ui-dlist-tit">短名称：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.short_name }}
+    </dd>
+    <dt class="ui-dlist-tit">销售专员：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.sales_name }}
+    </dd>
+    <dt class="ui-dlist-tit">联系方式：</dt>
+    <dd class="ui-dlist-det">{{ default(info.contact) }}&nbsp;</dd>
+    <dt class="ui-dlist-tit"></dt>
+    <dt class="ui-dlist-tit">登录名：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.username }}
+    </dd>
+    <dt class="ui-dlist-tit">开户城市：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.bank_city }}
+    </dd>
+    <dt class="ui-dlist-tit">银行：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.bank_head }}
+    </dd>
+    <dt class="ui-dlist-tit">支行：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.bank_branch }}
+    </dd>
+    <dt class="ui-dlist-tit">开户人：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.bank_holder }}
+    </dd>
+    <dt class="ui-dlist-tit">银行帐号：</dt>
+    <dd class="ui-dlist-det">
+        {{ info.bank_account }}
+    </dd>
+</dl>
+{% end %}

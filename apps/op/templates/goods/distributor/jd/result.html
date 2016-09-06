@@ -1,0 +1,17 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布京东商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end %}
+
+{% block content %}
+<div class="ui-tipbox ui-tipbox-message" style="margin-top:20px;">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF046;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">发布结果</h3>
+        <p class="ui-tipbox-explain">{{message}}</p>
+    </div>
+</div>
+{% end %}

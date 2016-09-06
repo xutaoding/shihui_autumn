@@ -1,0 +1,9 @@
+<div id="coupon_delay" style="padding: 50px;">
+        <p class="ui-form-text" style="font-size: 16px; padding:0 0 20px 20px ;">将该商品对应的所有未消费券延期</p><br>
+        <label for="delay"><span class="ui-form-required">*</span>延至日期</label>
+        <input id="delay" name="delay" type="text"/>
+        <input id="goods_id" name="goods_id" type="hidden"/>
+        {% module xsrf_form_html() %}
+        <button type="submit" class="ui-button ui-button-sorange" id="sure_delay">确认</button>
+        <span id="delay_date_err" style="color: red;display: block"></span>
+</div>

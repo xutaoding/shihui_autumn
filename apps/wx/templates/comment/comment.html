@@ -1,0 +1,84 @@
+{% extends "../layout.html" %}
+{% block title %}微评论{% end %}
+
+{% block style %}
+<style type="text/css">
+    .iconbase,.iconpitch{
+        font-size: 20px;
+        color: grey;
+        padding: 5px 10px 0 0;
+        cursor: pointer
+    }
+    .iconpitch{
+        font-size: 20px;
+        color: #FFD912
+    }
+    .picon{
+        color: #FFD912
+    }
+    .empty{
+        color: grey
+    }
+    label {
+        color: white;
+    }
+</style>
+{% end %}
+
+{% block content %}
+    {% if not exist %}
+    <form action="{{ reverse_url('comment') }}" method="post" id="form">
+        <label>等级： </label>
+        {% for i in range(5) %}
+        {% if i >= 3 %}
+            <span class="glyphicon glyphicon-star-empty iconbase empty" name="star" value="{{ i + 1 }}"></span>
+        {% else %}
+            <span class="glyphicon glyphicon-star iconbase iconpitch" name="star" value="{{ i + 1 }}"></span>
+        {% end %}
+        {% end %}
+        <input type="hidden" name="mount" id="mount" value="3">
+        <br>
+        <label>内容： </label>
+        <textarea cols="50" rows="20" name="content" class="form-control" style="margin-left: auto; margin-right: auto; height: 10em"></textarea>
+        <br>
+        {% module xsrf_form_html() %}
+        <input type="hidden" value="{{current_user.wx_id}}" name="wx_id">
+        <input type="submit" class="btn btn-info" value="提交评论">
+    </form>
+    <div style="margin-bottom: 20px"></div>
+    {% end %}
+    <ul class="list-group">
+        {% for comment in page.rows%}
+        <li class="list-group-item">
+            <span>
+                {% for i in range(5) %}
+                <span class="glyphicon {{ 'glyphicon-star picon' if i < comment.star else 'glyphicon-star-empty empty' }}"></span>
+                {% end %}
+            </span> |
+            <span style="text-align: right">{{ str(comment.created_at) }}</span><br>
+            <span>{{ comment.content }}</span>
+        </li>
+        {% end %}
+    </ul>
+{% raw page.boot_links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        $('[name="star"]').click(function(){
+            var count = $(this).attr('value');
+            $('#mount').val(count);
+            $('[name="star"]').each(function(){
+                if ($(this).attr('value') <= count ){
+                    $(this).removeClass('glyphicon-star-empty iconpitch empty');
+                    $(this).addClass('glyphicon-star iconpitch');
+                } else {
+                    $(this).removeClass('glyphicon-star iconpitch');
+                    $(this).addClass('glyphicon-star-empty empty');
+                }
+            });
+        });
+    });
+</script>
+{% end %}

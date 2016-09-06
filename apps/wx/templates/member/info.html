@@ -1,0 +1,97 @@
+{% extends "../layout.html" %}
+{% block title %}会员中心{% end %}
+
+{% block style %}
+<style type="text/css">
+    label {
+        color: white;
+    }
+    .help-block-white {
+        color: white;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<form role="form" method="post" action="{{reverse_url('member_info')}}">
+    <div class="form-group">
+        <label for="name_input">姓名</label>
+        <input type="text" id="name_input" name="name" class="form-control" value="{{current_user.name}}" disabled="disabled">
+    </div>
+    <div class="form-group">
+        <label for="mobile_input">手机号</label>
+        <input type="text" id="mobile_input" name="mobile" class="form-control" value="{{current_user.mobile}}" disabled="disabled">
+    </div>
+    <div class="form-group">
+        <div class="radio-inline">
+          <label>
+                <input type="radio" name="gender" value="男" {%if current_user.gender == '男' %} checked {%end%}>
+                 男
+          </label>
+        </div>
+        <div class="radio-inline">
+            <label>
+                <input type="radio" name="gender" value="女"{%if current_user.gender == '女' %} checked {%end%}>
+                女
+            </label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="age_input">年龄</label>
+        <input type="number" id="age_input" name="age" class="form-control" value="{{default(current_user.age, '')}}">
+    </div>
+    <div class="form-group">
+        <label for="birth_date_input">生日</label>
+        <input type="date" id="birth_date_input" name="birth_date" class="form-control" value="{{default(current_user.birth_date,'1980-01-01')}}">
+    </div>
+    <div class="form-group">
+        <label for="address_input">地址</label>
+        <textarea class="form-control" id="address_input" name="address" >{{default(current_user.address,'')}}</textarea>
+    </div>
+    {% module xsrf_form_html() %}
+    <input type="hidden" value="{{current_user.wx_id}}" name="wx_id">
+    <input type="submit" class="btn btn-info" value="确认修改">
+    <a href="{{url_concat(reverse_url('member_index'), {'wx_id': current_user.wx_id})}}" class="btn btn-default" >返回</a>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+
+$('form').validate({
+    rules: {
+        birth_date: {
+            required: true,
+            date: true
+        },
+        address: {
+            required: true
+        }
+    },
+    highlight: function(element) {
+        $(element).closest('.form-group').addClass('has-error');
+    },
+    unhighlight: function(element) {
+        $(element).closest('.form-group').removeClass('has-error');
+    },
+    errorElement: 'span',
+    errorClass: 'help-block-white',
+    errorPlacement: function(error, element) {
+        if(element.parent('.input-group').length) {
+            error.insertAfter(element.parent());
+        } else {
+            error.insertAfter(element);
+        }
+    },
+    messages: {
+       birth_date: {
+            required: "请输入生日",
+            date: "请输入正确的生日"
+       },
+       address: {
+            required: "请输入地址",
+       }
+    }
+});
+</script>
+{% end %}

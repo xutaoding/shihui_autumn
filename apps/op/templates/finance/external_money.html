@@ -1,0 +1,262 @@
+{% extends "../layout.html" %}
+{% block title %}外部资金添加{% end %}
+{% block menu %}
+{% module menu('finance.external_money_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">外部资金添加{{form.source.value}}</h2>
+</div>
+<form class="ui-form" name="" method="post" action="{{ reverse_url('finance.' + form.action.value) }}" id="form">
+    {% if form.action.value=='edit_external_money' %}
+    <div class="ui-form-item">
+        <label for="amount" class="ui-label">资金流向</label>{{ {0:'我们给商户',1:'商户给我们'}.get(form.source.value,'') }}
+    </div>
+    {% else %}
+    <div id="to_supplier" class="ui-to-supplier-current">
+        我们给商户</div>
+    <div id="to_us" class="ui-to-us">
+        商户给我们</div>
+    {% end %}
+    <div class="fn-clear"></div>
+    <div id="to_supplier_show" {% if form.action.value=='add_external_money' %} style="display: block"{%end%}>
+        {% if form.source.value==0 or form.source.value is '' %}
+        <div class="ui-form-item">
+            <label class="ui-label">资金类型</label>
+            <input type="radio" name="type" id="flag__0" value="0" checked> <label
+                for="flag__0">预付款
+
+            <p class="" style="display: inline">(我们预先给商户的)</p></label>
+        <span style="display: block;margin-top: 8px">
+        <input type="radio" name="type" id="flag__1" value="1"> <label for="flag__1">保证金
+            <p class="" style="display: inline">(记录到外部资金,用于以后追债）</p></label></span>
+        </div>
+        {% end %}
+    </div>
+    <div id="to_us_show" {% if form.action.value=='add_external_money' %} style="display: none"{%end%}>
+        {% if form.source.value==1 or form.source.value is ''  %}
+        <div class="ui-form-item">
+            <label class="ui-label">资金类型</label>
+            <input type="radio" name="flag" id="flag_0" value="0" checked> <label for="flag_0">保证金（从销售额中扣除）</label>
+            <span style="display: block;margin-top: 8px">
+            <input type="radio" name="flag" id="flag_1" value="1"> <label for="flag_1">保证金（已线下打款给我们）</label>
+            </span>
+            <span style="display: block;margin-top: 8px">
+            <input type="radio" name="flag" id="ads-fee" value="2"><label for="ads-fee">广告费</label>
+            </span>
+            <span style="display: block;margin-top: 8px">
+            <input type="radio" name="flag" id="weixin-fee" value="3"><label for="weixin-fee">微信费用</label>
+            </span>
+        </div>
+        {% end %}
+    </div>
+    <div class="ui-form-item">
+        <label for="supplier_id" class="ui-label">
+            <span class="ui-form-required">*</span>商户</label>
+        <input id="supplier_input" type="text" class="ui-input" value="{{ form.short_name.value}}" {% if form.action.value=='edit_external_money' %}readOnly{% end %} />
+        <input id="supplier_id" name="supplier" type="hidden">
+    </div>
+    <div id="show-fee" style="display: none">
+        <div class="ui-form-item">
+            <label for="received_type" class="ui-label">
+                <span class="ui-form-required">*</span>广告类型</label>
+            <select name="received_type" id="received_type">
+                <option value="ONLINE_FEE" {% if form.received_type.value == 'ONLINE_FEE' %} selected {% end %}>上线费</option>
+                <option value="ADS_FEE" {% if form.received_type.value == 'ADS_FEE' %} selected {% end %}>广告费</option>
+                <option value="OPERATE_FEE" {% if form.received_type.value == 'OPERATE_FEE' %} selected {% end %}>代运营费</option>
+            </select>
+        </div>
+        <div class="ui-form-item">
+            <label for="fee" class="ui-label">
+                <span class="ui-form-required">*</span>广告费</label>
+            <input id="fee" type="text" size="20" class="ui-input ui-input-large"
+                 name="fee" value="{{ form.fee.value }}">
+        </div>
+        <div class="ui-form-item">
+            <label for="received_at" class="ui-label">
+                <span class="ui-form-required">*</span>收取时间</label>
+            <input id="received_at" type="text" class="ui-input ui-input-large" name="received_at"
+                   value="{{ form.received_at.value }}"/>
+        </div>
+        <div class="ui-form-item">
+            <label for="fee_remark" class="ui-label">备注</label>
+            <textarea id="fee_remark" name="fee_remark" class="ui-input ui-input-large">{{ form.fee_remark.value }}</textarea>
+        </div>
+    </div>
+    <div id="margin">
+        <div id="common_display" style="display: block">
+            <div class="ui-form-item">
+                <label for="amount" class="ui-label">
+                    <span class="ui-form-required">*</span>金额</label>
+                <input id="amount" name="amount" value="{{form.amount.value}}" class="ui-input">
+            </div>
+            <div class="ui-form-item">
+                <label class="ui-label" for="expire_at"><span class="ui-form-required">*</span>有效期</label>
+                <input id="expire_at" class="ui-input" type="text" name="expire_at"
+                       value="{{ form.expire_at.value.strftime('%Y-%m-%d') if form.expire_at.value else ''  }}"/>
+
+                <p class="ui-form-explain">指当天的 23:59:59</p>
+            </div>
+            <div class="ui-form-item">
+                <label for="remark" class="ui-label">备注</label>
+                <textarea id="remark" name="remark" rows="5" cols="15" class="ui-input"
+                          style="margin: 0px; width: 388px; height: 110px;">{{form.remark.value}}
+                </textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="hidden" id="action" value="{{ form.action.value }}">
+        <input type="hidden" name="id" value="{{ form.id.value }}">
+        <input type="hidden" id="source" name="source" value="{{ form.action.value if form.source.value else '0'}}">
+        <input type="submit" class="ui-button ui-button-morange" value="确定">
+        <a class="ui-button ui-button-mwhite" href="{{ reverse_url('finance.external_money_list') }}">取消</a>
+    </div>
+</form>
+{% end %}
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+<style>
+    .ui-to-supplier-current {
+        background-color: #B7CC98;
+        text-align: center;
+        margin-left: 120px;
+        width: 200px;
+        line-height: 50px;
+        font-size: 20px;
+        float: left;
+        cursor: pointer;
+    }
+    .ui-to-us {
+        background-color: #E4F1DD;
+        text-align: center;
+        margin-left: 20px;
+        margin-bottom: 10px;
+        width: 200px;
+        line-height: 50px;
+        font-size: 20px;
+        float: left;
+        cursor: pointer;
+    }
+</style>
+{% end %}
+{% block scripts %}
+<script>
+
+    seajs.use(['$', 'calendar', 'moment', 'autocomplete', 'autumn', 'validator'],
+            function ($, Calendar, moment, AutoComplete, autumn, Validator) {
+                new Calendar({trigger: '#expire_at', range: [moment().add('days', 1).format('YYYY-MM-DD'), null]});
+                new Calendar({trigger: '#received_at', range: ['2012-01-01', moment().format('YYYY-MM-DD')]});
+                $("#to_supplier").click(function () {
+                    $("#to_supplier_show").show();
+                    $("#source").val('0');
+                    $("#to_us_show").hide();
+                    $("#to_us").css("background-color", "#E4F1DD")
+                    $("#to_supplier").css("background-color", "#B7CC98")
+                })
+                $("#to_us").click(function () {
+                    $("#source").val('1');
+                    $("#to_supplier_show").hide();
+                    $("#to_us_show").show();
+                    $("#to_supplier").css("background-color", "#E4F1DD")
+                    $("#to_us").css("background-color", "#B7CC98")
+                });
+
+                var validator = new Validator({
+                    element: '#form'
+                });
+                validator.addItem({
+                    element: '#supplier_input',
+                    required: true,
+                    errormessage: '商户不能为空，请输入'
+                });
+                validator.addItem({
+                    element: '#amount',
+                    required: true,
+                    errormessage: '金额不能为空，请输入'
+                });
+                validator.addItem({
+                    element: '#expire_at',
+                    required: true,
+                    errormessage: '有效期不能为空'
+                });
+
+                function remove_validator() {
+                    validator.removeItem('#fee');
+                    validator.removeItem('#received_at');
+                    validator.removeItem('#amount');
+                    validator.removeItem('#expire_at');
+                }
+                function add_margin() {
+                    validator.addItem({
+                        element: '#amount',
+                        required: true,
+                        errormessage: '金额不能为空，请输入'
+                    });
+                    validator.addItem({
+                        element: '#expire_at',
+                        required: true,
+                        errormessage: '有效期不能为空'
+                    });
+                }
+                function add_fee() {
+                    validator.addItem({
+                        element: '#fee',
+                        required: true,
+                        errormessage: '广告费用不能为空'
+                    });
+                    validator.addItem({
+                        element: '#received_at',
+                        required: true,
+                        errormessage: '收取时间不能为空'
+                    });
+                }
+
+                $("#ads-fee").on('click', function() {
+                    $("#show-fee").removeAttr('style');
+                    $("#margin").css('display', 'none');
+                    remove_validator();
+                    add_fee();
+                });
+                $("#weixin-fee").on('click', function(){
+                    $('#show-fee').css('display', 'none');
+                    $('#margin').removeAttr('style');
+                    remove_validator();
+                    add_margin();
+                });
+                $("#flag_0").on('click', function(){
+                    $('#show-fee').css('display', 'none');
+                    $('#margin').removeAttr('style');
+                    remove_validator();
+                    add_margin();
+                });
+                $("#flag_1").on('click', function() {
+                    $('#show-fee').css('display', 'none');
+                    $('#margin').removeAttr('style');
+                    remove_validator();
+                    add_margin();
+                });
+                if($('#error').val()){
+                    validator.execute();
+                };
+                //初始化商户选择的自动补全
+                $.post(
+                        '{{ reverse_url("common.autocomplete.supplier") }}',
+                        {'_xsrf': autumn.get_cookie('_xsrf')},
+                        function (common_suppliers) {
+                            new AutoComplete({
+                                trigger: '#supplier_input',
+                                filter: 'stringMatch',
+                                selectFirst: true,
+                                dataSource: common_suppliers
+                            }).on('itemSelected',function (data) {
+                                        $('#supplier_id').val(data.id);
+                                    }).render()
+                        }
+                )
+
+            });
+</script>
+{% end %}

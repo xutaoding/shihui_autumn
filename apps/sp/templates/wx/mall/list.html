@@ -1,0 +1,192 @@
+{% extends "../../layout.html" %}
+{% block title %}微信商品列表{% end %}
+{% block menu %}
+{% module menu('wx.mall.cover') %}
+{% end%}
+
+{% block content %}
+
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.mall.cover') }}">商城封面</a>
+        </li>
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">微信商品列表</a>
+        </li>
+    </ul>
+</div>
+
+<ul class="panels">
+    <li class="panel">
+        <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('wx.goods.add') }}" style="margin-top: -35px">添加商品</a>
+        <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('wx.goods.list') }}" >
+            <span>商品名</span>
+            <input type="text" name="goods" value="{{ form.goods.value }}"/>
+            <span>状态</span>
+            <select name="status">
+                <option value="">全部</option>
+                <option value="1" {% if form.status.value == '1' %} selected {% end %} > 已上架</option>
+                <option value="0" {% if form.status.value == '0' %} selected {% end %} > 未上架</option>
+            </select>
+            <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+        </form>
+
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>商品</th>
+                <th style="width:70px">券有效期</th>
+                <th>原价</th>
+                <th>售价</th>
+                <th style="width:70px">状态</th>
+                <th style="width: 50px">显示排名</th>
+                <th style="width:100px">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for goods in page.rows %}
+            <tr>
+                <td><a href="{{ reverse_url('wx.goods.detail', goods.id) }}">{{ goods.short_name }}</a></td>
+                <td>{{ default(goods.expire_at, '') }}{% if goods.expire_at and goods.expire_at < now %}<span style="color:red"><br/>已过期</span>{%end%}</td>
+                <td>{{ goods.face_value }}</td>
+                <td>{{ goods.sales_price }}</td>
+                <td>{% if goods.on_sale == '0' %}未上架{%else%}
+                        {% if not goods.on_sale_at and not goods.off_sale_at%} 已上架 {%else%}
+                            {% if goods.on_sale_at and goods.on_sale_at > now%}预计上架<br/>{{goods.on_sale_at}} {%else%}
+                                {% if goods.on_sale_at and goods.off_sale_at and goods.on_sale_at < now and goods.off_sale_at > now%}预计下架<br/>{{goods.off_sale_at}} {%else%}
+                                    {% if goods.off_sale_at and goods.off_sale_at < now%}自动下架{%end%}
+                                {%end%}
+                            {%end%}
+                        {%end%}
+                    {%end%}
+                </td>
+                <td>
+                    <input type="text" value="{{default(goods.rank, '')}}" name="rank-value" style="width:20px;" readonly>
+                    <a class="iconfont rank-edit" name="rank-edit" style="color: #C26565">&#xf014f;</a>
+                    <input type="hidden" value="{{goods.id}}" class="goods_id" name="goods_id">
+                    <input type="button" class="" value="保存" name="save-btn" style="display:none">
+                </td>
+                <td>
+                    <span style="color: #08c; cursor: pointer;"><a href="{{reverse_url('wx.goods.edit')}}?goods_id={{goods.id}}" style="text-decoration: none;">编辑</a></span> /
+                    <span style="color: #08c; cursor: pointer;" name="weixin" goods-id="{{ goods.id }}" {%if goods.on_sale == '0'%} operator="1">上架</span> / {%else%}operator="0"> 下架</span> / {%end%}
+                    <span style="cursor: pointer;" data-del-id="{{goods.id}}">删除</span>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+        {% module xsrf_form_html() %}
+        {% raw page.links() %}
+    </li>
+</ul>
+<div class="ui-poptip ui-poptip-blue" id="pop-tip" style="display:none">
+    <div class="ui-poptip-shadow">
+    <div class="ui-poptip-container">
+        <div class="ui-poptip-arrow">
+            <em></em>
+            <span></span>
+        </div>
+        <div class="ui-poptip-content">微商城商品排名值越大，显示越靠前</div>
+    </div>
+    </div>
+</div>
+
+{% end %}
+{% block styles %}
+<style>
+    .rank-edit {
+        cursor: pointer
+    }
+    a:hover{
+        text-decoration: none;
+    }
+</style>
+
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['autumn', '$', 'confirmbox', 'popup'], function(autumn, $, ConfirmBox, Popup){
+        // 上下架
+        $("span[name='weixin']").on('click', function(){
+            var current = $(this);
+            var goods_id = current.attr('goods-id');
+            var operator = current.attr('operator');
+            if (operator == '0'){
+                var info = '确认 下架？';
+            }
+            else{
+                var info = '确认 上架？';
+            }
+            ConfirmBox.confirm(info, '微商城商品上下架', function(){
+                var action = "{{ reverse_url('wx.goods_on_sale.ajax') }}";
+                $.post(
+                        action,
+                        {'goods_id': goods_id, operator: operator, '_xsrf': autumn.get_cookie('_xsrf')},
+                        function(result){
+                            if (result.is_ok){
+                                window.location.reload();
+                            }
+                            else{
+                                alert('操作失败，请刷新重试');
+                            }
+                        }
+                );
+            });
+        });
+        // popup
+        new Popup({
+                trigger: 'input[name=rank-value]',
+                element: '#pop-tip',
+                delay: -1
+        });
+
+        // 删除商品
+        $("span[data-del-id]").on('click', function(){
+            var goods_id = $(this).attr('data-del-id');
+            ConfirmBox.confirm('是否确认删除该商品', '确认删除', function(){
+                var action = "{{ reverse_url('wx.goods.delete') }}";
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="goods_id" />').attr('value', goods_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+            });
+        });
+
+        // 编辑排名
+        $("a[name=rank-edit]").on('click', function(){
+            $(this).siblings('input[name=rank-value]').removeAttr('readonly');
+            $(this).siblings('input[name=save-btn]').show();
+            $(this).hide();
+        });
+
+        // 保存排名
+        $("input[name=save-btn]").on('click', function(){
+            var goods_id = $(this).prev().attr('value');
+            var rank = $(this).siblings('input[name=rank-value]').val();
+            if (!(parseInt(rank) > 0)){
+                alert('请输入正确的商品显示排名，数值越大，显示越靠前');
+                return false
+            }
+            else{
+                var t = $(this);
+                $.post(
+                    "{{reverse_url('wx.goods.rank')}}",
+                    {"goods_id": goods_id, "rank": rank, "_xsrf": autumn.get_cookie('_xsrf')},
+                    function(data){
+                        if (data.ok){
+                            t.siblings('a[name=rank-edit]').show();
+                            t.siblings('input[name=rank-value]').attr('readonly', true);
+                            t.hide();
+                        }
+                        else{
+                            alert('保存失败，请重试');
+                        }
+
+                    }
+                );
+            }
+        });
+    });
+</script>
+{% end %}

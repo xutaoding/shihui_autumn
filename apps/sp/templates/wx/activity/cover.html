@@ -1,0 +1,88 @@
+{% extends '../../layout.html' %}
+{% block title %}微信活动封面{% end %}
+{% block menu %}
+{% module menu('wx.activity.cover') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">设置活动封面</h2>
+</div>
+
+<form class="ui-form" method="post" action="{{ reverse_url('wx.activity.cover.edit')}}" id="form">
+    <fieldset>
+        <div class="ui-form-item">
+            <label for="title" class="ui-label">
+                <span class="ui-form-required">*</span>标题
+            </label>
+            <input class="ui-input" type="text" id="title" name="title" style="width: 360px;" value="{{ default(cover.title) }}">
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>图片</label>
+            <button class="ui-button ui-button-swhite" type="button" id="upload-img">上传图片</button>
+            <input type="hidden" name="pic" id="img-path" value="{{ default(cover.pic) }}">
+            <label class="ui-form-explain">推荐尺寸：(720x400)</label>
+            <div style="margin-top: 10px">
+                <img style="max-width:720px;" src=" {{ 'http://img.uhcdn.com/images/autumn/default.png' if not default(cover.pic) else img_url(cover.pic)  }}" id="img-preview">
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="summary" class="ui-label"> 摘要（选填）</label>
+            <textarea id="summary" name="desc" class="ui-input" style="width: 360px;" rows="5">
+                {{ default(cover.desc) }}
+            </textarea>
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="submit" class="ui-button ui-button-morange" value="确定">
+        </div>
+    </fieldset>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'kindeditor', 'validator', 'autumn'], function ($, KindEditor, Validator, autumn) {
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create();
+            K('#upload-img').click(function() {
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        imageUrl : K('#img-path').val(),
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-path').val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '#title',
+            required: true,
+            errormessage: '请输入封面标题'
+        });
+        validator.addItem({
+            element: '#img-path',
+            required: true,
+            errormessage: '请选择封面图片'
+        });
+    });
+</script>
+{% end %}

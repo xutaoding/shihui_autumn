@@ -1,0 +1,21 @@
+{% extends '../layout.html' %}
+{% block title %}微活动{% end %}
+
+{% block content %}
+<h2 style="color: white">
+    热门活动
+</h2>
+<ul class="list-group">
+    {% for act in page.rows %}
+    <a href="{{ reverse_url('activity', act.id) }}?wx_id={{ current_user.wx_id }}" class="list-group-item">
+        <h5 class="list-group-item-heading">{{ act.name }}</h5>
+        <div style="margin-top:10px;">
+            <img src="{% if act.type == 1 %} http://img0.uhcdn.com/p/993/678/627/fa6364fc_2014043016521226867_nw.jpg
+                        {%elif act.type == 2%}http://img0.uhcdn.com/p/35/200/304/ff822bdb_2014043016564777264_nw.png  {% end %}"
+                 style="display:block; max-width:100%; max-height:100%; width: 100%" alt="微活动图片">
+        </div>
+    </a>
+    {% end %}
+</ul>
+{% raw page.boot_links() %}
+{% end %}

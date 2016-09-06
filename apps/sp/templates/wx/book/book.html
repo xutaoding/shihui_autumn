@@ -1,0 +1,191 @@
+{% extends '../../layout.html' %}
+{% block title %}{{ '新增' if action == 'add' else '修改' }}预约{% end %}
+{% block menu %}
+{% module menu('wx.book.order') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2>{{ '新增' if action == 'add' else '修改' }}预约</h2>
+</div>
+
+{% if shops %}
+<form action="{{ reverse_url('wx.book.add') if action == 'add' else url_concat(reverse_url('wx.book.edit'), {'book_id': book.id}) }}" method="post" id="form">
+    {#<div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>触发关键字</label>
+        <input type="text" class="ui-input" name="keyword">
+    </div>#}
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>图文消息标题</label>
+        <input type="text" class="ui-input" name="title" style="width: 40%" {% if action == 'edit' %} value="{{ book.info['title'] }}" {% end %}>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>图文封面</label>
+        <button class="ui-button ui-button-swhite" type="button" id="upload-img">上传图片</button>
+        <input type="hidden" name="cover" id="img-path" {% if action == 'edit' %} value="{{ book.info['pic'] }}" {% end %}>
+        <label class="ui-form-explain">推荐尺寸：(720x400)</label>
+        <div style="margin-top: 10px">
+            <img style="max-width:720px;" src="{{ 'http://img.uhcdn.com/images/autumn/default.png' if action == 'add' else img_url(book.info['pic']) }}" id="img-preview">
+            <input type="hidden" name="img_url" id="img-url">
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>订单说明</label>
+        <textarea class="ui-textarea" name="order_info" cols="70" rows="10">{% if action == 'edit' %}{{ book.info['desc'] }}{% end %}</textarea>
+    </div>
+    {#<div class="ui-form-item">
+        <label class="ui-label">订单接收设置</label>
+        <input type="checkbox" name="received_type" value="1" {% if action == 'edit' and '1' in book.type %} checked {% end %}>限定时间
+        <input type="checkbox" name="received_type" value="2" {% if action == 'edit' and '2' in book.type %} checked {% end %}>限定每日量
+        <input type="checkbox" name="received_type" value="3" {% if action == 'edit' and '3' in book.type %} checked {% end %}>限定全部总量
+    </div>#}
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>可预约门店</label>
+        <input type="radio" name="all" value="1" id="radio_1"><label for="radio_1">全部门店</label>
+        <input type="radio" name="all" value="0" id="radio_0"><label for="radio_0">部分门店</label>
+        <div id="shop_contain" style="display: none">
+            <table class="ui-table" style="width: auto">
+                <thead>
+                <tr>
+                    <th>店铺</th>
+                    <th>选择</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for shop in shops %}
+                <tr>
+                    <td>{{ shop.name }}</td>
+                    <td><input type="checkbox" name="shop" value="{{ shop.id }}" {% if action == 'edit' and str(shop.id) in book.shops %} checked {% end %}></td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="action" value="{{ action }}">
+        <input type="button" class="ui-button ui-button-morange" value="{{ '保存' if action == 'add' else '修改' }}" id="offer">
+    </div>
+</form>
+{% else %}
+<div class="ui-tipbox ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF0142;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">暂时还没有门店，不能添加预约消息</h3>
+        <p class="ui-tipbox-explain">请联系销售人员添加门店</p>
+    </div>
+</div>
+{% end %}
+{% end %}
+
+
+{% block scripts %}
+<script src="http://api.map.baidu.com/api?v=2.0&ak=2976474b4460d95ac1b20f0c24a5327c" type="text/javascript"></script>
+<script>
+    seajs.use(['$', 'kindeditor', 'validator', 'autumn'], function ($, KindEditor, Validator, autumn) {
+        function check(val) {
+            $('input[name="all"]').each(function(){
+                if ($(this).val() == val) {
+                    $(this).attr('checked', true);
+                    return false;
+                }
+            });
+            return true;
+        }
+
+        if ($('input[name="action"]').val() == 'add') {
+            check('1');
+            $('input[name="shop"]').attr('checked', true);
+        } else {
+            var flag = true;
+            $('input[name="shop"]').each(function(){
+                if (!$(this).attr('checked')){
+                    flag = false;
+                    return false;
+                }
+            });
+
+            if (flag) {
+                check('1');
+            } else {
+                check('0');
+                $('#shop_contain').show();
+            }
+
+        }
+
+        $('input[type="radio"]').on('click', function(){
+            if ($(this).val() == '0') {
+                $('#shop_contain').show();
+                $('input[name="shop"]').attr('checked', false);
+            } else {
+                $('#shop_contain').hide();
+                $('input[name="shop"]').attr('checked', true);
+            }
+        });
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create('#content',{
+                width: '380px',
+                minWidth: '380px',
+                items: ['bold', 'italic', 'underline', '|', 'insertorderedlist', 'insertunorderedlist', '|',
+                    'image', '|', 'forecolor', 'hilitecolor', '|', 'removeformat'],
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('#upload-img').click(function() {
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        imageUrl : K('#img-path').val(),
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-url').val(url);
+                            K('#img-path').val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+            $('#offer').on('click', function(){
+                $('#form').submit();
+            })
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: 'input[name="title"]',
+            required: true,
+            errormessage: '请输入标题'
+        });
+        validator.addItem({
+            element: '#img-path',
+            required: true,
+            errormessage: '请选择预订图'
+        });
+        validator.addItem({
+            element: 'textarea[name="order_info"]',
+            required: true,
+            errormessage: '请输入订单描述'
+        });
+    });
+</script>
+{% end %}

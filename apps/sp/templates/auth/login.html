@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title> 一百券商户后台</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link media="all" href="http://arale.uhcdn.com/alice/one/1.2.2/one.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ static_url('css/style.css') }}">
+    <link rel="shortcut icon" href="{{ static_url('img/favicon.ico') }}" type="image/x-icon">
+    <script src="http://arale.uhcdn.com/n/gallery/jquery/1.11.0/jquery.min.js"></script>
+    <link href="http://assets.uhcdn.com/gallery/neon/css/font-icons/entypo/css/entypo.css" rel="stylesheet">
+    <style type="text/css">
+        body, html {
+            height: 100%;
+        }
+        .top {
+            height: 38.2%;
+            width: 100%;
+            background: #373e4a;
+        }
+        .bottom {
+            height: 61.8%;
+            background: #292E38;
+            position: relative;
+        }
+        .form, .form-item, .form-button, .error, .image {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .form {
+            width: 350px;
+            height: 100%;
+            background: #292E38;
+        }
+        .form-item {
+            padding-top: 10px;
+            width: 250px;
+        }
+        .input {
+            background: #373e4a;
+            width: 100%;
+            border: 2px solid #373e4a;
+            border-radius: 5px;
+        }
+        .input-item {
+            border-style: none;
+            background-color: transparent;
+            padding: 10px;
+            width: 180px;
+            color: white;
+        }
+        .form-button {
+            background: transparent;
+            border: 2px solid #373e4a;
+            border-radius: 5px;
+            width: 250px;
+            cursor: pointer;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 15px;
+            color: white;
+        }
+        .error {
+            color: white;
+            width: 350px;
+            margin-left: 100px;
+        }
+        i {
+            padding: 0 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="top" class="top">
+    <div style="margin-left: auto; margin-right: auto; width: 350px; height: 100%;">
+        <div style="height: 100%; width: 100%; position: relative">
+            <div class="image" style="height: 65px; width: 320px; position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto">
+                <img src="http://img0.uhcdn.com/p/262/962/596/d1bd12c8_2014033016534272596_nw.png">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="bottom" class="bottom">
+    <div class="form">
+        <form style="padding-top: 20%;" action="{{ reverse_url('login') }}" method='post' id="form">
+            <div class="error"> {% if form.username.error %} 用户名或者密码错误 {% end %} </div>
+            <div class="form-item">
+                <div class="input">
+                    <i class="entypo-user"></i>
+                    <input type="text" name="username" placeholder="请输入用户名" class="input-item" value="{{ form.username.value }}" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-item">
+                <div class="input">
+                    <i class="entypo-key"></i>
+                    <input type="password" name="password" placeholder="请输入密码" class="input-item" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-item">
+                {% module xsrf_form_html() %}
+                <div class="form-button"> 登录
+                    <i class="entypo-login" style="float: right"></i>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        if (/MSIE [1-6]/.test(navigator.userAgent)) {
+            document.body.removeChild(document.getElementById("top"));
+            document.body.removeChild(document.getElementById("bottom"));
+            document.body.innerHTML = '<iframe src="/older-ie" width="100%" height="100%"></iframe>';
+        }
+
+        function offer(){
+            if ($('input[name=username]').val() != '' && $('input[name=password]').val() != '') {
+                $('#form').submit();
+            } else {
+                $('div.error').text('用户名和密码不能为空');
+                return false;
+            }
+        }
+        $('div.form-button').on('click', function(){
+            offer();
+        });
+        $(document).keyup(function(event){
+            if (event.keyCode == 13){
+                offer();
+            }
+        });
+    })
+</script>
+</body>
+</html>
+

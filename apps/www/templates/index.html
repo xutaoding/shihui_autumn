@@ -1,0 +1,118 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+		<div class="container" style="padding: 28px 0;">
+			<div id="home_things">
+				<ul id="ul_things">
+                    {% for item in recommend_list %}
+                    <li class="thing">
+						<a href="{{ url_concat(reverse_url('goods.detail', item.id), {'category':category}) }}" target="_blank">
+							<img src="{{ item.img_path }}" alt="这是一个商品" width="306" height="234">
+						</a>
+						<h4>{{ item.short_name }}</h4>
+						<div>
+							<p class="origin_price">原价：¥{{ item.face_value }}</p>
+							<p class="sales_price"><small>¥</small>{{ item.sales_price }}</p>
+							<div class="clear"></div>
+						</div>
+					</li>
+                    {% end %}
+                    {% for goods in goods_list %}
+					<li class="thing">
+						<a href="{{ url_concat(reverse_url('goods.detail', goods.id), {'category':category}) }}" target="_blank">
+							<img src="{{ goods.img_path }}" alt="这是一个商品" width="306" height="234">
+						</a>
+						<h4>{{ goods.short_name }}</h4>
+						<div>
+							<p class="origin_price">原价：¥{{ goods.face_value }}</p>
+							<p class="sales_price"><small>¥</small>{{ goods.sales_price }}</p>
+							<div class="clear"></div>
+						</div>
+					</li>
+                    {% end %}
+				</ul>
+				<div class="clear"></div>
+                {% if len(goods_list) == 10 %}
+                    <div id="load-more">显示更多...</div>
+                {% elif len(goods_list) == 0 %}
+                    <div id="no-more-goods">抱歉，没有找到您要的商品...</div>
+                {% end %}
+                <input type="hidden" id="page_number" name="page_number" value="1">
+			</div>
+			<div id="home_news">
+				<div class="legend">
+					<h4>新品</h4>
+					<a href="{{ url_concat(reverse_url('goods.new'), {'category': category}) }}">&gt;&gt;</a>
+				</div>
+				<ul>
+                    {% for new_goods in new_goods_list %}
+					<li class="thing">
+						<a href="{{ url_concat(reverse_url('goods.detail', new_goods.id), {'category': category}) }}" target="_blank">
+							<img src="{{ new_goods.img_path }}" alt="这是一个商品" width="204" height="156">
+						</a>
+						<h4>{{ new_goods.short_name }}</h4>
+						<div>
+							<p class="origin_price">原价：¥{{ new_goods.face_value }}</p>
+							<p class="sales_price"><small>¥</small>{{ new_goods.sales_price }}</p>
+							<div class="clear"></div>
+						</div>
+					</li>
+                    {% end %}
+				</ul>
+			</div>
+			<div class="clear"></div>
+            <input type="hidden" name="category" id="category" value="{{ category }}">
+            <input type="hidden" name="max_id" id="max_id" value="{{ max_id }}">
+		</div>
+{% end %}
+{% block scripts %}>
+<script>
+    $('#load-more').click(function(){
+        var load_ele = $(this);
+        if (load_ele.attr('status') == 'loading') {
+            return;
+        }else{
+            load_ele.attr('status', 'loading')
+            load_ele.text('正在加载...')
+        }
+
+        var category = $('#category').val();
+        var page_number = $('#page_number').val();
+        var max_id = $('#max_id').val();
+
+        $.post(
+            '{{ reverse_url("goods.show.ajax") }}',
+            {'category': category, 'page_number': page_number, 'max_id': max_id},
+            function(data){
+                var template = '<li class="thing"> <a href="{0}" target="_blank"> <img src="{1}" alt="{2}" width="306" height="234"> </a> <h4>{3}</h4> <div> <p class="origin_price">原价：¥{4}</p> <p class="sales_price"><small>¥</small>{5}</p> <div class="clear"></div> </div> </li>';
+                String.format = function() {
+                    if (arguments.length == 0)
+                        return null;
+                    var str = arguments[0];
+                    for ( var i = 1; i < arguments.length; i++) {
+                        var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+                        str = str.replace(re, arguments[i]);
+                    }
+                    return str;
+                };
+                var html = '';
+                for (var i = 0; i < data.length; i++){
+                    var href = '/p/' + data[i].id + '?category=' + category;
+                    console.log(href);
+                    html += String.format(template, href, data[i].img_path, '这是一个商品', data[i].short_name, data[i].face_value, data[i].sales_price);
+                }
+
+                $('#ul_things').append(html);
+                var number = Number($('#page_number').val()) + 1;
+                $("#page_number").val(number);
+
+                if (data.length == 0) {
+                    $('#load-more').hide();
+                }
+
+                load_ele.attr('status', '');
+                load_ele.html('显示更多...');
+            });
+    });
+</script>
+{% end %}

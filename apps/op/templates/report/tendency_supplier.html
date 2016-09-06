@@ -1,0 +1,214 @@
+{% extends "../layout.html" %}
+{% block title %}报表{% end %}
+{% block menu %}
+{% module menu('report.tendency_supplier') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" style="margin-top:10px; margin-left: 5px;">
+    <h2 class="fn-left">销售趋势查询</h2>
+</div>
+
+<div class="content" style="margin-top:20px;">
+
+    <div class="ui-grid-row">
+        <div class="ui-grid-2" >
+        </div>
+        <div class="ui-switchable-content ui-grid-21" >
+            <!--Tab-->
+            <div class="ui-tab fn-clear" id="tab">
+                <ul class="ui-tab-items" style="border-bottom: 0;">
+                    <li class="ui-tab-item ui-tab-item-current">
+                        <a style="cursor:pointer">商户销售趋势</a>
+                    </li>
+                    <li class="ui-tab-item">
+                        <a href="{{ reverse_url('report.tendency_goods') }}">商品销售趋势</a>
+                    </li>
+                </ul>
+            </div>
+            <!--Graph Display-->
+            <div class="ui-box ui-box-follow">
+                <div class="ui-box-container">
+                    <div class="ui-form record-search-form" style="margin-top:0; margin-bottom:0; ">
+                        <span>商户</span>
+                        <input type="hidden" name="supplier" id="supplier_id" >
+                        <input type="text" class="" value="" name="input" id="supplier_input">
+                        <span style="margin-left:10px">选择日期</span>
+                        <input id="start-cal" type="text" name="start_date" value="{{start}}" readonly/> -
+                        <input id="end-cal" type="text" name="end_date" value="{{end}}" readonly/>
+                        <button type="button" class="ui-button ui-button-sorange" style="margin-left:10px" id="query" >查询</button>
+                    </div>
+                    <div class="ui-box-content" id="chart" style="width:95%; height:400px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="ui-grid-1" >
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+<style>
+    .ui-tab-item-current a, .ui-tab-item-current a:hover{
+    background: #F6F6F6;
+    }
+</style>
+{% end %}
+
+{% block scripts%}
+<script>
+    seajs.use(['jquery/highcharts','tabs','autumn','calendar','moment','autocomplete'],
+    function ($, Tabs, autumn, Calendar, Moment, AutoComplete) {
+        // 日期选择器
+        var t1 = '2012-01-01';
+        var t2 = Moment().add('d',0).format('YYYY-MM-DD');
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, t2]})
+        var c2 = new Calendar({trigger: '#end-cal', range: [t1, t2]})
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, t2]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+        // 自动补全商户
+        $.post(
+            '{{ reverse_url("common.autocomplete.supplier") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_suppliers) {
+                new AutoComplete({
+                    trigger: '#supplier_input',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_suppliers,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#supplier_id').val(data.id);
+                }).render();
+
+            }
+        );
+
+        Highcharts.setOptions({
+            lang: {
+                    shortMonths: [ "1" , "2" , "3" , "4" , "5" , "6" , "7" , "8" , "9" , "10" , "11" , "12"]
+            }
+        });
+
+        // 新建一个highchart
+        var chart = $('#chart').highcharts({
+            chart: {
+                type: 'line',
+                marginRight: 50,
+                plotBorderWidth: 1,
+                animation: false
+            },
+            credits: {
+                enabled: false
+            },
+            title: {
+                text: '趋势查询'
+            },
+            tooltip: {
+                valueDecimals: 2,
+                valueSuffix: ' 元'
+            },
+            legend: {
+               labelFormatter: function() {
+                  var total = 0;
+                  for(var i=this.yData.length; i--;) { total += this.yData[i]; };
+                  return this.name + '-总共: ' + Number((total).toFixed(2)) +' 元';
+               }
+            },
+            subtitle: {
+                text: '请输入商户及时间查询'
+            },
+            xAxis: {
+                title: {
+                    text: '日期'
+                },
+                type: 'datetime',
+                dateTimeLabelFormats: {
+                    day: '%b月%e日',
+                    week: '%b月%e日',
+                    month: '%y年%b月'
+                },
+                minTickInterval: 24*3600*1000 // 设置最小显示的日期间隔为一天
+            },
+            yAxis: {
+                title: {
+                    text: '金额 (元)'
+                }
+            }
+        });
+
+        // 日期筛选按钮
+        $('#query').click(function(){
+            start = $('#start-cal').val();
+            end = $('#end-cal').val();
+            if (start == '' || end == '' ){
+                alert('请选择日期')
+            }
+            else{
+                    supplier = $('#supplier_input').val();
+                    if (supplier == ''){
+                        alert('请输入商户短名称')
+                    }else{
+                        getData(start, end, $('#supplier_id').val(), '/report/sales-personal-supplier','商户:');
+                    }
+            }
+        });
+
+        // 根据日期发送ajax请求，获得图表所需数据
+        function getData(start, end, id, url, title){
+            var chart = $('#chart').highcharts();
+            chart.showLoading();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: "json",
+                data: {
+                        'start': start,
+                        'end': end,
+                        'id': id,
+                        'total': 'true',
+                        '_xsrf': autumn.get_cookie('_xsrf')
+                },
+                error: function() {
+                    alert('获取数据失败');
+                },
+                success: function(data){
+                    // 设置表头
+                    chart.setTitle(null, { text: title+data[0].name });
+                    // 移除已有的数据
+                    var i_limit=chart["series"]["length"];
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        //总是移除第一个
+                        chart.series[0].remove(true);
+                    }
+                    var time = data[0].data[0][0];
+                    // 添加新数据
+                    var i_limit=data.length;
+                    for(var i=0;i<i_limit;i++)
+                    {
+                        chart.addSeries({
+                            name: data[i].name,
+                            data: data[i].data,
+                            pointStart: (new Date(time)).getTime(),
+                            pointInterval: 24 * 3600 * 1000 // 规定两点之间的间隔为一天
+                        },false);
+                    }
+                    chart.redraw();
+                    chart.hideLoading();
+                }
+            });
+
+        }
+
+    });
+</script>
+{% end %}

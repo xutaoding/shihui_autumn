@@ -1,0 +1,216 @@
+{% extends '../../layout.html' %}
+{% block title %}KTV淘宝产品管理{% end %}
+{% block menu %}
+    {% module menu('ktv.show') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+   <h2 class="fn-left">KTV淘宝产品发布:{{ title }}</h2>
+</div>
+<form action="{{ reverse_url('ktv.publish') }}" method="post">
+    <div>
+        {% if len(taobao_sku_list) != 0 %}
+        <div class="ui-form-item">
+            <label class="ui-label">包厢信息</label>
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>包厢类型</th>
+                    <th>日期</th>
+                    <th>时间段</th>
+                    <th>数量</th>
+                    <th>价格</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for sku in taobao_sku_list %}
+                <tr>
+                    <td>{{ {'MINI': '迷你包', 'SMALL': '小包', 'MIDDLE': '中包', 'LARGE': '大包', 'LUXURY': '豪华包'}.get(sku.room_type) }}</td>
+                    <td>{{ sku.date }}</td>
+                    <td>{{ sku.human_time_range }}</td>
+                    <td>{{ sku.quantity }}</td>
+                    <td>{{ sku.price }}</td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">标题</label>
+            <input style="width: 60%" name="title">
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label">宝贝所在地</label>
+            <select style="width: 20%" name="location_state" id="location_state"></select>
+            <select style="width: 20%" name="location_city" id="location_city"></select>
+            <span class="ui-form-other" style="font-size: 12px">如若无宝贝所在地，请联系视惠信息</span>
+        </div>
+        <div class="ui-form-item">
+            <input type="hidden" name="attributes" id="attributes" value="{{ attributes }}">
+        </div>
+        <div class="ui-form-item" id="brand_field">
+            <label class="ui-label">品牌</label>
+        </div>
+        <div class="ui-form-item" id="provinces_field">
+            <label class="ui-label">适用省份</label>
+        </div>
+        <div class="ui-form-item" id="city_field">
+            <label class="ui-label">适用城市</label>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>图片</label>
+            <button class="ui-button ui-button-swhite" type="button" id="upload-img">上传图片</button>
+            <input type="hidden" name="img_path" id="img-path" value="">
+            <label class="ui-form-explain">推荐尺寸：(340x260像素)</label>
+            <div style="margin-top: 10px">
+                <img src="http://img.uhcdn.com/public/images/default.png" id="img-preview">
+                <input type="hidden" name="img_url" id="img-url" value="">
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="desc" class="ui-label">商品详情</label>
+            <textarea id="desc" name="desc" style="width: 100%" rows="50">
+            </textarea>
+        </div>
+
+        <div class="ui-form-item">
+            <label for="publish" class="ui-label">发布选项</label>
+            <input type="checkbox" name="publish" id="publish" value="1"><span style="font-size: 14px">直接上架</span>
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input name="shop_id" type="hidden" value="{{ shop_id }}">
+            <input name="product_id" type="hidden" value="{{ product_id }}">
+            <input name="face_value" type="hidden" id="face_value">
+            <input name="ktv_brand" type="hidden" id="ktv_brand">
+            <input name="ktv_province" type="hidden" id="ktv_province">
+            <input name="ktv_city" type="hidden" id="ktv_city">
+            <input name="merchant" type="hidden" value="1705483381:kunranma">
+            <input type="submit" class="ui-button ui-button-morange" value="发布">
+        </div>
+        {% else %}
+        <div class="ui-form-item">
+            <p style="font-size: 16px">未设置十天内可用的价格策略，无法发布商品。请先添加价格策略</p>
+        </div>
+        {% end %}
+    </div>
+</form>
+{% end %}
+
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'kindeditor', 'autumn'], function ($, KindEditor, autumn) {
+         //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create('#desc',{
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('#upload-img').click(function() {
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        imageUrl : K('#img-path').val(),
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-url').val(url);
+                            K('#img-path').val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+
+        var locations = {
+            "上海":["上海","崇明","朱家角"],
+            "浙江":["杭州","温州", "千岛湖", "舟山","安吉","慈溪", "定海", "奉化", "海盐", "黄岩", "湖州", "嘉兴", "金华",
+                "临安", "丽水", "宁波", "瓯海", "平湖", "衢州", "江山", "瑞安", "绍兴", "嵊州", "台州", "温岭"]
+        }
+        function refreshCities(province) {
+            $('#location_city').empty();
+            var cities = locations[province];
+            for (var j = 0; j < cities.length; j++) {
+                var city = cities[j];
+                $('#location_city').append($("<option>", {"text":city, "value":city}))
+            }
+        }
+        //初始化宝贝所在省份
+        var i = 0;
+        for (var province in locations) {
+            $('#location_state').append($("<option>", {"text": province, "value": province}))
+            if (i == 0) {
+                refreshCities(province);
+            }
+            i++;
+        }
+        //宝贝所在省份改变
+        $('#location_state').change(function() {
+            var province = $("#location_state option:selected").val();
+            refreshCities(province);
+        })
+
+
+        var ktv_provinces=["上海", "浙江"];
+        var ktv_cities = ["上海", "杭州", "温州", "宁波", "金华", "绍兴", "嘉兴", "丽水"];
+        var props = {% raw attributes %};
+        $(function(){
+            for (i = 0; i< props.length; i++) {
+                var prop = props[i];
+                if(prop.name == '品牌') {
+                    //初始化品牌
+                    $("#ktv_brand").val(prop.pid);
+                    var prop_values = prop.prop_values.prop_value;
+                    var select = $("<select>", {name:"brand", "style":"width:auto"});
+                    for (var j =0; j < prop_values.length; j++) {
+                        var pv = prop_values[j];
+                        var op = $("<option>", {"text":pv.name, "value":pv.vid});
+                        select.append(op);
+                    }
+                    $("#brand_field").append(select);
+
+                }else if(prop.name == '优惠券适用省份') {
+                    var prop_values = prop.prop_values.prop_value;
+                    $("#ktv_province").val(prop.pid)
+                    var div = $("#provinces_field");
+                    for (j =0; j < prop_values.length; j++) {
+                        var pv = prop_values[j];
+                        if($.inArray(pv.name, ktv_provinces) >= 0) {
+                            div.append($("<input>",{type:"checkbox", name:"ktv_provinces", value:pv.vid}))
+                            div.append($("<span>",{text:pv.name}))
+                        }
+                    }
+                }else if (prop.name == '优惠券适用城市') {
+                    var prop_values = prop.prop_values.prop_value;
+                    $("#ktv_city").val(prop.pid)
+                    var div = $("#city_field");
+                    for (j =0; j < prop_values.length; j++) {
+                        var pv = prop_values[j];
+                        if($.inArray(pv.name, ktv_cities) >=0) {
+                            div.append($("<input>",{type:"checkbox", name:"ktv_cities", value:pv.vid}))
+                            div.append($("<span>",{text:pv.name}))
+                        }
+                    }
+                }else if (prop.name == '使用截止日期') {
+
+                }else if (prop.name == '面值(元)') {
+                    $("#face_value").val(prop.pid);
+                }
+            }
+        });
+    })
+</script>
+{% end %}

@@ -1,0 +1,80 @@
+{% extends '../../../layout.html' %}
+{% block title %}微会员{% end %}
+{% block menu %}
+{% module menu('wx.mem_cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">会员广播管理</h2>
+</div>
+
+<form class="ui-form" method="post" action="{{reverse_url('wx.mem_msg.'+form.action.value)}}">
+    <fieldset>
+        <div class="ui-form-item">
+            <label for="title" class="ui-label">
+                <span class="ui-form-required">*</span>标题
+            </label>
+            <input class="ui-input" type="text" id="title" name="title" style="width: 360px;" value="{{form.title.value}}">
+        </div>
+        <div class="ui-form-item">
+            <label for="content" class="ui-label"> <span class="ui-form-required">*</span>详情</label>
+            <textarea id="content" name="content" style="width: 380px;" rows="20">
+                {{ form.content.value }}
+            </textarea>
+        </div>
+
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="hidden" name="action" value="{{ form.action.value }}">
+            <input type="hidden" name="id" value="{{form.id.value}}">
+            <input type="submit" class="ui-button ui-button-morange" value="确定">
+        </div>
+    </fieldset>
+</form>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'kindeditor', 'validator', 'autumn'], function ($, KindEditor, Validator, autumn) {
+        //富文本编辑器和上传图片
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                allowFileManager : false,
+                pluginsPath: K.basePath + 'plugins/',
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create('#content',{
+                width: '380px',
+                minWidth: '380px',
+                items: ['bold', 'italic', 'underline', '|', 'insertorderedlist', 'insertunorderedlist', '|',
+                    'image', '|', 'forecolor', 'hilitecolor', '|', 'removeformat'],
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K('#upload-img').click(function() {
+                editor.loadPlugin('image', function() {
+                    editor.plugin.imageDialog({
+                        showRemote : false,
+                        imageUrl : K('#img-path').val(),
+                        clickFn : function(url, title, width, height, border, align) {
+                            var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                            K('#img-url').val(url);
+                            K('#img-path').val(img_reg.exec(url).slice(1).join(''));
+                            K('#img-preview').attr('src', url);
+                            editor.hideDialog();
+                        }
+                    });
+                });
+            });
+        });
+    }
+    );
+</script>
+{% end %}

@@ -1,0 +1,30 @@
+{% extends "../layout.html" %}
+{% block title %}{{app_msg.title}}{% end %}
+
+{% block style %}
+<style>
+    img {
+    width: 100%
+    }
+
+</style>
+{% end %}
+
+{% block content %}
+    <h2 style="color:white">
+        {{app_msg.title}}
+    </h2>
+    <div style="color:white">
+        <span>{{app_msg.created_at.strftime('%Y年%m月%d日 %H:%m')}}</span>
+        <span class="pull-right">{{app_msg.author}}</span>
+    </div>
+    <div style="margin-top:10px; margin-bottom:10px; ">
+       <img src="{{img_url(app_msg.cover)}}" style="display:block; max-width:100%; max-height:100%">
+    </div>
+    <div style="color:white">
+        {{app_msg.summary}}
+    </div>
+    <div style="margin-top:10px; background-color: white; padding: 20px 10px 20px 10px">
+        {% raw app_msg.content %}
+    </div>
+{% end %}

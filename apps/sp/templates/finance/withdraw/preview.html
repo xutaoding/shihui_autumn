@@ -1,0 +1,37 @@
+{% extends '../../layout.html' %}
+{% block title %}申请提现{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">提现明细预览</h2>
+</div>
+
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>交易时间</th>
+        <th>交易类型</th>
+        <th>收入/支出（元）</th>
+        <th>备注</th>
+        <th>结算状态</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in page.rows%}
+    <tr>
+        <td>{{ item.created_at }}</td>
+        <td>{{ {1:'验证/发货', 2:'退款', 3:'刷单', 4:'预付款', 5:'保证金'}.get(item.type,'') }}</td>
+        <td>{{ item.amount }}</td>
+        <td>{{ item.remark if item.remark else ''}}</td>
+        <td>未结算</td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+
+{% raw page.links() %}
+
+{% end %}

@@ -1,0 +1,74 @@
+{% extends '../../layout.html' %}
+{% block title %}图文消息详情{% end %}
+{% block menu %}
+    {% module menu('weixin.app_msg') %}
+{% end%}
+{% block styles %}
+<style type="text/css">
+    .home_things {
+        border: 4px solid #000000;
+        width: 305px;
+        height: auto
+    }
+    .read {
+        background: #f1f1f1;
+        text-align: center;
+        height: 40px;
+        line-height: 40px;
+        cursor: pointer
+    }
+    h4 {
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .container img {
+        width: 100%;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="ui-tab" style="margin-top: 20px">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="{{reverse_url('weixin.app_msg')}}">图文信息</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('weixin.app_msg.group') }}">图文信息组</a>
+        </li>
+    </ul>
+</div>
+
+<div class="container" style="padding: 28px; width: 700px; margin: 20px auto; border:1px solid #ccc;">
+    <h2 style="font-size: 24px;">
+        {{app_msg.title}}
+    </h2>
+    <div style="color: #8c8c8c;">
+        <span>{{app_msg.created_at.strftime('%Y年%m月%d日 %H:%m')}}</span>
+        <span class="pull-right">{{app_msg.author}}</span>
+    </div>
+    <div style="margin-top:10px; margin-bottom:10px">
+        <img src="{{img_url(app_msg.cover)}}" width="100%">
+    </div>
+    {% if app_msg.summary %}
+    <div>
+        {{app_msg.summary}}
+    </div>
+    {% end %}
+    <div style="margin-top:10px;">
+        {% raw app_msg.content %}
+    </div>
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$'], function($){
+       $('.read').on('click', function(){
+           $('#content').show();
+           $(this).hide();
+       })
+    });
+</script>
+{% end %}

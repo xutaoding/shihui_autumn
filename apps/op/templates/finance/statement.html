@@ -1,0 +1,52 @@
+{% extends '../layout.html' %}
+{% block title %}对账单{% end %}
+{% block menu %}
+{% module menu('finance.statement') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">对账单下载</h2>
+</div>
+
+{% if error %}
+<div class="ui-tiptext-container ui-tiptext-container-error">
+    <p class="ui-tiptext ui-tiptext-error">
+        <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+       {{error}}
+    </p>
+</div>
+{% end %}
+<form class="ui-form record-search-form" name="" method="post" action="{{ reverse_url('finance.statement') }}" id="form">
+    <span>日期</span>
+    <input id="start-cal" type="text" name="start_date" value="{{ form.start_date.value }}"/> -
+    <input id="end-cal" type="text" name="end_date" value="{{ form.end_date.value }}"/>
+    {% module xsrf_form_html() %}
+    <button type="submit" id="download" class="ui-button ui-button-sblue">58对账单下载</button>
+</form>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts%}
+<script>
+    seajs.use(['$','tabs','autumn','calendar','moment','autocomplete'],
+    function ($, Tabs, autumn, Calendar, Moment, AutoComplete) {
+        // 日期选择器
+        var t1 = '2012-01-01';
+        var t2 = Moment().add('d',0).format('YYYY-MM-DD');
+        var c1 = new Calendar({trigger: '#start-cal', range: [t1, t2]})
+        var c2 = new Calendar({trigger: '#end-cal', range: [t1, t2]})
+
+        c1.on('selectDate', function (date) {
+            c2.range([date, t2]);
+        });
+        c2.on('selectDate', function (date) {
+            c1.range([t1, date]);
+        });
+
+    });
+</script>
+{% end %}

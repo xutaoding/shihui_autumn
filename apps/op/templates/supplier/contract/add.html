@@ -1,0 +1,87 @@
+{% extends "../../layout.html" %}
+{% block title %}合同添加{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('contract', supplier.id) %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">合同添加</h2>
+</div>
+
+<form class="ui-form" name="" method="post" action="{{ reverse_url('supplier.contract_' + action) }}" id="form"  >
+    <fieldset>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>合同有效期：</label>
+            <input class="ui-input" type="text" id="start_at" name="start_at" value="{{ form.start_at.value.strftime('%Y-%m-%d') if form.start_at.value else '' }}" autocomplete="off">
+            至
+            <input class="ui-input" type="text" id="expire_at" name="expire_at" value="{{ form.expire_at.value.strftime('%Y-%m-%d') if form.expire_at.value else '' }}" autocomplete="off">
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>合同说明：</label>
+            <textarea name="remark" id="remark" style="width:400px; height:150px;">{{ form.remark.value }}</textarea>
+        </div>
+        <div class="ui-form-item">
+            {% module xsrf_form_html() %}
+            <input type="hidden" name="supplier_id" value="{{ default(form.supplier_id.value)}}">
+            <input type="hidden" name="id" id='contract-id' value="{{ default(form.id.value)}}">
+            <input type="submit" class="ui-button ui-button-morange" value="下一步">
+            <a class="ui-button ui-button-mwhite" href="{{ reverse_url('supplier.contract', 1) }}">取消</a>
+        </div>
+    </fieldset>
+</form>
+{% end %}
+{% block styles %}
+    <link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'moment', 'calendar', 'autocomplete', 'kindeditor', 'widget', 'templatable', 'validator', 'autumn'],
+    function ($, moment, Calendar, AutoComplete, KindEditor, Widget, Templatable, Validator, autumn) {
+
+        var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+        // 日历控件
+        var c1 = new Calendar({trigger: '#start_at', range: [null , null]});
+        var c2 = new Calendar({trigger: '#expire_at', range: [null , null]});
+
+        c1.on('selectDate', function(date) {
+            c2.range([date, null]);
+        });
+
+        // 表单前端自动校验
+        var validator = new Validator({
+            element: '#form',
+            stopOnError: true
+        });
+
+        validator.addItem({
+            element: '[name=start_at]',
+            required: true,
+            rule: 'date',
+            errormessage: '请选择正确合同生效日期'
+        })
+
+        validator.addItem({
+            element: '[name=expire_at]',
+            required: true,
+            rule: 'date',
+            errormessage: '请选择正确合同结束日期'
+        })
+
+        validator.addItem({
+            element: '[name=remark]',
+            required: true,
+            errormessage: '请输入备注'
+        })
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}

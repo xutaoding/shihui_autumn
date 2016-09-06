@@ -1,0 +1,58 @@
+{% extends "../layout.html" %}
+{% block title %}视惠发布信息列表{% end %}
+{% block menu %}
+{% module menu('seewi.news.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">视惠发布信息列表</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('seewi.news.add') }}">添加发布信息</a>
+</div>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th >标题</th>
+            <th width="20%">创建时间</th>
+            <th width="20%">创建人</th>
+            <th width="20%">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for news in page.rows %}
+        <tr>
+            <td>{{ news.title }}</td>
+            <td>{{news.created_at}}</td>
+            <td>{{news.created_by}}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('seewi.news.edit'), {'id': news.id})}}">修改</a> /
+                <span style="cursor:pointer" data-id="{{ news.id }}">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn', 'templatable', 'widget', 'autocomplete'],
+            function ($, ConfirmBox, autumn, Templatable, Widget, AutoComplete) {
+                $("span[data-id]").click(function () {
+                    var user_id = $(this).attr('data-id');
+                    ConfirmBox.confirm('是否删除该发布信息', '确认删除', function () {
+                        var action = "{{ reverse_url('seewi.news.delete') }}";
+                        $("<form></form>").attr('action', action).attr('method', 'post')
+                                .append($("<input type='hidden' name='id' />").attr('value', user_id))
+                                .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                        return false;
+                    });
+                });
+            });
+
+</script>
+{% end %}

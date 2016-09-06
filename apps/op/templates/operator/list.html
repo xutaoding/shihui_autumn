@@ -1,0 +1,92 @@
+{% extends "../layout.html" %}
+{% block title %}操作员{% end %}
+{% block menu %}
+{% module menu('operator.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">操作员</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('operator.add_user') }}">添加操作员</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('operator.show_list') }}" id="">
+    <span>用户名</span>
+    <input id="login_name" name="login_name" type="text" value="{{ form.login_name.value }}"/>
+    <span>姓名</span>
+    <input id="user_name" name="user_name" type="text" value="{{ form.user_name.value }}"/>
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>用户名</th>
+            <th>姓名</th>
+            <th>邮箱</th>
+            <th>角色</th>
+            <th>创建时间</th>
+            <th>操 作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in page.rows %}
+        <tr>
+            <td>{{ user.login_name }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{% if user.roles %}
+                {{ ', '.join([{'developer_mgr':'开发经理','developer':'开发',
+                'operator_mgr':'运营经理','operator':'运营',
+                'sales_mgr':'商务经理','sales':'商务',
+                'service_mgr':'客服经理','service':'客服',
+                'finance_mgr':'财务经理','finance':'财务',
+                'storage':'仓库',
+                'admin':'行政'}.get(role,'') for role in user.roles.split(',')]) }}
+                {% end %}
+            </td>
+            <td>{{ user.created_at }}</td>
+            <td colspan="2">
+                <a href="{{ url_concat(reverse_url('operator.edit_user'), {'id': user.id}) }}">修改</a> /
+                <span style="cursor:pointer" data-id="{{ user.id }}">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'confirmbox', 'autumn', 'autocomplete'], function ($, ConfirmBox, autumn, AutoComplete) {
+
+        $("span[data-id]").click(function () {
+            var id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该操作员', '确认删除', function () {
+                var action = "{{ reverse_url('operator.delete') }}";
+                $("<form></form>").attr('action', action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+
+        // 自动补全运营姓名
+        $.post(
+            '{{ reverse_url("common.autocomplete.operator") }}',
+            {'_xsrf': autumn.get_cookie('_xsrf')},
+            function(common_operator) {
+                new AutoComplete({
+                    trigger: '#user_name',
+                    filter: 'stringMatch',
+                    selectFirst: true,
+                    dataSource: common_operator,
+                    submitOnEnter: false
+                }).on('itemSelected', function(data, item){
+                    $('#operator_id').val(data.id);
+                }).render();
+
+            }
+        );
+    });
+</script>
+{% end %}

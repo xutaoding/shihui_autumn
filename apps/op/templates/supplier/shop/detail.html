@@ -1,0 +1,104 @@
+{% extends "../../layout.html" %}
+{% block title %}商户门店详情{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('shop', supplier.id) %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ shop.name }}</h2>
+</div>
+<div class="ui-grid-row">
+    <div class="ui-grid-8">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">店名：</dt>
+            <dd class="ui-dlist-det">{{shop.name}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">咨询电话：</dt>
+            <dd class="ui-dlist-det">{{default(shop.phone)}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">验证电话：</dt>
+            <dd class="ui-dlist-det">{{default(shop.verify_phones)}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">经理名字：</dt>
+            <dd class="ui-dlist-det">{{default(shop.manager_name)}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">经理手机：</dt>
+            <dd class="ui-dlist-det">{{default(shop.manager_mobile)}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">结算方式：</dt>
+            <dd class="ui-dlist-det">{{ {'0': '总店统一结算', '1': '店铺独立结算'}.get(supplier.separate_account) }}&nbsp;</dd>
+        </dl>
+    </div>
+    <div class="ui-grid-12">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">城市：</dt>
+            <dd class="ui-dlist-det">{{shop.city}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">区域：</dt>
+            <dd class="ui-dlist-det">{{shop.district}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">商圈：</dt>
+            <dd class="ui-dlist-det">{{shop.area}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">经度：</dt>
+            <dd class="ui-dlist-det">{{shop.longitude}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">纬度：</dt>
+            <dd class="ui-dlist-det">{{shop.latitude}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">地址：</dt>
+            <dd class="ui-dlist-det">{{shop.address}}&nbsp;</dd>
+            <dt class="ui-dlist-tit">交通：</dt>
+            <dd class="ui-dlist-det">{{default(shop.traffic_info)}}&nbsp;</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">店员帐号</h2>
+</div>
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>用户名</th>
+        <th>姓名</th>
+        <th>角色</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.login_name }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ {'clerk,finance,manager':'管理员','finance':'财务','clerk':'收款店员'}.get(user.roles,'')}}</td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+
+<br/>
+<br/>
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">可提现帐号</h2>
+</div>
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>开户姓名</th>
+        <th>银行</th>
+        <th>城市</th>
+        <th>分行</th>
+        <th>银行卡号</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for account in accounts %}
+    <tr>
+        <td>{{account.user_name}} </td>
+        <td>{{account.bank_name}}</td>
+        <td>{{account.bank_city}}</td>
+        <td>{{account.sub_bank_name}}</td>
+        <td>{{account.card_number}}</td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+
+{% end%}

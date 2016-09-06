@@ -1,0 +1,305 @@
+{% extends "../../layout.html" %}
+{% block title %}微活动{{ '添加' if action == 'add' else '编辑' }}{% end %}
+{% block menu %}
+{% module menu('wx.activity.cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微活动{{ '添加' if action == 'add' else '编辑' }}</h2>
+</div>
+
+<form class="ui-form" name="" method="post" action="{{ reverse_url('wx.activity.' + action) }}" id="form"  >
+    <fieldset>
+        <div class="ui-form-item">
+            <label class="ui-label"> <span class="ui-form-required">*</span>活动类型 </label>
+            <div style="padding-top:5px">
+                <input type="radio" name="type" value="1" id="type-e" {% if form.type.value in (1,'')%} checked {% end %}>
+                <label for="type-e">刮刮乐</label>
+                <input type="radio" name="type" value="2" id="type-r" {% if form.type.value == 2 %} checked {% end %}>
+                <label for="type-r">大转盘</label>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="name" class="ui-label"> <span class="ui-form-required">*</span>活动名称</label>
+            <input class="ui-input" type="text" name="name" id="name" style="width:550px;" data-max-length="50" autocomplete="off" value="{{ form.name.value }}">
+            <div>
+                <span id="short-name-wordcount"></span>
+                <span class="ui-form-explain">最多可输入50字</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="start_at" class="ui-label"> <span class="ui-form-required">*</span>活动开始时间</label>
+            <input class="ui-input" type="text" id="start_at" name="start_at" value="{{ default(form.start_at.value, '') if isinstance(default(form.start_at.value, ''), str) else form.start_at.value.strftime('%Y-%m-%d %H:%M:%S')}}" autocomplete="off"> 至
+            <input class="ui-input" type="text" id="expire_at" name="expire_at" value="{{ default(form.expire_at.value, '') if isinstance(default(form.expire_at.value, ''), str) else form.expire_at.value.strftime('%Y-%m-%d %H:%M:%S')}}" autocomplete="off">
+            <div>
+                <span class="ui-form-explain">本次活动的起止时间，一经设定不能修改</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="detail" class="ui-label"> <span class="ui-form-required">*</span>活动说明</label>
+            <textarea id="detail" name="detail" style="width: 400px" rows="25">
+                {{ form.detail.value }}
+            </textarea>
+            <div>
+                <span class="ui-form-explain">对本次活动规则，活动限制，奖项设置，领奖方式等的描述</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="win_desc" class="ui-label"> <span class="ui-form-required">*</span>中奖提示</label>
+            <input class="ui-input" type="text" name="win_desc" id="win_desc" style="width:300px;" data-max-length="20" autocomplete="off" value="{{ form.win_desc.value }}">
+            <div>
+                <span class="ui-form-explain">抽中奖品时的提示信息(最多20字)，如：恭喜您，中奖啦！</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="lose_desc" class="ui-label"> <span class="ui-form-required">*</span>未中奖提示</label>
+            <input class="ui-input" type="text" name="lose_desc" id="lose_desc" style="width:300px;" data-max-length="20" autocomplete="off" value="{{ form.lose_desc.value }}">
+            <div>
+                <span class="ui-form-explain">未抽中奖品时的提示信息(最多20字)，如：请再接再厉！</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="due_desc" class="ui-label"> <span class="ui-form-required">*</span>活动结束公告</label>
+            <input class="ui-input" type="text" name="due_desc" id="due_desc" style="width:300px;" data-max-length="20" autocomplete="off" value="{{ form.due_desc.value }}">
+            <div>
+                <span class="ui-form-explain">活动过期结束后用户点击活动的提示信息(最多20字)，如：本次活动已结束，请下次再来！</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="max_try" class="ui-label"> <span class="ui-form-required">*</span>每人抽奖总次数</label>
+            <input class="ui-input" type="text" name="max_try" id="max_try" style="width:30px;" autocomplete="off" value="{{ form.max_try.value }}">
+            <div>
+                <span class="ui-form-explain">本次活动每个用户最多可参与的次数</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label for="daily_try" class="ui-label"> <span class="ui-form-required">*</span>每人每天抽奖次数</label>
+            <input class="ui-input" type="text" name="daily_try" id="daily_try" style="width:30px;" autocomplete="off" value="{{ form.daily_try.value }}">
+            <div>
+                <span class="ui-form-explain">本次活动每个用户每天最多可参与的次数</span>
+            </div>
+        </div>
+        <div class="ui-form-item">
+            <label class="ui-label"><span class="ui-form-required">*</span>中奖概率</label>
+            <input class="ui-input" type="text" name="rewards_possibility" style="width:30px;" autocomplete="off" value="{{form.rewards_possibility.value}}">
+            <span style="margin-left:5px">%</span>
+            <div>
+                <span class="ui-form-explain">1-100, 设置总体的中奖概率</span>
+            </div>
+        </div>
+        <div class="ui-form-item" >
+            <label class="ui-label"><span class="ui-form-required">*</span>奖品设置</label>
+            <div>
+                <div>
+                    <table class="ui-table" style="width:100%" id="rewards-table">
+                        <thead>
+                        <tr>
+                            <th style="width:130px">奖品类别</th>
+                            <th>奖品名称</th>
+                            <th style="width:50px">奖品数量</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if action == 'add' %}
+                        <tr>
+                            <td><input class="ui-input" type="text" name="rewards_type" style="width:130px;" autocomplete="off" value="" placeholder="一等奖"></td>
+                            <td><input class="ui-input" type="text" name="rewards_name" style="width:300px" autocomplete="off" value="" placeholder="100元代金券"></td>
+                            <td><input class="ui-input" type="text" name="rewards_num" style="width:50px" autocomplete="off" value="" placeholder="3"></td>
+                        </tr>
+                        {% else %}
+                            {% for r in rewards %}
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="rewards_id" value="{{r.id}}">
+                                        <input type="hidden" name="rewards_prev_num" value="{{r.num}}">
+                                        <input class="ui-input" type="text" name="rewards_type" style="width:130px;" autocomplete="off" value="{{r.type}}" ></td>
+                                    <td><input class="ui-input" type="text" name="rewards_name" style="width:300px" autocomplete="off" value="{{r.name}}" ></td>
+                                    <td><input class="ui-input" type="text" name="rewards_num" style="width:50px" autocomplete="off" value="{{r.num}}" ></td>
+                                </tr>
+                            {% end %}
+                        {% end %}
+                        </tbody>
+                    </table>
+                    <div>
+                        <span class="ui-form-explain">奖品一经添加，奖品类别和数量只能增加，不能减少。最多设置12个奖项</span>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="fn-right ui-button ui-button-swhite" style="margin-top:5px" id="add-rewards">添加奖品</button>
+                </div>
+            </div>
+        </div>
+        <div style="margin-left:170px; margin-top:20px;">
+            {% module xsrf_form_html() %}
+            <input type="hidden" name="action" value="{{action}}">
+            <input type="hidden" name="act_id" value="{{act_id}}">
+            <input type="button" id="submit-form" class="ui-button ui-button-sorange" value="保存">
+        </div>
+    </fieldset>
+</form>
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'dialog', 'autumn', 'confirmbox', 'kindeditor', 'validator', 'tabs'],
+    function ($, AutoComplete, Calendar, moment, Dialog, autumn, ConfirmBox, KindEditor, Validator, Tabs) {
+        var c1 = new Calendar({trigger: '#start_at', 'format': 'YYYY-MM-DD 00:00:00'});
+        var c2 = new Calendar({trigger: '#expire_at', 'format': 'YYYY-MM-DD 23:59:59'});
+        c1.on('selectDate', function (date) {
+            c2.range([date, null]);
+        });
+
+        c2.on('selectDate', function (date) {
+            c1.range([null, date]);
+        });
+
+        // 编辑模式禁修改活动日期
+        if ($('input[name=action]').val() == 'edit'){
+            $('#start_at').attr('readonly', true);
+            $('#expire_at').attr('readonly', true);
+            c1.disable();
+            c2.disable();
+        }
+
+
+        // 添加奖品设置按钮
+        $('#add-rewards').click(function(){
+            var rowCount = $('#rewards-table tr').length;
+            if (rowCount<14){
+                var nextRow = rowCount-2;
+                row = '<tr><td><input class="ui-input" type="text" name="rewards_type" style="width:130px;" autocomplete="off" value=""></td> <td><input class="ui-input" type="text" name="rewards_name" style="width:300px" autocomplete="off" value="" ></td> <td><input class="ui-input" type="text" name="rewards_num" style="width:50px" autocomplete="off" value=""></td> </tr>';
+                $("#rewards-table tr:last").after(row);
+            }
+            else{
+                alert('不能再添加奖项了');
+            }
+        });
+
+        // 富文本编辑器
+        KindEditor.ready(function(K) {
+            K.create('#detail',{
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                width: '400px',
+                minWidth: '400px',
+                pluginsPath: '/static/img/',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                },
+                afterBlur: function(){this.sync();}
+            });
+        });
+
+        //前端校验阶段
+        var NewValidator = Validator.extend({
+            attrs: {
+                showMessage: function (message, element) {
+                    message = '<i class="ui-tiptext-icon iconfont">&#xF0155;</i> <span class="ui-form-explain-text">' + message + '</span>';
+                    this.getExplain(element)
+                        .addClass('ui-tiptext ui-tiptext-error')
+                        .html(message);
+                    this.getItem(element).addClass(this.get('itemErrorClass'));
+                }
+            }
+        });
+
+        var validator = new NewValidator({
+            element: '#form',
+            failSilently: true
+        });
+        validator.addItem({
+            element: 'input[name=name]',
+            required: true,
+            rule: 'maxlength{max:50}'
+        });
+        validator.addItem({
+            element: '#start_at',
+            required: true,
+        });
+        validator.addItem({
+            element: '#expire_at',
+            required: true,
+        });
+        validator.addItem({
+            element: '#detail',
+            required: true
+        });
+        validator.addItem({
+            element: 'input[name=win_desc]',
+            required: true,
+            rule: 'maxlength{max:20}'
+        });
+        validator.addItem({
+            element: 'input[name=lose_desc]',
+            required: true,
+            rule: 'maxlength{max:20}'
+        });
+        validator.addItem({
+            element: 'input[name=due_desc]',
+            required: true,
+            rule: 'maxlength{max:20}'
+        });
+        validator.addItem({
+            element: 'input[name=max_try]',
+            required: true,
+            rule: 'min{min:1}'
+        });
+        validator.addItem({
+            element: 'input[name=daily_try]',
+            required: true,
+            rule: 'min{min:1}'
+        });
+        validator.addItem({
+            element: 'input[name=rewards_possibility]',
+            required: true,
+            rule: 'min{min:1} max{max:100}'
+        });
+
+        // 检查奖品设置后提交
+        $('#submit-form').click(function(){
+            var empty = false;
+            var validNum = true;
+            var originNum = {%raw json_dumps(rewards)%};
+            var num = originNum.length;  // 记录原来有几个奖项设置
+            $('input[name=rewards_type]').each(function(){
+                if ($(this).val() == ''){
+                    empty = true;
+                };
+            });
+            $('input[name=rewards_name]').each(function(){
+                if ($(this).val() == ''){
+                    empty = true;
+                };
+            });
+            i = 0;
+            $('input[name=rewards_num]').each(function(){
+                if ($(this).val() == ''){
+                    empty = true;
+                };
+                if (i < num){
+                    if ( parseInt($(this).val()) < parseInt(originNum[i].num) ){
+                        validNum = false;
+                    }
+                    i++;
+                }
+            });
+            if (!validNum){
+                alert('奖品数量不能小于以前设置的数量');
+                return false;
+            }
+            if (empty){
+                alert('奖品设置不能留空');
+                return false;
+            }
+            else{
+                $('#form').submit();
+            }
+        });
+    });
+</script>
+{% end %}
+

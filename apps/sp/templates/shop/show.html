@@ -1,0 +1,69 @@
+{% extends '../layout.html' %}
+{% block title %}门店管理{% end %}
+{% block menu %}
+    {% module menu('shop.show') %}
+{% end%}
+
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">门店列表</h2>
+</div>
+    {% if page.rows %}
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>门店名称</th>
+                    <th style="width: 35%">门店地址</th>
+                    <th>门店电话</th>
+                    <th>电话验证号码</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for shop in page.rows %}
+                <tr>
+                    <td>{{ shop.name }}</td>
+                    <td>{{ shop.address }}</td>
+                    <td>{{ shop.phone }}</td>
+                    <td>{{ shop.verify_phones if shop.verify_phones else '' }}</td>
+                    <td>
+                        <a href="{{ reverse_url('shop.edit', shop.id) }}" id="show">修改</a> /
+                        <span style="cursor:pointer" data-id="{{ shop.id }}">删除</span>
+                    </td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw page.links() %}
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title">暂时还没有门店</h3>
+                <p class="ui-tipbox-explain">请联系销售人员添加门店</p>
+            </div>
+        </div>
+    {% end %}
+{% end %}
+
+{% block scripts %}
+ <script>
+    seajs.use(['$', 'autumn', 'confirmbox'], function ($, autumn, ConfirmBox) {
+        $("span[data-id]").click(function(){
+            var shop_id = $(this).attr('data-id');
+            ConfirmBox.confirm('是否删除该门店', '确认删除', function(){
+                var action = "{{ reverse_url('shop.delete') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='shop_id' />").attr('value', shop_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

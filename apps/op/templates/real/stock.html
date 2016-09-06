@@ -1,0 +1,121 @@
+{% extends "../layout.html" %}
+{% block title %}添加{{ '入库' if form.action.value == 'in' else '出库'  }}记录{% end %}
+{% block menu %}
+{% module menu('real.stock_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">添加{{ '入库' if form.action.value == 'in' else '出库' }}记录</h2>
+</div>
+<form action="{{ reverse_url('real.stock_in') if form.action.value == 'in' else reverse_url('real.stock_out')}}" method="post" class="ui-form" id="form">
+    <div class="ui-form-item ">
+                <label for="sku" class="ui-label">
+                    <span class="ui-form-required">*</span>
+                    货品
+                </label>
+    <input id="sku" name="sku" type="text" value="{{ form.sku.value }}" />
+    <input id="skuId" name="skuId" type="hidden" value="{{ form.skuId.value }}" />
+    </div>
+
+    <div class="ui-form-item ">
+        <label for="remain_stock" class="ui-label"> 剩余库存
+        </label>
+        <div  id="remain_stock">
+        </div>
+    </div>
+
+    <div class="ui-form-item ui-form-item-error">
+        <label for="num" class="ui-label">
+            <span class="ui-form-required">*</span>
+            {{ '入库' if form.action.value == 'in' else '出库'  }}数量
+        </label>
+        <input id="num" type="text" size="20" class="ui-input ui-input-large" value="{{ form.num.value }}"
+               name="num">
+
+        <div id="num_error" class="ui-form-explain">{{form.num.error}}</div>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="remark" class="ui-label">
+            备注</label>
+        <textarea rows="3" cols="50" id="remark" class="ui-input ui-input-large" name="remark">{{ form.remark.value }}</textarea>
+        <div class="ui-form-explain"></div>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input id="confirm" type="submit" class="ui-button ui-button-morange" value="确认" >
+    </div>
+    <input type="hidden" id="action" name="action" value="{{ form.action.value}}">
+    <input type="hidden" id="error" name="error" value="{{error}}">
+    <input id="stock_remain" name="stock_remain" type="hidden" value=""/>
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator','autocomplete','widget', 'templatable','autumn', '$'],
+            function (Validator ,AutoComplete,Widget,Templatable,autumn, $) {
+                var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+                var validator = new Validator({
+                    element: '#form'
+                });
+                validator.addItem({
+                            element: '[name=sku]',
+                            required: true,
+                            errormessageRequired: '请选择货品'
+                        })
+
+
+                function validateNum() {
+                    if ($('#action').val() == 'out') {
+                        validator.addItem({
+                            element: '[name=num]',
+                            rule: 'max{max:' + Number($('#stock_remain').val()) + '}',
+                            required: true,
+                            errormessageMax: '出库数量不能大于剩余库存'
+                        })
+                    }
+                    else {
+                        validator.addItem({
+                            element: '[name=num]',
+                            required: true
+                        })
+                    }
+                }
+
+                validateNum();
+
+                if ($('#error').val()) {
+                    validator.execute();
+                }
+
+                $.post(
+                        '{{ reverse_url("common.autocomplete.sku") }}',
+                        {'_xsrf': autumn.get_cookie('_xsrf')},
+                        function (common_skus) {
+                            new AutoComplete({
+                                trigger: '#sku',
+                                filter: 'stringMatch',
+                                selectFirst: true,
+                                submitOnEnter: false,
+                                dataSource: common_skus,
+                            }).on('itemSelected',function (data) {
+                                        $('#skuId').val(data.id);
+                                        if (!data.remain_stock){
+                                            data.remain_stock=0
+                                        }
+                                        $('#remain_stock').text(data.remain_stock);
+                                        $('#stock_remain').val(data.remain_stock);
+                                        $('#num').val('');
+                                        $('#num_error').empty();
+                                        validator.removeItem('[name=num]');
+                                        validateNum();
+                                    }).render();
+                        })
+            });
+
+</script>
+{% end %}
+

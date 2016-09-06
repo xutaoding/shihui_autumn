@@ -1,0 +1,176 @@
+{% extends "../../layout.html" %}
+{% block title %}提现申请列表{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">提现申请列表</h2>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('finance.withdraw') }}#">
+    <span>商户名</span>
+    <input id="supplier_input" type="text" >
+    <input id="supplier_id" name="supplier" type="hidden">
+    <span>状态</span>
+    <select name="status">
+        <option value="">--全部--</option>
+        <option value="0"
+        {% if form.status.value=='0' %} selected {% end %}>待审批</option>
+        <option value="1"
+        {% if form.status.value=='1' %} selected {% end %}>被拒绝</option>
+        <option value="2"
+        {% if form.status.value=='2' %} selected {% end %}>成功</option>
+    </select>
+        <span>申请日期</span>
+        <input id="apply_time_start" type="text" name="apply_time_start" value="{{ form.apply_time_start.value }}"/> -
+        <input id="apply_time_end" type="text" name="apply_time_end" value="{{ form.apply_time_end.value }}"/>
+        <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+
+</form>
+<button type="button" id="export" class="ui-button ui-button-mdisable" disabled>导出付款申请单</button>
+<div class="content">
+    <table class="ui-table ui-table-noborder" id="table">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="check"><label for="check">全选</label></th>
+            <th>申请时间</th>
+            <th>账户</th>
+            <th>申请者</th>
+            <th>金额</th>
+            <th>状态</th>
+            <th>审批时间</th>
+            <th>审批人</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for withdraw in page.rows %}
+        <tr>
+            <td>{% if withdraw.status == 0 %}<input type="checkbox" name="check" value="{{ withdraw.id }}">{% end %}</td>
+            <td>{{ withdraw.applied_at }}</td>
+            <td>{{ {1:'商户',2:'门店'}.get(withdraw.account_type,'') }}({{withdraw.account_name }})</td>
+            <td>{{ withdraw.applier }}</td>
+            <td>{{ withdraw.amount }}</td>
+            <td>{{ {0:'待审批',2:'成功',1:'被拒绝'}.get(withdraw.status) }}</td>
+            <td>{{ default(withdraw.approve_at) }}</td>
+            <td>{{ default(withdraw.approver) }}</td>
+            <td><a href="{{ reverse_url('finance.detail', withdraw.id) }}">查看详情</a></td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autocomplete', 'calendar', 'moment', 'dialog', 'autumn'],
+            function ($, AutoComplete, Calendar, moment, Dialog, autumn) {
+                var t1 = '2012-01-01'
+                var c1 = new Calendar({trigger: '#apply_time_start', range: [t1, moment().format('YYYY-MM-DD')]});
+                var c2 = new Calendar({trigger: '#apply_time_end', range: [t1, moment().format('YYYY-MM-DD')]});
+
+                c1.on('selectDate', function (date) {
+                    c2.range([date, moment().format('YYYY-MM-DD')]);
+                });
+                c2.on('selectDate', function (date) {
+                    c1.range([t1, date]);
+                });
+
+                $.post(
+                        '{{ reverse_url("common.autocomplete.supplier") }}',
+                        {'_xsrf': autumn.get_cookie('_xsrf')},
+                        function (common_suppliers) {
+                            new AutoComplete({
+                                trigger: '#supplier_input',
+                                filter: 'stringMatch',
+                                selectFirst: true,
+                                dataSource: common_suppliers
+                            }).on('itemSelected',function (data, item) {
+                                        $('#supplier_id').val(data.id);
+                                    }).render();
+
+                            new AutoComplete({
+                                trigger: '#supplier_select_name',
+                                filter: 'stringMatch',
+                                selectFirst: true,
+                                dataSource: common_suppliers
+                            }).on('itemSelected',function (data, item) {
+                                        $('#supplier_select_id').val(data.id);
+                                    }).render();
+                        }
+                );
+
+                function disable(){
+                    var obj = $('#export');
+                    obj.attr('disabled', 'disabled');
+                    obj.removeClass('ui-button-morange').addClass('ui-button-mdisable');
+                }
+                function enable(){
+                    var obj = $('#export');
+                    obj.removeAttr('disabled');
+                    obj.removeClass('ui-button-mdisable').addClass('ui-button-morange');
+                }
+                function all_check(){
+                    var obj = $('input[name=check]');
+                    var all = true;
+                    obj.each(function(){
+                        if (!$(this).attr('checked')) {
+                            all = false;
+                            return false;
+                        }
+                    });
+                    if (!all) {
+                        $('#check').attr('checked', false);
+                    } else {
+                        $('#check').attr('checked', true);
+                    }
+                }
+                var check = $('#check');
+                check.on('click', function(){
+                    if (check.attr('checked')){
+                        enable();
+                        $('input[name=check]').each(function(){
+                            $(this).attr('checked', true);
+                        });
+                    }
+                    else {
+                        disable();
+                        $('input[name=check]').each(function(){
+                            $(this).attr('checked', false);
+                        });
+                    }
+                });
+
+                $('input[name=check]').on('click', function(){
+                    if ($(':input[name=check][checked]').length){
+                        all_check();
+                        enable();
+                    }
+                    else {
+                        $('#check').attr('checked', false);
+                        disable();
+                    }
+                });
+
+                $('#export').on('click', function(){
+                    var rows = $(':input[name=check][checked]');
+                    var withdraw_list = [];
+                    rows.each(function(index){
+                        withdraw_list.push($(this).val());
+                    });
+
+                    var action = "{{ reverse_url('finance.withdraw.download') }}";
+                    $("<form></form>").attr('action', action).attr('method', 'get')
+                            .append($("<input type='hidden' name='withdraw_list' />").attr('value', withdraw_list))
+                            .append($("<input type='hidden' name='action' />").attr('value', action)).submit();
+                });
+            });
+</script>
+{% end %}

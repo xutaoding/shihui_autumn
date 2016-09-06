@@ -1,0 +1,159 @@
+{% extends '../../layout.html' %}
+{% block title %}{{ '增加' if action == 'add' else '修改' }}图文消息组{% end %}
+{% block menu %}
+    {% module menu('weixin.app_msg') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '增加' if action == 'add' else '修改' }}图文信息组</h2>
+</div>
+
+<form action="{{ reverse_url('weixin.app_msg.group.add') if action == 'add' else reverse_url('weixin.app_msg.group.edit') }}" method="post" id="form">
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>图文信息组名</label>
+        <input class="ui-input" type="text" name="name" value="{{ msg_gp.name if action == 'edit' else '' }}">
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>图文信息</label>
+        <select name="msg">
+            {% for msg_item in msg %}
+            <option value="{{ msg_item.id }}">{{ msg_item.title }}</option>
+            {% end %}
+        </select>
+        <a href="javascript:;" class="add">添加</a>
+        <span id="error" style="color: red"></span>
+        <table class="ui-table" style="width: auto; margin-top: 10px">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>图文信息名</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="position">
+            {% if action == 'edit' %}
+            {% for index, item in enumerate(msg_list) %}
+            <tr>
+                <th name="index">{{ index + 1 }}</th>
+                <td>{{ item.title }}</td>
+                <td><span class="del" msg_id="{{ item.id }}">x</span></td>
+            </tr>
+            {% end %}
+            {% end %}
+            </tbody>
+        </table>
+        <input type="hidden" name="msg_group" value="{{ msg_group + ',' if action == 'edit' else '' }}">
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        {% if action == 'edit' %}
+        <input type="hidden" name="msg_gp" value="{{ msg_gp.id }}">
+        {% end %}
+        <input type="button" value="{{ '添加' if action == 'add' else '保存' }}" class="ui-button ui-button-morange" id="present">
+    </div>
+</form>
+{% end %}
+
+{% block styles %}
+<style type="text/css">
+    .del {
+        border: 1px solid #eee;
+        padding:0 5px;
+        cursor:pointer;
+        margin-left:5px;
+    }
+</style>
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['$', 'validator'], function($, Validator){
+        $('#present').on('click', function(){
+            $('#form').submit();
+        });
+
+        $('.del').live('click', function(){
+            var ele = $(this);
+            ele.unbind("click");
+            var val = ele.attr('msg_id');
+            var msg_list = $('input[name="msg_group"]').val().split(',');
+            for (var i = 0; i < msg_list.length; i++){
+                if (msg_list[i] == val){
+                    msg_list.splice(i, 1);
+                    break;
+                }
+            }
+            var table = ele.parent().parent().parent().children();
+            var grand_ele = ele.parent().parent();
+            var pos = false;
+            table.each(function(){
+                var temp = $(this).children('[name="index"]');
+                if (temp.text() == grand_ele.children('[name="index"]').text()){
+                    console.log('aaa');
+                    pos = true;
+                }
+                if (pos) {
+                    temp.text(Number(temp.text()) - 1);
+                }
+            });
+            grand_ele.remove();
+            $('input[name="msg_group"]').val(msg_list.join());
+        });
+
+        function check(msg_id) {
+            var msg_list = $('input[name="msg_group"]').val().split(',');
+            var conflict = false;
+            for (var i = 0; i < msg_list.length; i++) {
+                if (msg_list[i] == msg_id) {
+                    conflict = true;
+                    break;
+                }
+            }
+            return conflict;
+        }
+
+        $('.add').on('click', function(){
+            var msg_id = $('[name="msg"]').val();
+            var msg_title = $('[name="msg"]').find('option:selected').text();
+            var msg_group = $('input[name="msg_group"]');
+            var preview = $('#preview');
+            var msg_list = msg_group.val().split(',');
+            if (msg_group.val() == "") {
+                preview.empty();
+            }
+            if (msg_list.length > 10) {
+                $('#error').text('图文信息不能超过十个').show();
+                $('#error').delay(3000).hide(0);
+                return;
+            }
+            if (check(msg_id)) {
+                $('#error').text('图文信息有重复，请检查').show();
+                $('#error').delay(3000).hide(0);
+                return;
+            }
+            msg_group.val(msg_group.val() + msg_id + ",");
+            $('#position').append("<tr><td name='index'>" + msg_list.length + "</td><td>" + msg_title + "</td><td><span class='del' msg_id=" + msg_id + ">x</span></td></tr>")
+        });
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=name]',
+            required: true,
+            errormessage: '图文信息组名不能为空'
+        });
+        validator.addItem({
+            element: '[name=msg_group]',
+            required: true,
+            errormessage: '至少选择一个图文信息'
+        });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+    });
+</script>
+{% end %}

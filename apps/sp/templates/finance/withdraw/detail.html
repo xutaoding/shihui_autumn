@@ -1,0 +1,47 @@
+{% extends '../../layout.html' %}
+{% block title %}提现详情{% end %}
+{% block menu %}
+{% module menu('finance.withdraw') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">提现详情</h2>
+</div>
+
+<div class="ui-grid-row">
+    <div class="ui-grid-8">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">申请时间：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.applied_at }}</dd>
+            <dt class="ui-dlist-tit">申请人：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.applier }}</dd>
+            <dt class="ui-dlist-tit">申请金额：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.amount }}</dd>
+            <dt class="ui-dlist-tit">申请状态：</dt>
+            <dd class="ui-dlist-det">{{ {0:'待审批',1:'已拒绝',2:'成功'}.get(withdraw_bill.status,'') }}</dd>
+            <dt class="ui-dlist-tit">手续费：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.fee if withdraw_bill.fee else '0.0' }}</dd>
+            <dt class="ui-dlist-tit">备注：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.comment }} &nbsp;</dd>
+        </dl>
+    </div>
+    <div class="ui-grid-8">
+        <dl class="ui-dlist">
+            <dt class="ui-dlist-tit">所在城市：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.bank_city }}</dd>
+            <dt class="ui-dlist-tit">开户银行：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.bank_name }}</dd>
+            <dt class="ui-dlist-tit">分行名称：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.sub_bank_name }}</dd>
+            <dt class="ui-dlist-tit">开户姓名：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.user_name }}</dd>
+            <dt class="ui-dlist-tit">银行卡号：</dt>
+            <dd class="ui-dlist-det">{{ withdraw_bill.card_number }}</dd>
+        </dl>
+    </div>
+</div>
+<div class="content">
+        <a class="ui-button ui-button-mwhite" href="{{ reverse_url('finance.withdraw') }}">返回</a>
+</div>
+{% end %}

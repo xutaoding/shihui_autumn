@@ -1,0 +1,94 @@
+{% extends "../../layout.html" %}
+{% block title %}{{ '增加' if form.action.value == 'add' else '修改' }}操作员{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('user', supplier.id) %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '增加' if form.action.value == 'add' else '修改' }}店员帐号</h2>
+</div>
+
+<form method="post" id="form" class="ui-form" action="{{ url_concat(reverse_url('supplier.user.edit'), {'id': form.id.value}) if form.action.value=='edit' else url_concat(reverse_url('supplier.user.add'), {'supplier_id': form.supplier_id.value}) }}">
+    <div class="ui-form-item">
+        <label class="ui-label"> <span class="ui-form-required">*</span>角色</label>
+        <input type="radio" name="roles" value="clerk" id="clerk" {{ 'checked' if (form.roles.value =='clerk' or form.roles.value=='') else '' }}><label for="clerk"> 收款店员 </label>
+        <input type="radio" name="roles" value="finance" id="finance" {{ 'checked' if form.roles.value =='finance' else ''}}><label for="finance"> 财务 </label>
+        <input type="radio" name="roles" value="clerk,finance,manager" id="developer" {{ 'checked' if form.roles.value =='clerk,finance,manager' else ''}}><label for="developer"> 系统管理员 </label>
+    </div>
+
+    <div class="ui-form-item {% if form.login_name.error %} ui-form-item-error {% end %}">
+        <label class="ui-label"> <span class="ui-form-required">*</span>用户名</label>
+        <input id="login_name" type="text" size="20" class="ui-input ui-input-large" {{ 'readonly' if form.action.value=='edit' else '' }}
+             name="login_name" value="{{ form.login_name.value }}">
+        {% if form.login_name.error %}
+            <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+                    <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+                    {{ form.login_name.error }}
+            </p>
+        {% end %}
+    </div>
+
+    <div class="ui-form-item">
+        <label for="name" class="ui-label"><span class="ui-form-required">*</span>姓名</label>
+        <input id="name" type="text" class="ui-input ui-input-large" name="name" value="{{ form.name.value }}"/>
+    </div>
+
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>管辖门店</label>
+                <select name="shop_id">
+                    <option value="0">--全部--</option>
+                    {% for shop in shop_list %}
+                    <option value="{{ shop.id}}" {% if str(shop.id) == str(form.shop_id.value) %} selected {% end %}> {{ shop.name }}</option>
+                    {% end %}
+                </select>
+        </table>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input id="type" value="{{ form.action.value }}" type="hidden"/>
+        <input type="submit" class="ui-button ui-button-morange" value="保存">
+    </div>
+</form>
+{% end %}
+
+{% block scripts %}
+    <script>
+    seajs.use(['$', 'validator'],
+               function ($, Validator) {
+
+        Validator.addRule('username', /^[a-zA-Z0-9]+$/, '用户名只能使用数字和字母');
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=roles]',
+            required: true,
+            errormessage: '请选择角色'
+        });
+        if ($('#type').val() == 'add') {
+            validator.addItem({
+                element: '#login_name',
+                required: true,
+                rule: 'username',
+            });
+            validator.addItem({
+                element: '#name',
+                required: true,
+                errormessage: '请输入姓名'
+            });
+        }
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+    });
+</script>
+{% end %}

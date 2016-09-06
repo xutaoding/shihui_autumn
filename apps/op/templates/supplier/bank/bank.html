@@ -1,0 +1,127 @@
+{% extends "../../layout.html" %}
+{% block title %}{{ '修改' if form.action.value == 'add' else '增加' }}商户银行账户{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('bank', supplier.id) %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}商户银行账户</h2>
+</div>
+<form action="{{ url_concat(reverse_url('supplier.bank_add'),{'supplier_id': form.supplier_id.value}) if form.action.value == 'add' else url_concat(reverse_url('supplier.bank_edit'),{'id':form.id.value}) }}"
+      method="post" class="ui-form" id="form">
+
+    {% if supplier.separate_account == '1' %}
+    <div class="ui-form-item ">
+        <label for="shop" class="ui-label">
+            <span class="ui-form-required">*</span>提现门店</label>
+        <select name="uid" id="shop">
+            {% for shop in shop_list %}
+                {% if shop.id == form.uid.value %}
+                <option value="{{ shop.id }}" selected>{{ shop.name }}</option>
+                {% elif form.action.value == 'edit' %}
+                <optgroup label="{{ shop.name }}"></optgroup>
+                {% else %}
+                <option value="{{ shop.id }}">{{ shop.name }}</option>
+                {% end %}
+            {% end %}
+        </select>
+        <p class="ui-form-explain">这个帐号只作为所选门店的提现帐号</p>
+    </div>
+    {% else %}
+    <input type="hidden" name="uid" value="{{ supplier.id }}">
+    {% end %}
+    <div class="ui-form-item ">
+        <label for="user_name" class="ui-label">
+            <span class="ui-form-required">*</span>开户姓名</label>
+        <input id="user_name" type="text" size="20" class="ui-input ui-input-large" value="{{ form.user_name.value }}"
+               name="user_name">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item ">
+        <label for="bank_name" class="ui-label">
+            <span class="ui-form-required">*</span>银行</label>
+        <input id="bank_name" type="text" size="20" class="ui-input ui-input-large" value="{{ form.bank_name.value }}"
+               name="bank_name">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item ">
+        <label for="bank_city" class="ui-label">
+            <span class="ui-form-required">*</span>城市</label>
+        <input id="bank_city" type="text" size="20" class="ui-input ui-input-large" value="{{ form.bank_city.value }}"
+               name="bank_city">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item ">
+        <label for="sub_bank_name" class="ui-label">
+            <span class="ui-form-required">*</span>分行</label>
+        <input id="sub_bank_name" type="text" size="20" class="ui-input ui-input-large"
+               value="{{ form.sub_bank_name.value }}"
+               name="sub_bank_name">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        <label for="card_number" class="ui-label">
+            <span class="ui-form-required">*</span>银行卡号</label>
+        <input id="card_number" type="text" size="40" class="ui-input ui-input-large"
+               value="{{ form.card_number.value }}"
+               name="card_number">
+
+        <div class="ui-form-explain"></div>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange"
+               value="{{ '添加' if form.action.value == 'add' else '修改' }}">
+    </div>
+    <input type="hidden" name="uid" value="{{ form.uid.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" id="error" name="error" value="{{error}}">
+
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator', '$'], function (Validator, $) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=user_name]',
+            required: true
+        })
+                .addItem({
+                    element: '[name=bank_name]',
+                    required: true
+                })
+                .addItem({
+                    element: '[name=bank_city]',
+                    required: true
+                })
+                .addItem({
+                    element: '[name=sub_bank_name]',
+                    required: true
+                })
+                .addItem({
+                    element: '[name=card_number]',
+                    required: true
+                });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+    });
+</script>
+{% end %}

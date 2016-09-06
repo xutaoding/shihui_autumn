@@ -1,0 +1,173 @@
+{% extends "../layout.html" %}
+{% block title %}商品列表{% end %}
+{% block menu %}
+{% module menu('goods.list') %}
+{% end%}
+
+{% block content %}
+
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">分销商品列表</a>
+        </li>
+    </ul>
+</div>
+
+<ul class="panels">
+    <li class="panel">
+        <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('goods.add') }}" style="margin-top: -35px">添加商品</a>
+        <form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('goods.list') }}" >
+            <span>商品名</span>
+            <input type="text" name="goods" value="{{ form.goods.value }}"/>
+            <span>状态</span>
+            <select name="status">
+                <option value="">全部</option>
+                <option value="PREPARE" {% if form.status.value == 'PREPARE' %} selected {% end %} > 待审核 </option>
+                <option value="REJECT" {% if form.status.value == 'REJECT' %} selected {% end %} > 驳回 </option>
+                <option value="ON_SALE" {% if form.status.value == 'ON_SALE' %} selected {% end %} > 已审核 </option>
+            </select>
+            <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+        </form>
+        <div class="content">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>原价</th>
+                    <th>售价</th>
+                    <th>分销情况</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for goods in page.rows %}
+                <tr>
+                    <td> <a href="{{ reverse_url('goods.detail', goods.id) }}"> {{ goods.short_name }} </a> </td>
+                    <td>{{ goods.face_value }}</td>
+                    <td>{{ goods.sales_price }}</td>
+                    <td>
+                        {% if goods.dsid %}
+                            {% set ids = goods.dsid.split(',') %}
+                            {% for id in ids %}
+                                {% set t = id.split('-') %}
+                                {% if t[0] == '13'%}
+                                <a href="http://item.taobao.com/item.htm?id={{t[1]}}" target="_blank">淘宝</a>,
+                                {% end %}
+                                {% if t[0] == '34' %}
+                                <a href="http://item.taobao.com/item.htm?id={{t[1]}}" target="_blank">天猫</a>,
+                                {% end %}
+                                {% if t[0] == '14' %}
+                                <a href="http://t.58.com/sh/{{t[1]}}" target="_blank">58</a>,
+                                {% end %}
+                                {% if t[0] == '7' %}
+                                <a href="{{ t[1] }}" class="url" target="_blank">一号店</a>,
+                                {% end %}
+                                {% if t[0] == '10' or t[0] == '53' %}
+                                <a href="http://tuan.jd.com/team-{{t[1]}}.html" target="_blank">京东</a>,
+                                {% end %}
+                                {% if t[0] == '44' %}
+                                <a href="http://http://www.meituan.com/deal/{{ t[1] }}.html" target="_blank">美团</a>,
+                                {% end %}
+                                {% if t[0] == '40' %}
+                                <a href="http://t.dianping.com/deal/{{ t[1] }}" target="_blank">点评</a>,
+                                {% end %}
+                                {% if t[0] == '42' %}
+                                <a href="http://sh.nuomi.com/deal/{{ t[1] }}.html" target="_blank">糯米</a>,
+                                {% end %}
+                                {% if t[0] == '45' %}
+                                <a href="http://www.lashou.com/deal/{{ t[1] }}.html" target="_blank">拉手</a>,
+                                {% end %}
+                            {% end %}
+                        {% end %}
+                    </td>
+                    <td>{{ { 'PREPARE':'未审核', 'PENDING':'待审核', 'REJECT': '驳回'}.get(goods.status, '已审核') }}</td>
+                    <td>
+                        {% if goods.status in ['PREPARE', 'REJECT'] %}
+                            <a href="{{ url_concat(reverse_url('goods.edit'), {'id': goods.id}) }}">编辑</a> /
+                            <a href="javascript:" data-apply-id="{{goods.id}}">提交审核</a> /
+                            <span style="cursor: pointer;" data-del-id="{{goods.id}}">删除</span>
+                        {% elif goods.status == 'PENDING' %}
+                            <a href="javascript:" data-undo-id="{{goods.id}}">撤销审核</a>
+                        {% end %}
+                    </td>
+
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% module xsrf_form_html() %}
+        {% raw page.links() %}
+
+    </li>
+</ul>
+{% end %}
+{% block styles %}
+    <link media="all" href="http://arale.uhcdn.com/arale/dialog/1.2.2/dialog.css" rel="stylesheet">
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'tabs'], function ($, autumn, ConfirmBox, Tabs) {
+        $("a[data-undo-id]").click(function(){
+            var goods_id = $(this).attr('data-undo-id');
+            ConfirmBox.confirm('是否确认撤销审核', '撤销审核', function(){
+                var action = "{{ reverse_url('goods.apply') }}";
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="goods_id" />').attr('value', goods_id))
+                        .append($('<input type="hidden" name="action" value="undo" />'))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+
+
+            });
+        });
+        $("a[data-apply-id]").click(function(){
+            var goods_id = $(this).attr('data-apply-id');
+            var distr = ['京东', '淘宝', '天猫', '一号店', '58'];
+            var html = '<label>请选择分销渠道:&nbsp;</label>';
+            $.each(distr, function(n, val){
+                html += '<input type="checkbox" name="distr" id=' + val + '><label for=' + val + '>' + val + '</label>';
+            });
+            html += '<br><br><label>备注:&nbsp</label><input name="remark" type="text" style="width: 50%">'
+            ConfirmBox.confirm(html, '提交审核', function(){
+                var action = "{{ reverse_url('goods.apply') }}";
+                var arr = new Array();
+                $('input[name="distr"]:checked').each(function(){
+                    arr.push($(this).attr('id'));
+                });
+                var remark = $('input[name="remark"]').val();
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="goods_id" />').attr('value', goods_id))
+                        .append($('<input type="hidden" name="action" value="apply" />'))
+                        .append($('<input type="hidden" name="remark" />').attr('value', remark))
+                        .append($('<input type="hidden" name="distr" />').attr('value', arr))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+                return false;
+            });
+        });
+
+        $("span[data-del-id]").on('click', function(){
+            var goods_id = $(this).attr('data-del-id');
+            ConfirmBox.confirm('是否确认删除该商品', '确认删除', function(){
+                var action = "{{ reverse_url('goods.delete') }}";
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="goods_id" />').attr('value', goods_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+            });
+        });
+
+        new Tabs({
+            element: '.ui-tab',
+            triggers: '.ui-tab-item',
+            panels: '.panel',
+            triggerType: 'click',
+            activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+    });
+</script>
+{% end %}

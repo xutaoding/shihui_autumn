@@ -1,0 +1,65 @@
+{% extends "../layout.html" %}
+{% block title %}货品管理{% end %}
+{% block menu %}
+{% module menu('real.show_sku') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">货品管理</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('real.add_sku') }}">货品添加</a>
+</div>
+<form class="ui-form record-search-form" name="" method="get" action="{{ reverse_url('real.show_sku') }}" id="">
+    <label for="name">货品名称</label>
+    <input id="name" name="name" type="text" value="{{ name }}"/>
+
+    <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+</form>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>货品名称</th>
+            <th>市场价</th>
+            <th>剩余库存</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sku_item in page.rows %}
+        <tr>
+            <td>{{ sku_item.name }}</td>
+            <td>{{ sku_item.price }}</td>
+            <td>{{ sku_item.stock }}</td>
+            <td>{{ sku_item.created_at }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('real.edit_sku'), {'id': sku_item.id}) }}">修改</a> /
+                <span style="cursor:pointer" id="{{ sku_item.id }}">删除</span>
+            </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$','confirmbox', 'autumn'],
+            function ($, ConfirmBox, autumn) {
+        $("span[id]").click(function(){
+            var sku_id = $(this).attr('id');
+            ConfirmBox.confirm('是否删除该货品', '确认删除', function(){
+                var action = "{{ reverse_url('real.delete_sku') }}";
+                $("<form></form>").attr('action',action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', sku_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}

@@ -1,0 +1,63 @@
+{% extends "../../layout.html" %}
+{% block title %}商户银行账户{% end %}
+{% block menu %}
+{% module menu('supplier.show_list') %}
+{% end%}
+{% block content %}
+
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ supplier.name }}（ {{supplier.short_name}} ）</h2>
+</div>
+
+{% module supplier_menu('bank', supplier.id) %}
+<a class="ui-button ui-button-sblue fn-right fn-clear" style="margin-top: -50px;"
+   href="{{ url_concat(reverse_url('supplier.bank_add'), {'supplier_id': supplier.id}) }}" >添加提现账户</a>
+
+<table class="ui-table ui-table-noborder">
+    <thead>
+    <tr>
+        <th>开户姓名</th>
+        <th>银行</th>
+        <th>城市</th>
+        <th>分行</th>
+        <th>银行卡号</th>
+        <th>对应门店</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for account in page.rows %}
+    <tr>
+        <td>{{account.user_name}}</td>
+        <td>{{account.bank_name}}</td>
+        <td>{{account.bank_city}}</td>
+        <td>{{account.sub_bank_name}}</td>
+        <td>{{account.card_number[:4]+'*'*(len(account.card_number)-8)+account.card_number[-4:]}}</td>
+        <td> {{ default(account.shop_name, '全部') }} </td>
+        <td>
+            <a href="{{ url_concat(reverse_url('supplier.bank_edit'), {'id': account.id}) }}">修改</a>
+            / <span data-account-id="{{ account.id }}" style="cursor:pointer;">删除</span>
+        </td>
+    </tr>
+    {% end %}
+    </tbody>
+</table>
+{% raw page.links() %}
+{% end %}
+{% block scripts %}
+<script>
+    seajs.use(['confirmbox', 'autumn', '$'], function (ConfirmBox, autumn, $) {
+        $("span[data-account-id]").click(function () {
+            var account_id = $(this).attr('data-account-id');
+            ConfirmBox.confirm('是否删除该银行账户', '确认删除', function () {
+                var action = "{{ reverse_url('supplier.bank_delete') }}";
+                $("<form></form>").attr('action', action).attr('method', 'post')
+                        .append($("<input type='hidden' name='id' />").attr('value', account_id))
+                        .append($("<input type='hidden' name='_xsrf' />").attr('value', autumn.get_cookie("_xsrf"))).submit();
+                return false;
+            });
+        });
+    });
+</script>
+{% end %}
+

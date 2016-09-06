@@ -1,0 +1,124 @@
+{% extends "../layout.html" %}
+{% block title %}导入外部订单{% end %}
+{% block menu %}
+{% module menu('order.imported') %}
+{% end%}
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">导入外部订单</h2>
+</div>
+<form action="{{ reverse_url('order.imported') }}" method="post" class="ui-form"
+      enctype="multipart/form-data">
+    <div class="ui-form-item">
+        <label class="ui-label">
+            <span class="ui-form-required">*</span>选择渠道</label>
+
+        <div style="position: relative">
+            <div id="mt" onclick="order_file.click()" class="ui-distributor">美团</div>
+            <div id="dp" onclick="order_file.click()" class="ui-distributor" style="left: 10px">点评</div>
+
+            <div id="nm" onclick="order_file.click()" class="ui-distributor" style="left: 20px">糯米</div>
+            <div id="ww" onclick="order_file.click()" class="ui-distributor"
+                 style="left: 30px;">窝窝团
+            </div>
+            <div id="ls" onclick="order_file.click()" class="ui-distributor"
+                 style="left: 40px;">拉手
+            </div>
+        </div>
+
+        <input type="hidden" name="partner">
+    </div>
+    <div class="ui-form-item">
+        <div style="width: 200px; height: 50px; display: none">
+            <input type="file" id="order_file" name="order_file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+
+                   style="opacity: 0; z-index: -100">
+        </div>
+        <span id="filename" style=""></span>
+
+        <p class="ui-form-explain">(注意：上传时，保证是excel文件.) </p>
+        {% if message != '' %}
+        {% if message == 'success' %}
+        {% if existed_orders %}
+        <span style="color: red"> 已存在的订单：{{', '.join(existed_orders)}} <br></span>
+        {% end %}
+        {% if need_convert_orders %}
+        <span style="color: red"> excel内容需要转换成文本的券号：{{','.join(need_convert_orders)}} <br></span>
+        {% end %}
+        <p class="ui-form-explain ui-tiptext ui-tiptext-success">
+            <i class="ui-tiptext-icon iconfont" title="成功">&#xF049;</i>
+            上传渠道订单成功
+        </p>
+        {% else %}
+        <p class="ui-form-explain ui-tiptext ui-tiptext-error">
+            <i class="ui-tiptext-icon iconfont" title="出错">&#xF045;</i>
+            {{ message }}
+        </p>
+        {% end %}
+        {% end %}
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange" value="上传">
+    </div>
+    <p style="padding-left: 170px" class="ui-form-explain">以下是excel内容格式，请参照：</p>
+    <div style="width: 50%;padding-left: 170px">
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>渠道券号</th>
+                <th>一百券商品ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>111111111</td>
+                <td>567</td>
+            </tr>
+            <tr>
+                <td>333333333</td>
+                <td>567</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% end %}
+
+
+{% block styles %}
+<style>
+    .ui-distributor {
+        background-color: #E4F1DD;
+        color: #000000;
+        width: 135px;
+        font-size: 25px;
+        text-align: center;
+        height: 50px;
+        cursor: pointer;
+        line-height: 50px;
+        position: relative;
+        float: left;
+    }
+
+</style>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'tabs'], function ($, Tabs) {
+        $('.ui-distributor').click(function () {
+            $('.ui-distributor').css('background-color', '#E4F1DD');
+            $(this).css("background-color", "#20AC9B");
+            $('input[name=partner]').val($(this).attr('id'));
+        });
+        $('#order_file').change(function () {
+            var absolute_path = $(this).val();
+            var path_list = absolute_path.split('\\');
+            var filename = path_list[path_list.length - 1];
+            $('#filename').text(filename);
+        });
+    });
+</script>
+{% end %}

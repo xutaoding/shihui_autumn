@@ -1,0 +1,28 @@
+{% extends "../layout.html" %}
+{% block title %}微预约{% end %}
+
+{% block content %}
+    <ul class="list-group">
+        <a href="{{ url_concat(reverse_url('book.orders'), {'wx_id': current_user.wx_id}) }}">
+            <li class="list-group-item">
+                <span class="badge" style="background-color: #0fbc4a">{{ orders }}</span><span class="glyphicon glyphicon-chevron-right" style="position: absolute; right: 0; line-height: 35px"></span>
+                我的预约
+            </li>
+        </a>
+    </ul>
+    <h2 style="color: white">
+        热门预约
+    </h2>
+    <ul class="list-group">
+        {% for list in lists %}
+        <a href="{{ reverse_url('book', list['id']) }}?wx_id={{ current_user.wx_id }}" class="list-group-item">
+            <h5 class="list-group-item-heading">{{ list['info'].title}}</h5>
+            <div>
+                <img src="{{img_url(list['info'].pic)}}" style="display:block; max-width:100%; max-height:100%; width: 100%" alt="预约图片展示">
+            </div>
+        </a>
+        {% end %}
+    </ul>
+{% raw links %}
+{% end %}
+

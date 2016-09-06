@@ -1,0 +1,50 @@
+{% extends "../layout.html" %}
+{% block title %}商品历史列表{% end %}
+{% block menu %}
+{% module menu('goods.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">商品历史</h2>
+</div>
+
+<div class="content">
+    <table class="ui-table ui-table-noborder">
+        <thead>
+        <tr>
+            <th>商户名称</th>
+            <th style="min-width: 250px">名称</th>
+            <th>原价</th>
+            <th>售价</th>
+            <th>采购价</th>
+            <th>库存</th>
+            <th>状态</th>
+            <th>操作人</th>
+            <th>操作时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for goods in page.rows %}
+        <tr>
+            <td>{{ goods.supplier_name }}</td>
+            <td>{{ goods.short_name }}</td>
+            <td>{{ goods.face_value }}</td>
+            <td>{{ goods.sales_price }}</td>
+            <td>{{ goods.purchase_price }}</td>
+            <td>{{ goods.stock }}</td>
+            <td>{{ {'PENDING':'待审核','ON_SALE':'已上架','OFF_SALE':'已下架'}.get(goods.status, '未知') }}</td>
+            <td>{{ goods.created_by }}</td>
+            <td>{{ goods.created_at }}</td>
+            <td>
+                <a href="{{ url_concat(reverse_url('goods.history.detail', goods.goods_id), {'id': goods.id}) }}">详情</a>
+            </td>
+
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% raw page.links() %}
+{% end %}

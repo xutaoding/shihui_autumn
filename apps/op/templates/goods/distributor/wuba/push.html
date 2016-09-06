@@ -1,0 +1,380 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布58商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear" xmlns="http://www.w3.org/1999/html">
+    <h2 class="fn-left">发布58商品</h2>
+</div>
+
+<form class="ui-form" name="form" method="post" action="{{reverse_url('goods.wb.push') }}" id="form">
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>选择分类</label>
+
+    <p>已选分类：<span id='text_category_tree'></span></p>
+    <input type="hidden" name="prodTypeId" id="input_category_tree">
+    <input type="hidden" name="prodTypeIdChain" id="nodeChain_category_tree">
+
+    <div style="padding:10px; border: 1px solid #eee; max-height: 300px; overflow-y: scroll">
+        <div id="category_tree" class="ztree"></div>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="prodName" class="ui-label"> <span class="ui-form-required">*</span>长标题 </label>
+    <textarea class="ui-input" rows="3" style="width: 760px;" id="prodName" name="prodName"
+              data-max-length="200">{{ goods.name }}</textarea>
+
+    <div>
+        <span id="prodName-wordcount"></span>
+        <span class="ui-form-explain">最多可输入200字</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="prodShortName" class="ui-label"> <span class="ui-form-required">*</span>团购短名称</label>
+    <input class="ui-input" name="prodShortName" style="width: 50%" id="prodShortName" data-max-length="20"
+           value="{{ goods.short_name }}"/>
+
+    <div>
+        <span id="prodShortName-wordcount"></span>
+        <span class="ui-form-explain">最多可输入20字</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label for="listShortTitle" class="ui-label"> <span class="ui-form-required">*</span>列表页短标题</label>
+    <input class="ui-input" name="listShortTitle" style="width: 50%" id="listShortTitle"
+           data-max-length="20" value="{{ goods.short_name }}"/>
+
+    <div>
+        <span id="listShortTitle-wordcount"></span>
+        <span class="ui-form-explain">最多可输入30字</span>
+    </div>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>团购时间</label>
+    <input class="ui-input" type="text" name="startTime" id="startTime"
+           value="{{ goods.on_sale_at.strftime('%Y-%m-%d %H:%M:%S') if goods.on_sale_at else '' }}" autocomplete="off">
+    至
+    <input class="ui-input" type="text" name="endTime" id="endTime"
+           value="{{ goods.off_sale_at.strftime('%Y-%m-%d %H:%M:%S') if goods.off_sale_at else '' }}"
+           autocomplete="off">
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>券截止日期</label>
+    <input class="ui-input" type="text" name="deadline" id="deadline"
+           value="{{ goods.expire_at.strftime('%Y-%m-%d %H:%M:%S') if goods.expire_at else '' }}" autocomplete="off">
+</div>
+<div class="ui-form-item">
+    <label for="inputMarketPrice" class="ui-label"> <span class="ui-form-required">*</span>市场价</label>
+    <input type="text" class="ui-input" id="inputMarketPrice" name="prodPrice" value="{{ goods.face_value}}">
+    <span class="ui-form-explain">最多两位小数</span>
+</div>
+<div class="ui-form-item">
+    <label for="inputMarketPrice" class="ui-label"> <span class="ui-form-required">*</span>销售价</label>
+    <input type="text" class="ui-input" id="inputSalePrice" name="groupPrice" value="{{ goods.sales_price }}">
+    <span class="ui-form-explain">不能大于市场价，最多两位小数</span>
+</div>
+<div class="ui-form-item">
+    <label for="inputMaxNumber" class="ui-label"> <span class="ui-form-required">*</span>商品总库存</label>
+    <input type="text" class="ui-input" id="inputMaxNumber" name="saleMaxNum"
+           value="{{ 0 if goods.generate_type == 'GENERATE' else goods.stock}}">
+    <span class="ui-form-explain">必须大于等于0，0表示无上限</span>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>产品范畴</label>
+    <input type="radio" name="prodCategory" value="0" checked> 消费类
+    <input type="radio" name="prodCategory" value="1"> 快递类
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>是否需要配送</label>
+    <input type="radio" name="isSend" value="0" checked> 不配送
+    <input type="radio" name="isSend" value="1"> 配送
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>是否需要预约</label>
+    <input type="radio" name="isSubscribe" value="1" checked> 不需要
+    <input type="radio" name="isSubscribe" value="0"> 需要
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>产品型号</label>
+    <input type="radio" name="prodModelType" value="1" checked>单型号
+    <input type="radio" name="prodModelType" value="2"> 多型号
+    <input type="radio" name="prodModelType" value="3"> 多重型号
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>是否支持退款</label>
+    <input type="radio" name="isRefund" value="1" checked> 支持
+    <input type="radio" name="isRefund" value="0"> 不支持
+</div>
+<div class="ui-form-item">
+    <label for="inputMinNumber" class="ui-label"> <span class="ui-form-required">*</span>最低成团人数</label>
+    <input type="text" class="ui-input" id="inputMinNumber" name="successNum" value="1">
+    <span class="ui-form-explain">最少为1</span>
+</div>
+<div class="ui-form-item">
+    <label for="inputPerMaxNumber" class="ui-label"> <span class="ui-form-required">*</span>单笔最高购买数量</label>
+    <input type="text" class="ui-input" id="inputPerMaxNumber" name="buyerMaxNum" value="0">
+    <span class="ui-form-explain">仅数字，0表示无限制</span>
+</div>
+<div class="ui-form-item">
+    <label for="inputPerMinNumber" class="ui-label"> <span class="ui-form-required">*</span>单笔最高购买数量</label>
+    <input type="text" class="ui-input" id="inputPerMinNumber" name="buyerMinNum" value="1">
+    <span class="ui-form-explain">大于等于1</span>
+</div>
+<div class="ui-form-item">
+    <label for="inputMobileImg" class="ui-label"> 手机端主图</label>
+    <input type="text" class="ui-input" id="inputMobileImg" name="mobileImg">
+    <span class="ui-form-explain">http开头，尺寸 622*194,图片大小 30k 以内</span>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"><span class="ui-form-required">*</span>团购主图</label>
+    <button class="ui-button ui-button-swhite" type="button" id="upload-img">选择图片</button>
+    <label class="ui-form-explain">推荐尺寸：(680x425)</label>
+
+    <div style="margin-top: 10px">
+        <img src=" {{ img_path }}" id="img-preview" width="680" height="425">
+        <input type="hidden" name="prodImg" id="img-url" value="{{ img_path }}">
+    </div>
+    <span class="ui-form-explain">http开头，图片尺寸为680*425</span>
+</div>
+
+<div class="ui-form-item">
+    <label for="prodDescription" class="ui-label"> <span class="ui-form-required">*</span>详情</label>
+    <textarea id="prodDescription" name="prodDescription" style="width: 760px;" rows="30">
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">温馨提示</span>
+        </p>
+        {{default(goods.tips, '')}}
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">商品介绍</span>
+        </p>
+        {{default(goods.detail, '')}}
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">商户介绍</span>
+        </p>
+        {{default(goods.supplier_intro, '')}}
+    </textarea>
+</div>
+<div class="ui-form-item">
+    <label for="mobileDescription" class="ui-label"> <span class="ui-form-required">*</span>手机端特别提示</label>
+    <textarea id="mobileDescription" name="mobileDescription" style="width: 760px;" rows="30">
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">温馨提示</span>
+        </p>
+        {{default(goods.tips, '')}}
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">商品介绍</span>
+        </p>
+        {{default(goods.detail, '')}}
+        <p style="BACKGROUND-COLOR: rgb(204,0,0); FONT-WEIGHT: bold">
+            <span style="font-family:SimSun;font-size:small;color:#ffffff;">商户介绍</span>
+        </p>
+        {{default(goods.supplier_intro, '')}}
+    </textarea>
+</div>
+<div class="ui-form-item">
+    <label class="ui-label"> <span class="ui-form-required">*</span>发布城市</label>
+    <table id="city_table"> </table>
+</div>
+
+<input type="hidden" name="shop_ids" value="{{ ','.join([str(shop.id) for shop in goods_shops]) }}">
+
+{% for i, shop in enumerate(goods_shops) %}
+<input type="hidden" name="partnerId_{{ shop.id }}" value="{{ shop.id }}">
+<div class="ui-form-item">
+    <label class="ui-label">门店{{ i + 1}}</label>
+    <table>
+        <tr>
+            <td>商家名称 *</td>
+            <td><input type="text" name="title_{{ shop.id }}" value="{{ shop.supplier_name }} {{ shop.name }}"
+                       class="ui-input"></td>
+            <td>商家缩写 *</td>
+            <td><input type="text" name="shortTitle_{{ shop.id }}" value="{{ shop.supplier_name }} {{ shop.name }}"
+                       class="ui-input"></td>
+        </tr>
+        <tr>
+            <td>电话 *</td>
+            <td><input type="text" name="telephone_{{ shop.id }}" value="{{ shop.phone }}" class="ui-input"></td>
+            <td>网址</td>
+            <td><input type="text" name="webUrl_{{ shop.id }}" class="ui-input"></td>
+        </tr>
+        <tr>
+            <td>交通信息 *</td>
+            <td><input type="text" name="busline_{{ shop.id }}" class="ui-input" value="{{default(shop.traffic_info,'')}}"></td>
+            <td>地图图片</td>
+            <td><input type="text" name="mapImg_{{ shop.id }}" class="ui-input"></td>
+        </tr>
+        <tr>
+            <td>地图服务商</td>
+            <td>
+                <input type="radio" name="mapServiceId_{{ shop.id }}" value="0" checked>Google
+                <input type="radio" name="mapServiceId_{{ shop.id }}" value="1">Baidu
+                <input type="radio" name="mapServiceId_{{ shop.id }}" value="2">Mapbar
+            </td>
+            <td>地图链接</td>
+            <td><input type="text" name="mapUrl_{{ shop.id }}" class="ui-input"></td>
+        </tr>
+        <tr>
+            <td>地图经度</td>
+            <td><input type="text" name="latitude_{{ shop.id }}" value="{{ shop.latitude if shop.latitude else '' }}"
+                       class="ui-input"></td>
+            <td>地图纬度</td>
+            <td><input type="text" name="longitude_{{ shop.id }}" value="{{ shop.longitude if shop.longitude else ''}}"
+                       class="ui-input">
+            </td>
+        </tr>
+        <tr>
+            <td>商家地址</td>
+            <td colspan="3"><input type="text" name="address_{{ shop.id }}" value="{{ shop.address }}"
+                                   class="ui-input">
+            </td>
+        </tr>
+        <tr>
+            <td>商圈 *</td>
+            <td colspan="3">
+                <p>已选商圈：<span id='text_circle_tree_{{shop.id}}'>{{ shop.area_name }}</span>
+                    （如果是红色，表明未自动匹配成功，请手动选择） </p>
+                <input type="hidden" name="circleId_{{ shop.id }}" id="input_circle_tree_{{ shop.id }}">
+                <input type="hidden" name="circleIdChain_{{ shop.id }}" id="nodeChain_circle_tree_{{ shop.id }}">
+
+                <div>
+                    <div style="float:left;padding:10px; border: 1px solid #eee; max-height: 300px; width:300px;overflow-y: scroll">
+                        <div id="circle_tree_{{shop.id}}" class="ztree"></div>
+                    </div>
+                    <div style="float: left; width: 300px;margin-left: 20px; padding: 10px;overflow-y: scroll">
+                        <h2>一百券可参照商圈信息</h2>
+                        <table class="ui-table ui-table-noborder">
+                            <thead>
+                            <tr>
+                                <th>城市</th>
+                                <th>区域</th>
+                                <th>商圈</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for area in area_list %}
+                            <tr>
+                                <td>{{ area.city }}</td>
+                                <td>{{ area.district }}</td>
+                                <td>{{ area.area }}</td>
+                            </tr>
+                            {% end %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fn-clear"></div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+{% end %}
+<div class="ui-form-item">
+    <input type="hidden" name="goods_id" value="{{ goods.id }}">
+    {% module xsrf_form_html() %}
+    <input type="submit" class="ui-button ui-button-morange" value="发布">
+</div>
+</form>
+{% end %}
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css">
+{% end %}
+{% block scripts %}
+<script src="{{static_url('js/wuba-ztree.js')}}"></script>
+<script src="{{static_url('js/wuba-cities.js')}}"></script>
+<script>
+    seajs.use(['$', 'moment', 'calendar', 'ztree', 'kindeditor', 'autumn', 'widget', 'templatable'],
+            function ($, moment, Calendar, Ztree, KindEditor, autumn, Widget, Templatable) {
+                new Calendar({trigger: '#deadline', format: 'YYYY-MM-DD 23:59:59'});
+                new Calendar({trigger: '#startTime', format: 'YYYY-MM-DD HH:mm:ss'});
+                new Calendar({trigger: '#endTime', format: 'YYYY-MM-DD 23:59:59'});
+                autumn.word_count_monitor('[data-max-length]');
+
+                function onClick(e, treeId, treeNode) {
+                    var tree = $.fn.zTree.getZTreeObj(treeId);
+                    tree.expandNode(treeNode);
+                    if (!treeNode.children) {
+                        $('#text_' + treeId).text(treeNode.name);
+                        $('#input_' + treeId).val(treeNode.id);
+                        $('#nodeChain_' + treeId).val(treeNode.getParentNode().id + "," + treeNode.id)
+                    }
+                }
+
+                var settings = {
+                    view: { selectedMulti: false, dblClickExpand: false, showIcon: false },
+                    callback: { onClick: onClick },
+                    async: {
+                        enable: true,
+                        url: "{{ reverse_url('goods.wb.category.ajax') }}",
+                        autoParam: ["id"],
+                        otherParam: {"_xsrf": autumn.get_cookie('_xsrf')}
+                    }
+                };
+
+                $.fn.zTree.init($('#category_tree'), settings, ztree_categories);
+
+                settings = {
+                    view: { selectedMulti: false, dblClickExpand: false, showIcon: false },
+                    callback: { onClick: onClick }
+                };
+
+                $("[id^=circle_tree_]").each(function (index, ele) {
+                    var shopId = ele.id.substring(12)
+                    var selected_circle_obj = $("#text_circle_tree_" + shopId);
+                    var circleTree = $.fn.zTree.init($('#' + ele.id), settings, ztree_circles);
+                    var selectedNode = circleTree.getNodeByParam('name', selected_circle_obj.text(), null);
+                    if (selectedNode == null) {
+                        selected_circle_obj.css("color", "red");
+                    } else {
+                        circleTree.selectNode(selectedNode);
+                        selected_circle_obj.css("color", "");
+                    }
+                });
+
+
+                //富文本编辑器和上传图片
+                KindEditor.ready(function (K) {
+                    var editor = K.editor({
+                        allowFileManager: false,
+                        pluginsPath: K.basePath + 'plugins/',
+                        uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf')
+                        }
+                    });
+                    K.create('#prodDescription,#mobileDescription,#specialmessage', {
+                        uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf')
+                        }
+                    });
+                    K('#upload-img').click(function () {
+                        editor.loadPlugin('image', function () {
+                            editor.plugin.imageDialog({
+                                showRemote: false,
+                                clickFn: function (url, title, width, height, border, align) {
+                                    K('#img-url').val(url);
+                                    K('#img-preview').attr('src', url);
+                                    editor.hideDialog();
+                                }
+                            });
+                        });
+                    });
+                });
+
+                var TemplateWidget = Widget.extend({ Implements: Templatable });
+
+                new TemplateWidget({
+                    template: '{{!#each this}}<tr><td>{{!province}}</td><td>{{!#each cities}}<input type="checkbox" city="{{!name}}" name="cityIds" value="{{!id}}" city-shortname="{{!short_name}}" >{{!name}}{{!/each}}</td></tr>{{!/each}}',
+                    model: t_wuba_cities,
+                    parentNode: '#city_table'
+                }).render();
+            }
+    )
+    ;
+
+</script>
+{% end %}

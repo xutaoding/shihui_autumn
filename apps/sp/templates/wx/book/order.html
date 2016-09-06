@@ -1,0 +1,132 @@
+{% extends '../../layout.html' %}
+{% block title %}预约信息管理{% end %}
+{% block menu %}
+{% module menu('wx.book.order') %}
+{% end%}
+
+{% block styles %}
+<style>
+    .panel {
+        display: none;
+    }
+</style>
+{% end %}
+
+{% block content %}
+<div class="ui-tab">
+    <ul class="ui-tab-items">
+        <li class="ui-tab-item ui-tab-item-current">
+            <a href="javascript:;">预约单</a>
+        </li>
+        <li class="ui-tab-item">
+            <a href="{{ reverse_url('wx.book') }}">预约管理</a>
+        </li>
+    </ul>
+</div>
+
+<ul class="panels">
+    <li class="panel">
+        <form action="#" method="get">
+            <label for="date">预订日期</label>
+            <input id="date" class="ui-form-text" type="text" name="date" value="{{ date }}">
+
+            <label for="shop">请选择门店</label>
+            <select id="shop" name="shop">
+                <option value="">--请选择--</option>
+                {% for shop_item in shops %}
+                <option value="{{ shop_item.id }}" {% if int(shop) == shop_item.id %} selected {% end %}>{{ shop_item.name }}</option>
+                {% end %}
+            </select>
+            <button type="submit" class="ui-button ui-button-sorange">筛选</button>
+        </form>
+        {% if orders.rows %}
+        <div style="padding-top: 10px">
+            <table class="ui-table ui-table-noborder">
+                <thead>
+                <tr>
+                    <th>联系人</th>
+                    <th>联系电话</th>
+                    <th>备注</th>
+                    <th>预订日期</th>
+                    <th>下单时间</th>
+                    <th>店铺</th>
+                    <th>预订对象</th>
+                    <th>状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for order in orders.rows %}
+                <tr>
+                    <td>{{ order.name }}</td>
+                    <td>{{ order.phone }}</td>
+                    <td>{{ order.remark }}</td>
+                    <td>{{ order.date }} | {{ order.time }}点</td>
+                    <td>{{ order.created_at }}</td>
+                    <td>{{ order.sname }}</td>
+                    <td><a href="{{ url_concat(reverse_url('wx.book.detail'), {'book_id': order.wbs_id}) }}">{{ json.loads(order.info)['title'] }}</a></td>
+                    <td><span {% if order.status == 1 %} name="op" data-id="{{ order.id }}" style="color: green; cursor: pointer" {% end %}>{{ {1: '未处理', 2: '客户取消', 3: '已完成', 4: '商家取消'}.get(order.status, '') }}</span></td>
+                </tr>
+                {% end %}
+                </tbody>
+            </table>
+        </div>
+        {% raw orders.links() %}
+        {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title" style="padding-bottom: 10px">暂时没有客户预订</h3>
+            </div>
+        </div>
+        {% end %}
+        {% module xsrf_form_html() %}
+    </li>
+</ul>
+
+
+{% end %}
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['autumn', '$', 'calendar', 'confirmbox', 'tabs'], function (autumn, $, Calendar, ConfirmBox, Tabs) {
+        new Calendar({trigger:'#date'});
+
+        $('span[name="op"]').on('click', function(){
+            var oid = $(this).attr('data-id');
+            var obj = $(this);
+            var html = '<label>请确认:&nbsp;</label><input type="radio" id="done" value="3" name="opt" checked><label for="done">完成订单</label><input type="radio" value="4" id="cancel" name="opt"><label for="cancel">取消订单</label>'
+            ConfirmBox.confirm(html, '更改订单状态', function(){
+                var status = $('input[name="opt"]:checked').val();
+                $.post(
+                    "{{ reverse_url('wx.book.status') }}",
+                    {'oid': oid, 'status': status, '_xsrf': $('input[name="_xsrf"]').val()},
+                    function(data) {
+                        if (data.ok) {
+                            obj.removeAttr('style');
+                            obj.unbind('click');
+                            if (status == '3') {
+                                obj.text('已完成');
+                            } else {
+                                obj.text('商家取消');
+                            }
+                        }
+                    }
+                )
+            })
+        });
+        new Tabs({
+            element: '.ui-tab',
+            triggers: '.ui-tab-item',
+            panels: '.panel',
+            triggerType: 'click',
+            activeTriggerClass: 'ui-tab-item-current'
+        }).render();
+    });
+</script>
+{% end %}

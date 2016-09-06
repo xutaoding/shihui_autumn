@@ -1,0 +1,53 @@
+{% extends '../../../layout.html' %}
+{% block title %}微会员{% end %}
+{% block menu %}
+{% module menu('wx.mem_cover') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">微会员设置</h2>
+    <a class="ui-button ui-button-sblue fn-right" href="{{ reverse_url('wx.mem_msg.add') }}" >新建消息</a>
+</div>
+
+<div class="ui-content">
+    <div class="ui-tab" style="margin-top: 20px">
+        <ul class="ui-tab-items">
+            <li class="ui-tab-item">
+                <a href="{{reverse_url('wx.mem_cover')}}">会员卡入口设置</a>
+            </li>
+            <li class="ui-tab-item">
+                <a href="{{ reverse_url('wx.mem_block') }}">会员模块设置</a>
+            </li>
+            <li class="ui-tab-item  ui-tab-item-current">
+                <a href="javascript:;">会员广播</a>
+            </li>
+        </ul>
+    </div>
+    <div style="margin-top:20px">
+        <table class="ui-table ui-table-noborder">
+            <thead>
+            <tr>
+                <th>标题</th>
+                <th>类型</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for msg in page.rows %}
+            <tr>
+                <td>{{msg.title}}</td>
+                <td>{{ {'0':'群发', '1':'指定用户组' }.get(msg.to_all)}}</td>
+                <td>
+                    <a href="{{ url_concat(reverse_url('wx.mem_msg.edit'),{'id': msg.id}) }}">编辑</a>
+                </td>
+            </tr>
+            {% end %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% module xsrf_form_html() %}
+{% end %}
+

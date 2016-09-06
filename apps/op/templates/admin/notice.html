@@ -1,0 +1,80 @@
+{% extends "../layout.html" %}
+{% block title %}{{ '添加' if form.action.value == 'add' else '修改'  }}行政通告{% end %}
+{% block menu %}
+{% module menu('admin.notice') %}
+{% end %}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">{{ '添加' if form.action.value == 'add' else '修改' }}行政通告</h2>
+</div>
+<form action="{{ reverse_url('admin.notice.add') if form.action.value == 'add' else reverse_url('admin.notice.edit', form.id.value) }}"
+      method="post" class="ui-form" id="form">
+    <div class="ui-form-item">
+        <label for="news_title" class="ui-label">
+            <span class="ui-form-required">*</span>标题</label>
+        <input id="news_title" type="text" size="20" class="ui-input ui-input-large" value="{{ form.title.value }}"
+               name="title" style="width: 50%">
+
+        <div id="news_title_error" class="ui-form-explain"></div>
+    </div>
+
+    <div class="ui-form-item">
+        <label for="content" class="ui-label"> <span class="ui-form-required">*</span>详情</label>
+        <textarea id="content" name="content" style="width: 100%" rows="50">
+            {{ form.content.value }}
+        </textarea>
+    </div>
+
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="submit" class="ui-button ui-button-morange"
+               value="{{ '添加' if form.action.value == 'add' else '修改' }}">
+    </div>
+    <input type="hidden" name="action" value="{{ form.action.value}}">
+    <input type="hidden" name="id" value="{{ form.id.value}}">
+    <input type="hidden" id="error" value="{{error}}">
+</form>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['validator', 'kindeditor' , '$', 'autumn'], function (Validator, KindEditor, $, autumn) {
+
+        var validator = new Validator({
+            element: '#form'
+        });
+        validator.addItem({
+            element: '[name=title]',
+            required: true
+        }).addItem({
+                    element: '[name=content]',
+                    required: true
+                });
+
+        if ($('#error').val()) {
+            validator.execute();
+        }
+
+        //富文本编辑器
+        KindEditor.ready(function (K) {
+            var editor = K.editor({
+                allowFileManager: false,
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+            K.create('#content', {
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                pluginsPath: '/static/img/',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+        });
+
+    });
+</script>
+{% end %}
+

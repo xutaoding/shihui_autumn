@@ -1,0 +1,77 @@
+{% extends "../layout.html" %}
+{% block title %}券冻结{% end %}
+{% block menu %}
+{% module menu('coupon.freeze') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">批量冻结结果</h2>
+    <a class="ui-button ui-button-sorange fn-right" href="{{ reverse_url('coupon.freeze') }}">返回券冻结</a>
+</div>
+
+<div class="ui-table-container">
+    <table class="ui-table"><!-- 可以在class中加入ui-table-inbox或ui-table-noborder分别适应不同的情况 -->
+        <thead>
+        <tr>
+            <th>{{ {'coupon':'券号', 'order':'订单号'}.get(type,'')}}</th>
+            {% if type == 'order' %}
+            <th>券号</th>
+            {% end %}
+            <th>结果</th>
+        </tr>
+        </thead><!-- 表头可选 -->
+        <tbody>
+        {% if type == 'order' %}
+            {% for line in invalid_lines %}
+            <tr style="color:red">
+                <td>{{ line }}</td>
+                <td></td>
+                <td>订单格式错误</td>
+            </tr>
+            {% end %}
+            {% for line in invalid_orders%}
+            <tr style="color: grey">
+                <td>{{ line }}</td>
+                <td></td>
+                <td>订单不存在</td>
+            </tr>
+            {% end %}
+            {% for line in order_fail%}
+            <tr style="color: blue">
+                <td>{{ line[0] }}</td>
+                <td>{{ line[1] }}</td>
+                <td>券号已冻结或已消费</td>
+            </tr>
+            {% end %}
+            {% for line in order_success%}
+            <tr style="color: darkgreen">
+                <td>{{ line[0] }}</td>
+                <td>{{ line[1] }}</td>
+                <td>冻结成功</td>
+            </tr>
+            {% end %}
+        {% else %}
+            {% for line in invalid_lines %}
+            <tr style="color:red">
+                <td>{{ line }}</td>
+                <td>券号格式错误</td>
+            </tr>
+            {% end %}
+            {% for line in coupon_fail%}
+            <tr style="color: blue">
+                <td>{{ line }}</td>
+                <td>券号不存在或已冻结或已消费</td>
+            </tr>
+            {% end %}
+            {% for line in coupon_success%}
+            <tr style="color: darkgreen">
+                <td>{{ line }}</td>
+                <td>冻结成功</td>
+            </tr>
+            {% end %}
+        {% end %}
+        </tbody>
+    </table>
+</div>
+{% end %}

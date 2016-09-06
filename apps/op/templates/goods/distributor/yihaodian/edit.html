@@ -1,0 +1,110 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布一号店商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">编辑一号店商品</h2>
+</div>
+
+<div>
+    <form class="ui-form" name="" method="post" action="{{ reverse_url('goods.yhd.edit') }}" id="form">
+        <fieldset>
+            <legend>编辑一号店商品</legend>
+            <div class="ui-form-item">
+                <label for="productCname" class="ui-label"> <span class="ui-form-required">*</span>产品名称 </label>
+                <textarea class="ui-input" name="productCname" style="width: 760px;" rows="3" id="productCname" data-max-length="100">
+                    {{ goods.short_name }}
+                </textarea>
+                <div>
+                    <span id="productCname-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入100字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productSubTitle" class="ui-label"> 产品名称副标题 </label>
+                <textarea class="ui-input" name="productSubTitle" style="width: 760px;" rows="3" id="productSubTitle" data-max-length="100"></textarea>
+                <div>
+                    <span id="productSubTitle-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入100字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productNamePrefix" class="ui-label"> 产品名称前缀 </label>
+                <input type="text" class="ui-input" name="productNamePrefix"  id="productNamePrefix" data-max-length="10"/>
+                <div>
+                    <span id="productNamePrefix-wordcount"></span>
+                    <span class="ui-form-explain">最多可输入10字</span>
+                </div>
+            </div>
+
+            <div class="ui-form-item">
+                <label for="productDescription" class="ui-label"> <span class="ui-form-required">*</span>产品描述</label>
+                <textarea id="productDescription" name="productDescription" style="width: 780px" rows="50">
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d12.yihaodianimg.com/t20/2012/0918/482/491/a8cd44b5220bbbefc77fecedee40a191.jpg"></span></p>
+                    <table border="1" cellpadding="0" width="680px">
+                        {% for shop in goods_shops %}
+                        <tr>
+                            <td style="font-size: 14px">{{shop.name}}</td>
+                            <td style="font-size: 14px">地址：{{shop.address}}<br/>电话：{{shop.phone}}</td>
+                        </tr>
+                        {% end %}
+                    </table>
+
+                    <p>
+                        <img class="blogimg" src="http://d13.yihaodianimg.com/t20/2012/0919/53/22/acc198b608020f48c77fecedee40a191.jpg">
+                    </p>
+
+                    {{ goods.detail }}
+
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/316/493/089b3c37367a0f5fc77fecedee40a191.jpg"></span></p>
+                    {{goods.tips}}
+
+                    {% if goods.type == 'E' %}
+                    <p style="font-size: 14px"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/149/494/4a78c67f6862e133c77fecedee40a191.jpg"><br/>
+                        本商品为电子券，购买后会以短信形式发送一串数字到您的手机<br>
+                        如果您不小心遗失了您的电子券，请拨打一百券客服热线<br>
+                        本产品由【一百券】提供，客服热线：400-686-5151<br>
+                    </p>
+                    {% end %}
+
+                    <p> <span style="font-size:14px;"><img class="blogimg" src="http://d11.yihaodianimg.com/t20/2012/0918/261/494/41c50245eeda685bc77fecedee40a191.jpg"></span></p>
+
+                    {{goods.supplier_intro}}
+                </textarea>
+            </div>
+
+            <div class="ui-form-item">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="goods_link_id" value="{{goods.goods_link_id}}">
+                <input type="submit" class="ui-button ui-button-morange" value="确定">
+            </div>
+
+        </fieldset>
+    </form>
+</div>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'kindeditor'], function ($, autumn, KindEditor) {
+        autumn.word_count_monitor('[data-max-length]');
+
+
+        KindEditor.ready(function(K) {
+            K.create('#productDescription',{
+                uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                extraFileUploadParams: {
+                    '_xsrf': autumn.get_cookie('_xsrf')
+                }
+            });
+        });
+
+    });
+</script>
+{% end %}

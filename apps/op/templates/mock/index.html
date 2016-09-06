@@ -1,0 +1,35 @@
+{% extends "../layout.html" %}
+{% block title %}模拟环境{% end %}
+{% block menu %}
+{% module menu('mock.index') %}
+{% end%}
+
+{% block content %}
+<h2> 淘宝电子凭证接口</h2>
+<form method="post" action="{{reverse_url('mock.taobao_coupon')}}">
+    <textarea style="width: 100%; height: 200px;" name="params">
+        outer_iid:29988
+        valid_ends:2013-12-27 23:59:59
+        item_title:【K歌不排队】【银乐迪杭州包厢预定】西城店晚间档3小时 限量
+        taobao_sid:932132905
+        order_id:465662460740859
+        sku_properties:包厢房型:中包;欢唱时间:20点至23点;日期:11月28日(周四)
+        send_type:2
+        timestamp:2013-11-28 17:42:14
+        sign:F69464F391B416F05F72F4BB30787F22
+        num:1
+        consume_type:0
+        valid_start:2013-11-28 00:00:00
+        token:7c05e9ad32c1a68e4e8443e0ab265e48
+        sub_method:1
+        method:send
+        sms_template:验证码$code.您已成功订购银乐迪inlovektv520提供的【K歌不排队】【银乐迪杭州包厢预定】西城店晚间档3小时 限量有效期2013/11/28至2013/12/27消费时请出示本短信以验证.如有疑问请联系卖家.
+        num_iid:19339794798
+        seller_nick:银乐迪inlovektv520
+        mobile:18767105438
+        sub_outer_iid:MIDDLE201311282023
+    </textarea>
+    {% module xsrf_form_html() %}
+    <button class="ui-button ui-button-lorange" type="submit">提交</button>
+</form>
+{% end %}

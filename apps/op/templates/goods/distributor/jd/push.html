@@ -1,0 +1,261 @@
+{% extends "../../../layout.html" %}
+{% block title %}发布京东商品{% end %}
+{% block menu %}
+{% module menu('goods.distributor.show_list') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">发布京东商品</h2>
+</div>
+
+<form action="{{ reverse_url('goods.jd.push', goods.id) }}" method="post" class="ui-form" id="">
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>选择城市\区域\商圈</label>
+        <div>
+            <div style="max-height: 300px; border: 1px solid #eee; overflow-y: scroll; width: 400px; float: left">
+                <div class="ztree" id="jd_city"></div>
+            </div>
+            <div style="float: left; width: 300px;margin-left: 20px; padding: 10px;">
+                <h2>一百券商圈信息</h2>
+                <table class="ui-table ui-table-noborder">
+                    <thead>
+                        <tr>
+                            <th>城市</th>
+                            <th>区域</th>
+                            <th>商圈</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for area in area_list %}
+                        <tr>
+                            <td>{{ area.city }}</td>
+                            <td>{{ area.district }}</td>
+                            <td>{{ area.area }}</td>
+                        </tr>
+                        {% end %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="fn-clear"></div>
+        </div>
+        <p class="ui-form-explain">所选商圈必须属于同一城市，可多选。</p>
+        <input type="hidden" id="city_id" name="city_id">
+        <input type="hidden" id="district_info" name="district_info">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>选择分类</label>
+        <div style="max-height: 300px; border: 1px solid #eee; overflow-y: scroll; width: 400px; float: left">
+            <div class="ztree" id="jd_group"></div>
+        </div>
+        <input type="hidden" name="group_id" id="group_id">
+        <input type="hidden" name="group2" id="group2">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>团购标题名称</label>
+        <input id="team_title" data-max-length="200" name="team_title" class="ui-input" style="width: 70%" type="text"
+               value="{{ goods.name }}">
+        <div>
+            <span id="team_title-wordcount"></span>
+            <span class="ui-form-explain">不要超过200字</span>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>团购产品标题</label>
+        <input class="ui-input" data-max-length="20" name="title" id="title" style="width: 70%" type="text"
+               value="{{ goods.short_name }}">
+        <div>
+            <span id="title-wordcount"></span>
+            <span class="ui-form-explain">最多可输入20字。</span>
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>市场价</label>
+        <input class="ui-input" type="text" name="market_price" value="{{ goods.face_value}}">
+        <span class="ui-form-other">最多两位小数</span>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>销售价</label>
+        <input class="ui-input" name="team_price" type="text" value="{{ goods.sales_price}}">
+        <span class="ui-form-other">不能大于市场价，最多两位小数</span>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>团购开始时间</label>
+        <input class="ui-input" type="text" name="begin_time" id="begin_time" value="{{ default(now.strftime('%Y-%m-%d 23:58:58'),'') }}">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>团购结束时间</label>
+        <input class="ui-input" type="text" name="end_time" id="end_time" value="{{ default(goods.off_sale_at,'') }}">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>券截止时间</label>
+        <input class="ui-input" type="text" name="expire_time" id="expire_time" value="{{ default(goods.expire_at, '') }}">
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>最低成团人数</label>
+        <input class="ui-input" type="text" value="1">
+        <span class="ui-form-other">必须大于等于1</span>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>商品总量上限</label>
+        <input class="ui-input" type="text" value="0" name="max_number">
+        <span class="ui-form-other">必须大于等于0，0表示无上限</span>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>单人购买上限</label>
+        <input class="ui-input" type="text" value="0" name="per_number">
+        <span class="ui-form-other">仅数字，0表示无上限，最多购买9999</span>
+    </div>
+    <div class="ui-form-item">
+        <label class="ui-label"><span class="ui-form-required">*</span>团购主图</label>
+        <input type="text" name="groupon_bimg" style="width: 30%" id="groupon_bimg" class="ui-input" value="{{ img }}">
+        <button class="ui-button ui-button-swhite" type="button" id="upload-img">选择图片</button>
+        <label class="ui-form-explain">推荐尺寸：(440x293)</label>
+        <div style="margin-top: 10px">
+            <img src=" {{ img or 'http://img.uhcdn.com/images/default.png' }}" id="img-preview" width="440" height="293">
+        </div>
+    </div>
+    <div class="ui-form-item">
+        <label for="notice" class="ui-label"> <span class="ui-form-required">*</span>特别提示</label>
+        <textarea id="notice" name="notice" style="width: 440px;" rows="30">
+        </textarea>
+    </div>
+    <div class="ui-form-item">
+        <label for="summary" class="ui-label"> <span class="ui-form-required">*</span>团购简介</label>
+        <textarea id="summary" name="summary" style="width: 440px;" rows="30">
+        </textarea>
+    </div>
+    <div class="ui-form-item">
+        <label for="team_detail" class="ui-label"> <span class="ui-form-required">*</span>团购详情</label>
+        <textarea id="team_detail" name="team_detail" style="width: 440px;" rows="50">
+            <span style="font-size:12px;">{{goods.name}}</span>
+            <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">温馨提示</span> </span></p>
+            {{html_font_size_replace(goods.tips, 14, 12)}}
+            <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">商品介绍</span> </span></p>
+            {{ html_font_size_replace(jd_logo_url_replace(goods.detail), 14, 12) }}
+            <p style="background-color:#CC0000;font-weight:bold;"> <span style="font-size:12px;"><span style="font-family: SimSun; color: rgb(255, 255, 255); ">商户介绍</span> </span></p>
+            {{ html_font_size_replace(jd_logo_url_replace(goods.supplier_intro), 14, 12) }}
+        </textarea>
+    </div>
+    <div class="ui-form-item">
+        {% module xsrf_form_html() %}
+        <input type="hidden" name="shop_id" id="shop_id" value="{{shop_id}}">
+        <input type="submit" class="ui-button ui-button-morange" value="发布">
+    </div>
+</form>
+{% end %}
+
+
+{% block styles %}
+<link rel="stylesheet" href="http://arale.uhcdn.com/arale/calendar/1.0.0/calendar.css"/>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'calendar', 'kindeditor', 'widget', 'templatable', 'autumn', 'ztree', 'moment'],
+            function ($, Calendar, KindEditor, Widget, Templatable, autumn, zTree, Moment) {
+
+                var city_settings = {
+                    view: { dblClickExpand: false, showIcon: false },
+                    async: {
+                        enable: true,
+                        url:"{{ reverse_url('goods.jd.city.ajax') }}",
+                        autoParam:["id", "type"],
+                        otherParam:{"_xsrf": autumn.get_cookie('_xsrf'), "shop_id": $('#shop_id').val()}
+                    },
+                    check:{ enable:true },
+                    callback: {
+                        onClick: function (e, treeId, treeNode){
+                            var tree = $.fn.zTree.getZTreeObj(treeId);
+                            tree.expandNode(treeNode);
+                        },
+                        onCheck: function(e, treeId, treeNode) {
+                            var tree = $.fn.zTree.getZTreeObj(treeId);
+                            if (treeNode.type =='area') {
+                                $("#city_id").val(treeNode.getParentNode().getParentNode().id);
+                                var selected_nodes = tree.getCheckedNodes();
+                                var result = [];
+                                for (var i = 0; i < selected_nodes.length; i++){
+                                    result.push(selected_nodes[i].getParentNode().id+'-'+selected_nodes[i].id)
+                                }
+                                $("#district_info").val(result.join(','));
+                            }
+                        }}
+                };
+                $.fn.zTree.init($("#jd_city"), city_settings);
+
+                var group_settings = {
+                    view: { dblClickExpand: false, showIcon: false },
+                    async: {
+                        enable: true,
+                        url:"{{ reverse_url('goods.jd.category.ajax') }}",
+                        autoParam:["id", "type"],
+                        otherParam:{"_xsrf": autumn.get_cookie('_xsrf'), "shop_id": $('#shop_id').val()}
+                    },
+                    check:{ enable:true },
+                    callback: {
+                        onClick: function(e, treeId, treeNode){
+                            var tree = $.fn.zTree.getZTreeObj(treeId);
+                            tree.expandNode(treeNode);
+                        },
+                        onCheck: function(e, treeId, treeNode){
+                            var tree = $.fn.zTree.getZTreeObj(treeId);
+                            var selected_nodes = tree.getCheckedNodes();
+                            var result = [];
+                            for (var i = 0; i < selected_nodes.length; i++){
+                                result.push(selected_nodes[i].id)
+                            }
+                            $("#group_id").val(selected_nodes[0].getParentNode().id);
+                            $("#group2").val(result.join(','));
+                        }
+                    }
+                };
+                $.fn.zTree.init($("#jd_group"), group_settings);
+
+
+                var today = Moment().format('YYYY-MM-DD HH:mm:ss');
+                new Calendar({trigger: '#begin_time',format: 'YYYY-MM-DD HH:mm:ss'});
+                new Calendar({trigger: '#end_time', range: [today, null],format: 'YYYY-MM-DD 23:59:59'});
+                new Calendar({trigger: '#expire_time', range: [today, null],format: 'YYYY-MM-DD 23:59:59'});
+
+                //富文本编辑器和上传图片
+                KindEditor.ready(function (K) {
+                    var editor = K.editor({
+                        allowFileManager: false,
+                        pluginsPath: K.basePath + 'plugins/',
+                        uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf')
+                        }
+                    });
+                    K.create('#notice, #summary, #team_detail', {
+                        width: '440px',
+                        minWidth: '440px',
+                        uploadJson: '{{ reverse_url("common.ke.upload_img") }}',
+                        extraFileUploadParams: {
+                            '_xsrf': autumn.get_cookie('_xsrf'),
+                            'source': 'jd_max420',
+                        }
+                    });
+                    K('#upload-img').click(function () {
+                        editor.loadPlugin('image', function () {
+                            editor.plugin.imageDialog({
+                                showRemote: false,
+                                imageUrl: K('#groupon_bimg').val(),
+                                clickFn: function (url, title, width, height, border, align) {
+                                    var img_reg = /\/p(\/\d+\/\d+\/\d+\/)[^_]+_([^_\.]+)[^\.]*(\..*)/g;
+                                    K('#img-url').val(url);
+                                    K('#groupon_bimg').val(img_reg.exec(url).slice(1).join(''));
+                                    K('#img-preview').attr('src', url);
+                                    editor.hideDialog();
+                                }
+                            });
+                        });
+                    });
+                });
+
+                autumn.word_count_monitor('[data-max-length]');
+            });
+</script>
+{% end %}
+

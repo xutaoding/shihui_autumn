@@ -1,0 +1,59 @@
+{% extends "../layout.html" %}
+{% block title %}导入券{% end %}
+{% block menu %}
+{% module menu('coupon.imported') %}
+{% end%}
+
+{% block content %}
+<div class="ui-title fn-clear">
+    <h2 class="fn-left">导入结果</h2>
+    <a class="ui-button ui-button-sorange fn-right" href="{{ reverse_url('coupon.imported') }}">返回导入券列表</a>
+</div>
+
+<div class="ui-tipbox ui-tipbox-white ui-tipbox-message">
+    <div class="ui-tipbox-icon">
+        <i class="iconfont" title="提示">&#xF046;</i>
+    </div>
+    <div class="ui-tipbox-content">
+        <h3 class="ui-tipbox-title">商品</h3>
+        <p class="ui-tipbox-explain">{{goods_name}}</p>
+    </div>
+</div>
+
+<div class="ui-table-container">
+    <table class="ui-table"><!-- 可以在class中加入ui-table-inbox或ui-table-noborder分别适应不同的情况 -->
+        <thead>
+            <tr>
+                <th>券号</th>
+                <th>密码</th>
+                <th>结果</th>
+            </tr>
+        </thead><!-- 表头可选 -->
+        <tbody>
+            {% for coupon in invalid_coupons%}
+            <tr style="color:red">
+                <td>{{ coupon }}</td>
+                <td></td>
+                <td>格式错误</td>
+            </tr>
+            {% end %}
+
+            {% for coupon in existing_coupons %}
+            <tr style="color: blue">
+                <td>{{ coupon[0] }}</td>
+                <td>{{ coupon[1] }}</td>
+                <td>重复券号</td>
+            </tr>
+            {% end %}
+
+            {% for coupon in imported_coupons %}
+            <tr style="color: grey">
+                <td>{{ coupon[0] }}</td>
+                <td>{{ coupon[1] }}</td>
+                <td>导入成功</td>
+            </tr>
+            {% end %}
+       </tbody>
+   </table>
+</div>
+{% end %}

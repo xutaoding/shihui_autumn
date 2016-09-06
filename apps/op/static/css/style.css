@@ -1,0 +1,94 @@
+html {
+    background-image: url(http://img0.uhcdn.com/images/autumn/sandstorm_01.jpg);
+    background-attachment:fixed;
+    background-repeat:no-repeat;
+    background-position:center;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    padding: 10px 0;
+}
+#main-wrapper {
+    width: 980px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 0 10px;
+}
+
+#logo {
+    width: 100px;
+    height: 48px;
+    display: block;
+    background: url(/static/img/logo-100.png) no-repeat;
+}
+
+#top-menu {
+    height: 48px;
+    line-height: 48px;
+}
+
+#footer {
+    margin-top: 30px;
+    border-top: 1px solid #cccccc;
+    height: 40px;
+    color: #808080;
+    padding-top: 15px;
+}
+
+.ui-title {
+    margin: 5px 0 10px 0;
+}
+
+.ui-title h2 {
+    float: left;
+    font: 18px/20px "STHei", "Microsoft YaHei", "WenQuanYi Micro Hei";
+}
+
+.ui-paging {
+    margin-top: 20px;
+}
+
+.record-search-form {
+    /*border-top: 2px solid #b3cfee;*/
+    /*border-bottom: 1px solid #cbdaea;*/
+    border-top: 2px #C0C0C0 solid;
+    background: #E2EBF5;
+
+    margin-top: 5px;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    /*background-color: #fbfdff;*/
+    font-size: 14px;
+}
+
+.ui-autocomplete {
+    border: 1px solid #ccc;
+    background-color: #FFFFFF;
+    box-shadow: 2px 2px 2px #EEEEEE;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.ui-autocomplete-ctn {
+    margin: 0;
+    padding: 0;
+}
+
+.ui-autocomplete-item {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 30px;
+    padding: 0 10px 0 10px;
+    cursor: default;
+}
+
+.ui-autocomplete-item-hover {
+    background: #f2f2f2;
+}
+
+.ui-autocomplete-item-hl {
+    background: #F6FF94;
+}
+

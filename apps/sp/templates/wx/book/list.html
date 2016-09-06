@@ -1,0 +1,187 @@
+{% extends '../../layout.html' %}
+{% block title %}预约信息管理{% end %}
+{% block menu %}
+{% module menu('wx.book.order') %}
+{% end%}
+
+{% block pre_styles %}
+<link href="http://assets.spmjs.org/alice/tab/1.0.0/tab.css" rel="stylesheet">
+{% end %}
+{% block styles %}
+    <style>
+
+        .msg-list li {
+            float: left;
+            margin: 0 15px;
+        }
+        .appmsg_col {
+            display: inline-block;
+            vertical-align: top;
+            width: 33%;
+            font-size: 14px;
+            text-align: left;
+            font-size: 14px;
+            letter-spacing: normal;
+        }
+        .appmsg {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #d3d3d3;
+            background-color: #fff;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+        }
+        .appmsg_content {
+            padding: 0 14px;
+            border-bottom: 1px solid #d3d3d3;
+            position: relative;
+        }
+        .appmsg_title {
+            font-weight: 400;
+            font-style: normal;
+            font-size: 16px;
+            padding-top: 6px;
+            line-height: 28px;
+            max-height: 56px;
+            overflow: hidden;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+        .appmsg_info {
+            font-size: 13px;
+            line-height: 20px;
+            padding-bottom: 6px;
+        }
+        .appmsg_thumb_wrp {
+            height: 180px;
+            overflow: hidden;
+        }
+        .appmsg_thumb {
+            max-width: 100%;
+            max-height: 100%;
+
+        }
+        .appmsg_desc {
+            padding: 5px 0 10px;
+        }
+        .appmsg_opr {
+            background-color: #f4f4f4;
+        }
+        .appmsg_opr_item {
+            float: left;
+            line-height: 44px;
+            height: 44px;
+            text-align: center;
+            cursor: pointer
+        }
+        .with2 {
+            width: 50%;
+        }
+        .no_extra {
+            float: none;
+            width: auto;
+        }
+        .appmsg_date {
+            font-weight: 400;
+            font-style: normal;
+        }
+        .appmsg_thumb {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .panel {
+            display: none;
+        }
+        .icon18_common {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            line-height: 18px;
+            overflow: hidden;
+        }
+    </style>
+{% end %}
+{% block content %}
+<div>
+
+    <div class="ui-tab">
+        <ul class="ui-tab-items">
+            <li class="ui-tab-item">
+                <a href="{{ reverse_url('wx.book.order') }}">预约单</a>
+            </li>
+            <li class="ui-tab-item ui-tab-item-current">
+                <a href="javascript:;">预约管理</a>
+            </li>
+        </ul>
+    </div>
+    <div class="ui-title fn-clear">
+        <a class="ui-button ui-button-sblue fn-right" style="margin-top: -35px" href="{{ reverse_url('wx.book.add') }}">添加预订信息</a>
+    </div>
+
+
+    {% if page.rows %}
+        <ul>
+            {% for book in page.rows %}
+            <li class="appmsg_col">
+                <div class="appmsg">
+                    <div class="appmsg_content">
+                        <h4 class="appmsg_title"><a href="{{ url_concat(reverse_url('wx.book.detail'), {'book_id': book.id}) }}">{{ book.info['title'] }}</a></h4>
+                        <div class="appmsg_thumb_wrp">
+                            <img src="{{ book.info['pic'] }}" alt class="appmsg_thumb">
+                        </div>
+                        <p class="appmsg_desc">{{ book.info['desc'] }}</p>
+                    </div>
+                    <div class="appmsg_opr">
+                        <ul>
+                            <li class="appmsg_opr_item with2">
+                                <a href="{{ url_concat(reverse_url('wx.book.edit'), {'book_id': book.id}) }}">
+                                    <i class="icon18_common edit_gray">编辑</i>
+                                </a>
+                            </li>
+                            <li class="appmsg_opr_item with2 no_extra del_gray" data-del-id="{{ book.id }}">
+                                <a href="javascript:;">
+                                    <i class="icon18_common del_gray">删除</i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+            {% end %}
+        </ul>
+        {% raw page.links() %}
+    {% else %}
+        <div class="ui-tipbox ui-tipbox-message">
+            <div class="ui-tipbox-icon">
+                <i class="iconfont" title="提示">&#xF0142;</i>
+            </div>
+            <div class="ui-tipbox-content">
+                <h3 class="ui-tipbox-title">暂时未添加预约信息</h3>
+                <p class="ui-tipbox-explain"><a href="{{ reverse_url('wx.book.add') }}">添加预约信息</a></p>
+            </div>
+        </div>
+    {% end %}
+</div>
+{% end %}
+
+{% block scripts %}
+<script>
+    seajs.use(['$', 'autumn', 'confirmbox', 'validator'], function ($, autumn, ConfirmBox, Validator) {
+        $("li.del_gray").on('click', function(){
+            var book_id = $(this).attr('data-del-id');
+            ConfirmBox.confirm('是否确认删除该预订单', '确认删除', function(){
+                var action = "{{ reverse_url('wx.book.delete') }}";
+                $('<form></form>').attr('method', 'post').attr('action', action)
+                        .append($('<input type="hidden" name="book_id" />').attr('value', book_id))
+                        .append($('<input type="hidden" name="_xsrf" />').attr('value', autumn.get_cookie('_xsrf')))
+                        .appendTo(document.body).submit();
+            });
+        });
+    });
+</script>
+{% end %}

@@ -1,0 +1,102 @@
+{% extends "../layout.html" %}
+{% block title %}会员中心{% end %}
+
+{% block style %}
+<link href="http://assets.uhcdn.com/gallery/fa/css/font-awesome.min.css" rel="stylesheet">
+<style>
+   @font-face {
+    font-family: 'iconfont';
+    src: url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot'); /* IE9*/
+    src:
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.woff') format('woff'), /* chrome、firefox */
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+        url('http://assets.uhcdn.com/gallery/iconfont/iconfont.svg#uxiconfont') format('svg'); /* iOS 4.1- */
+    }
+    .iconfont {
+        font-family:"iconfont" !important;
+        font-style:normal;
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-stroke-width: 0.2px;
+        -moz-osx-font-smoothing: grayscale;
+    }
+</style>
+{% end %}
+
+{% block content %}
+{% module xsrf_form_html() %}
+
+    <div style="">
+    <div style="background: url(http://img0.uhcdn.com/p/45/382/498/528214cb_2014031111043545586_nw_260x160.png) center no-repeat; height: 160px; width: 260px; margin: 0 auto; position: relative;">
+        <span style="position: absolute; top: 20px; left: 20px; color: #FAE4A6; font-size: 11px">{{level}}</span>
+        <span style="position: absolute; bottom: 18px; right: 20px; color: #FAE4A6; font-size: 11px">编号：0000{{current_user.id}}</span>
+    </div>
+    <div style="margin-top:30px; margin-left:3%; margin-right:3%">
+        <div class="btn-group btn-group-lg btn-group-justified">
+            <div class="btn-group">
+                <a href="{{ url_concat(reverse_url('coupon'), {'wx_id': current_user.wx_id}) }}" class="btn btn-default" style="background-color: rgba(0, 0, 0, 0.25); color: #fff;">我的券<br/> {{default(coupon_num.num, '0')}} 张</a>
+            </div>
+            <div class="btn-group">
+                <a href="{{ url_concat(reverse_url('member.sign'), {'wx_id': current_user.wx_id}) }}" class="btn btn-default" style="background-color: rgba(0, 0, 0, 0.25); color: #fff;">我的积分 <br/> {{current_user.points}}分</a>
+            </div>
+            <div class="btn-group">
+                <a href="{{ url_concat(reverse_url('activity.sn_list'), {'wx_id': current_user.wx_id}) }}" class="btn btn-default" style="background-color: rgba(0, 0, 0, 0.25); color: #fff;">我的奖品<br/> {{default(sn_num.num,'0')}} 个</a>
+            </div>
+        </div>
+    </div>
+
+    <!--第一栏-->
+    <div style="margin-top:30px; ">
+        <div class="list-group">
+            <a href="{{url_concat( '/order', {'wx_id': current_user.wx_id})}}" class="list-group-item">
+                <i class="iconfont" style="color: #C26565">&#xf0178;</i>
+                微信订单
+            </a>
+            {% for b in first %}
+            {% if b.link_type == 0 %}
+            <a href="{{url_concat( b.value, {'wx_id': current_user.wx_id})}}" class="list-group-item">
+                <i class="iconfont" style="color: #C26565">{% raw b.icon %}</i>
+                {% if msg_num > 0 and b.name == '会员广播' %}
+                <span class="badge pull-right">{{default(msg_num, '0')}}</span>
+                {% end %}
+                {{b.name}}
+            </a>
+            {% else %}
+            <a href="javascript:;" class="list-group-item" id="tequan">
+                <i class="iconfont" style="color: #C26565">{% raw b.icon %}</i>
+                {{b.name}}
+            </a>
+            <div id="tequan-value" class="list-group-item" style="background-color: #eee; box-shadow: rgb(198, 202, 200) -3px 2px 9px inset; padding-left:50px; display:none">
+                {{b.value}}
+            </div>
+            {% end %}
+            {% end %}
+        </div>
+    </div>
+
+    <!--第二栏-->
+    <div style="margin-top:30px; ">
+        <div class="list-group">
+            {% for b in second%}
+            <a href="{{url_concat( b.value, {'wx_id': current_user.wx_id})}}" class="list-group-item">
+                <i class="iconfont" style="color: #C26565">{% raw b.icon %}</i>
+                {{b.name}}
+            </a>
+            {% end %}
+        </div>
+    </div>
+</div>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    $('#tequan').click(function(){
+        if($('#tequan-value').css('display') == 'none'){
+           $('#tequan-value').show();
+        } else {
+           $('#tequan-value').hide();
+        }
+    });
+</script>
+{% end %}

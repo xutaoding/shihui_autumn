@@ -1,0 +1,42 @@
+{% extends "../layout.html" %}
+{% block title %}分销商券验证{% end %}
+{% block menu %}
+{% module menu('coupon.distributor_verify') %}
+{% end%}
+
+{% block content %}
+<div class="ui-grid-row" style="margin-top: 50px;">
+    <div class="ui-grid-12">
+        <form class="ui-form" method="post" action="{{reverse_url('coupon.distributor_verify')}}" >
+            <fieldset>
+                <div class="ui-form-item">
+                    <label class="ui-label">券号列表:</label>
+                    <textarea rows="15" cols="50" name="coupons"></textarea>
+                    <p class="ui-form-explain">每行一个券</p>
+                </div>
+                <div class="ui-form-item">
+                    {% module xsrf_form_html() %}
+                    <input type="submit" class="ui-button ui-button-morange" value="批量验证">
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <div class="ui-grid-10">
+        <table class="ui-table">
+            <tr>
+                <th>券号</th>
+                <th>结果</th>
+                <th>消息</th>
+            </tr>
+            {% for result in result_list %}
+            <tr>
+                <td>{{result.coupon_sn}}</td>
+                <td>{{'成功' if result.ok else '失败'}}</td>
+                <td>{{result.msg}}</td>
+            </tr>
+            {% end %}
+        </table>
+    </div>
+</div>
+{% end %}

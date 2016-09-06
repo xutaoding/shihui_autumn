@@ -1,0 +1,240 @@
+{% extends "../layout.html" %}
+{% block title %}微商品购买{% end %}
+
+{% block style %}
+<style>
+    @font-face {
+    font-family: 'iconfont';
+    src: url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot'); /* IE9*/
+    src:
+    url('http://assets.uhcdn.com/gallery/iconfont/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('http://assets.uhcdn.com/gallery/iconfont/iconfont.woff') format('woff'), /* chrome、firefox */
+    url('http://assets.uhcdn.com/gallery/iconfont/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+    url('http://assets.uhcdn.com/gallery/iconfont/iconfont.svg#uxiconfont') format('svg'); /* iOS 4.1- */
+    }
+    .iconfont {
+    font-family:"iconfont" !important;
+    font-style:normal;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-stroke-width: 0.2px;
+    -moz-osx-font-smoothing: grayscale;
+    }
+</style>
+<style>
+    body {
+        background: none;
+    }
+    .goods-info {
+        position: relative;
+        margin: 10px;
+        min-height: 80px;
+    }
+    .goods-info-img-div {
+        position: absolute;
+        height: 100%;
+        max-width: 25%;
+        left: 0;
+    }
+    .goods-info-img {
+        display:block;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .goods-info-name {
+        margin-left: 30%
+    }
+    .goods-price-now {
+        color: red;
+        font-size: 16px;
+    }
+    .order-info {
+        background: #f4f4f4;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        margin-left: -5%;
+        margin-right: -5%;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        font-size: 16px;
+        border-top: 1px solid rgb(252, 189, 189);
+        border-bottom: 1px solid rgb(252, 189, 189);
+    }
+    .order-info > div {
+        height: 35px;
+        vertical-align:bottom;
+    }
+    .order-info-span {
+        width: 40%;
+        padding-left: 20%;
+        line-height: 35px;
+    }
+    .order-info-span-right {
+        line-height: 35px;
+    }
+    .order-info-num {
+        text-align: center;
+        height: 36px;
+        width: 50px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .shipping-info {
+        background: #f4f4f4;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        margin-left: -5%;
+        margin-right: -5%;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        font-size: 16px;
+        border-top: 1px solid rgb(252, 189, 189);
+        border-bottom: 1px solid rgb(252, 189, 189);
+    }
+    .shipping-info > div {
+        margin: 0 20%;
+    }
+</style>
+{% end %}
+
+{% block content%}
+        <div class="goods-info">
+            <div class="goods-info-img-div">
+                <img src="{{img_url(goods.img_path)}}" class="goods-info-img">
+            </div>
+            <div class="goods-info-name">
+                {{goods.short_name}}
+            </div>
+            <div class="goods-info-name">
+                售价：
+                <span class="goods-price-now">
+                    ￥{{goods.sales_price}}
+                </span><br/>
+                <span >
+                    <del> 原价：￥{{goods.face_value}}</del>
+                </span>
+            </div>
+        </div>
+        <div class="order-info">
+            <div class="form-group">
+                <span class="order-info-span">数量：</span>
+                <span class="order-info-span-right">
+                    <button class="btn btn-default iconfont" id="minus">&#xf0176;</button>
+                    <input  class="order-info-num" type="text" value="1" name="purchase_num" id="purchase_num">
+                    <button class="btn btn-default iconfont" id="plus">&#xf0175;</button>
+                </span>
+            </div>
+            <div style="margin-top: 14px">
+                <span class="order-info-span">库存：</span>
+                <span class="order-info-span-right">{{default(goods.stock, '0')}}件</span>
+                <input type="hidden" value="{{default(goods.stock, '0')}}" id="stock">
+            </div>
+            <div>
+                <span class="order-info-span">运费：</span>
+                <span class="order-info-span-right">{{default(goods.postage, '0.00')}}元</span>
+            </div>
+        </div>
+        {% if goods.type == 'E' %}
+        <div>收货手机</div>
+        <div class="shipping-info">
+            <div class="form-group">
+                <label for="mobile_input">手机号</label>
+                <input type="tel" id="mobile_input" name="mobile" class="form-control" value="{{current_user.mobile}}" style="imeMode:disabled">
+            </div>
+        </div>
+        {% else %}
+        <div>收货地址</div>
+        <div class="shipping-info">
+                <div class="form-group">
+                    <label for="name_input">姓名</label>
+                    <input type="text" id="name_input" name="name" class="form-control" value="{{current_user.name}}">
+                </div>
+                <div class="form-group">
+                    <label for="mobile_input">手机号</label>
+                    <input type="tel" id="mobile_input" name="mobile" class="form-control" value="{{current_user.mobile}}">
+                </div>
+                <div class="form-group">
+                    <label for="address_input">地址</label>
+                    <textarea class="form-control" id="address_input" name="address" >{{default(current_user.address,'')}}</textarea>
+                </div>
+                <div>
+                    <label for="zip_code">邮编</label>
+                    <input type="tel" id="zip_code" name="zip_code" class="form-control">
+                </div>
+        </div>
+        {% end %}
+        <div id="error" style="color: red; display: none; text-align: center;"></div>
+        <div class="fix-btn">
+            <form method="post" action="{{ reverse_url('mall.order_info') }}" id="form">
+                {% module xsrf_form_html() %}
+                <input type="hidden" name="num" id="num">
+                <input type="hidden" name="phone" id="phone">
+                <input type="hidden" name="type" id="type">
+                <input type="hidden" name="wx_id" value="{{ current_user.wx_id }}">
+                <input type="hidden" name="goods_id" value="{{ goods.id }}" id="goods_id">
+                <input type="button" class="btn btn-danger" value="提交订单" id="offer">
+            </form>
+        </div>
+
+{% end %}
+
+{% block scripts %}
+<script>
+    // 减个数按钮
+    $('#minus').click(function(){
+        var curNum = parseInt($('#purchase_num').val());
+        if (curNum > 1){
+            $('#purchase_num').val(curNum - 1);
+        }
+    });
+    // 加个数按钮
+    $('#plus').click(function(){
+        var curNum = parseInt($('#purchase_num').val());
+        var stock = parseInt($('#stock').val());
+        if (curNum < stock){
+            $('#purchase_num').val(curNum + 1);
+        }
+    });
+
+    // 提交订单按钮
+    $('#offer').on('click', function(){
+        var num = $('#purchase_num').val();
+        var phone = $('#mobile_input').val();
+
+        if (!(parseInt(num) > 0)){
+            var error = $('#error');
+            error.show();
+            error.text('购买数量错误');
+            error.delay(3000).hide(0);
+            return false;
+        }
+        if (num == '' || phone == '') {
+            var error = $('#error');
+            error.show();
+            error.text('订单信息不能为空');
+            error.delay(3000).hide(0);
+            return false;
+        }
+
+        $('#num').val(num);
+        $('#phone').val(phone);
+        $('#type').val("{{ goods.type }}");
+        if ("{{ goods.type }}" == 'R') {
+            var form_obj = $('#form');
+            var name = $('#name_input').val();
+            var zip_code = $('#zip_code').val();
+            var address = $('#address_input').val();
+            if (name == '' || zip_code == '' || address == '') {
+                var error = $('#error');
+                error.show();
+                error.text('订单信息不能为空');
+                error.delay(3000).hide(0);
+                return false;
+            }
+            form_obj.append('<input type="hidden" name="name" value="' + name + '">');
+            form_obj.append('<input type="hidden" name="zip_code" value="' + zip_code + '">');
+            form_obj.append('<input type="hidden" name="address" value="' + address + '">');
+        }
+        $('#form').submit();
+    });
+</script>
+{% end %}
